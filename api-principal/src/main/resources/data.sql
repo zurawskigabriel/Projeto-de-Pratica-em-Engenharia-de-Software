@@ -1,6 +1,6 @@
 INSERT INTO Usuario (Nome, Telefone, Email, Senha_hash, Tipo) VALUES 
-('João Silva', '(11) 99999-9999', 'joao@email.com', '$2a$10$xpto', 'Adotante'),
-('Maria Souza', '(11) 88888-8888', 'maria@email.com', '$2a$10$xpto', 'Protetor'),
+('João Silva', '(11) 99999-9999', 'joao@email.com', '$2a$10$xpto', 'ADOTANTE'),
+('Maria Souza', '(11) 88888-8888', 'maria@email.com', '$2a$10$xpto', 'PROTETOR'),
 ('ONG Pets Felizes', '(11) 77777-7777', 'ong@pets.com', '$2a$10$xpto', 'ONG');
 
 INSERT INTO HistoricoUsuario (Id_usuario, Mensagem) VALUES 
@@ -32,7 +32,7 @@ INSERT INTO Adocao (Id_pet, Id_adotante, Status) VALUES
 (1, 1, 'Pendente'),
 (2, 1, 'Aceita');
 
-INSERT INTO HistoricoAdocao (Id_adocao, Id_treinador) VALUES 
+INSERT INTO HistoricoAdocao (Id_adocao, Id_protetor) VALUES 
 (1, 3),
 (2, 3);
 
