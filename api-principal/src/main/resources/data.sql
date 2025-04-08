@@ -1,6 +1,6 @@
 INSERT INTO Usuario (Nome, Telefone, Email, Senha_hash, Tipo) VALUES 
-('João Silva', '(11) 99999-9999', 'joao@email.com', '$2a$10$xpto', 'ADOTANTE'),
-('Maria Souza', '(11) 88888-8888', 'maria@email.com', '$2a$10$xpto', 'PROTETOR'),
+('João Silva', '(11) 99999-9999', 'joao@email.com', '$2a$10$xpto', 'PESSOA'),
+('Maria Souza', '(11) 88888-8888', 'maria@email.com', '$2a$10$xpto', 'PESSOA'),
 ('ONG Pets Felizes', '(11) 77777-7777', 'ong@pets.com', '$2a$10$xpto', 'ONG');
 
 INSERT INTO HistoricoUsuario (Id_usuario, Mensagem) VALUES 

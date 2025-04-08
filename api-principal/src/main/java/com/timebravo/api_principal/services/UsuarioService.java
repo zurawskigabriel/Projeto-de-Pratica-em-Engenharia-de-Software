@@ -5,8 +5,11 @@ import com.timebravo.api_principal.dtos.UsuarioResponseDTO;
 import com.timebravo.api_principal.entities.Usuario;
 import com.timebravo.api_principal.repositories.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -25,7 +28,7 @@ public class UsuarioService {
     @Transactional
     public UsuarioResponseDTO criarUsuario(UsuarioDTO usuarioDTO) {
         if (usuarioRepository.existsByEmail(usuarioDTO.getEmail())) {
-            throw new RuntimeException("Email já está em uso");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email já está em uso");
         }
 
         Usuario usuario = new Usuario();

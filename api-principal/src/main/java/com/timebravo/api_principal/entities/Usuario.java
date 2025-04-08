@@ -46,8 +46,7 @@ public class Usuario {
     private TipoUsuario tipo;
     
     public enum TipoUsuario {
-        ADOTANTE("Adotante"),
-        PROTETOR("Protetor"),
+        PESSOA("Pessoa"),
         ONG("ONG");
         
         private final String descricao;
