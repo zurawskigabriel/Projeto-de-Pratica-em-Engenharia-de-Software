@@ -1,74 +1,180 @@
-import { Image, StyleSheet, Platform } from 'react-native';
-
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
+import React, { useState } from 'react';
+import { Image } from 'react-native';
+import {
+  StyleSheet,
+  Pressable,
+  FlatList,
+  ActivityIndicator,
+  Alert,
+  Text,
+  View,
+  TextInput,
+} from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { Ionicons } from '@expo/vector-icons';
+
+// Gera dados simulados
+const generateMockData = (startId: number, count: number) => {
+  return Array.from({ length: count }, (_, i) => ({
+    id: (startId + i).toString(),
+    name: `Item ${startId + i}`,
+  }));
+};
 
 export default function HomeScreen() {
+  const [data, setData] = useState(generateMockData(1, 10));
+  const [isLoading, setIsLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+
+  const renderItem = ({ item }) => (
+    <View style={styles.card}>
+      <Image
+        source={{ uri: 'https://reactnative.dev/img/tiny_logo.png' }}
+        style={styles.cardImage}
+      />
+      <View style={styles.cardContent}>
+        <Text style={styles.cardTitle}>{item.name}</Text>
+        <Text style={styles.cardDescription} numberOfLines={3}>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla ac erat at dui tempus 
+          condimentum. Suspendisse potenti.
+        </Text>
+      </View>
+    </View>
+  );
+
+  const fetchMoreData = () => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const nextId = data.length + 1;
+        const moreItems = generateMockData(nextId, 10);
+        resolve(moreItems);
+      }, 1000);
+    });
+  };
+
+  const loadMoreItems = async () => {
+    if (isLoading) return;
+    setIsLoading(true);
+
+    try {
+      const newData = await fetchMoreData();
+      setData((prevData) => [...prevData, ...newData]);
+    } catch (error) {
+      Alert.alert('Oops', 'Something went wrong.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
+    <View style={{ flex: 1 }}>
+      <ThemedView style={styles.headerContainer}>
+        <Pressable onPress={() => console.log('Voltar')} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color="white" />
+        </Pressable>
+        <ThemedText type="title" style={styles.headerTitle}>Explorar</ThemedText>
+        <View style={{ width: 24 }} /> {/* espaço igual ao botão, para centralizar título */}
+      </ThemedView>
+
+      <View style={styles.searchContainer}>
+        <Ionicons name="search" size={20} color="#888" style={{ marginRight: 8 }} />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Buscar item..."
+          value={searchQuery}
+          onChangeText={setSearchQuery}
         />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12'
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+      </View>
+
+
+      <FlatList
+        contentContainerStyle={styles.listContainer}
+        data={data.filter(item =>
+          item.name.toLowerCase().includes(searchQuery.toLowerCase())
+        )}        
+        renderItem={renderItem}
+        keyExtractor={(item) => item.id}
+        onEndReached={loadMoreItems}
+        onEndReachedThreshold={0.3}
+        ListFooterComponent={isLoading ? <ActivityIndicator style={{ margin: 16 }} /> : null}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
+  headerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    justifyContent: 'space-between',
+    backgroundColor: 'purple',
+    padding: 12,
+    borderBottomLeftRadius: 12,
+    borderBottomRightRadius: 12,
   },
-  stepContainer: {
-    gap: 8,
+  headerTitle: {
+    color: 'white',
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  backButton: {
+    padding: 4,
+  },
+  listContainer: {
+    padding: 16,
+  },
+  card: {
+    flexDirection: 'row',
+    backgroundColor: '#fff',
+    padding: 12,
+    borderRadius: 10,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
+    alignItems: 'center',
+  },
+  
+  cardImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 10,
+    marginRight: 12,
+  },
+  
+  cardContent: {
+    flex: 1,
+  },
+  
+  cardTitle: {
+    fontWeight: 'bold',
+    fontSize: 16,
+    marginBottom: 4,
+  },
+  
+  cardDescription: {
+    fontSize: 14,
+    color: '#666',
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f0f0f0',
+    borderRadius: 8,
+    marginHorizontal: 16,
+    marginTop: 12,
     marginBottom: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
+  
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+  }
+  
 });
