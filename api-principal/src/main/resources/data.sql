@@ -21,8 +21,8 @@ INSERT INTO Tags (Nome, Id_categoria) VALUES
 ('Banho', 3);
 
 INSERT INTO Pet (Id_usuario, Nome, Especie, Idade, Porte, Peso, Sexo, Bio) VALUES 
-(2, 'Rex', 'Cachorro', 3, 'Médio', 12.5, 'M', 'Cachorro muito brincalhão e amoroso'),
-(3, 'Luna', 'Gato', 2, 'Pequeno', 4.2, 'F', 'Gatinha tranquila que adora carinho');
+(2, 'Rex', 'Cachorro', 3, 'MEDIO', 12.5, 'M', 'Cachorro muito brincalhão e amoroso'),
+(3, 'Luna', 'Gato', 2, 'PEQUENO', 4.2, 'F', 'Gatinha tranquila que adora carinho');
 
 INSERT INTO HistoricoMedicoPet (Id_pet, Hospital, Resultado, Tratamento, Documento, Data) VALUES 
 (1, 'Hospital Vet Plus', 'Exame de rotina', 'Vacina V10', 'vacinacao_001.pdf', '2025-03-15'),
