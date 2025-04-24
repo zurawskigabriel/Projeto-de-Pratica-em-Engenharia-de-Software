@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+
 import {
     View,
     Text,
@@ -14,6 +15,8 @@ import {
 import { FontAwesome, FontAwesome5 } from '@expo/vector-icons';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { criarUsuario } from '../api/api';
+
 
 export default function CadastrarScreen() {
     const [senhaVisivel, setSenhaVisivel] = useState(false);
@@ -26,9 +29,23 @@ export default function CadastrarScreen() {
     const camposQueroAdotar = ['Nome', 'CPF', 'Email', 'Telefone'];
     const camposQueroDoar = ['Nome', 'CPF', 'Email', 'Telefone'];
 
-    const handleCadastro = () => {
-        setModalVisivel(true);
-    };
+    const handleCadastro = async () => {
+        const usuarioDTO = {
+          nome: "Exemplo", // você pode pegar dos TextInputs depois
+          telefone: "11999999999",
+          email: "usuario@email.com",
+          senha: "123456",
+          tipo: tipoPessoa === "queroAdotar" ? "PESSOA" : "ONG"
+        };
+      
+        try {
+          const resposta = await criarUsuario(usuarioDTO);
+          console.log("Usuário criado:", resposta);
+          setModalVisivel(true); // mostra modal de sucesso
+        } catch (error) {
+          alert(error.message); // mostra erro na tela
+        }
+      };
 
     const renderFormulario = () => (
         <>

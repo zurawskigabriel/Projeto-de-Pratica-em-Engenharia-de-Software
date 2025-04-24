@@ -3,6 +3,9 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from 'reac
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
+import { criarPet } from '../api/api';
+import * as FileSystem from 'expo-file-system'; // para converter imagem em base64
+
 
 export default function CadastrarPetScreen() {
   const [nome, setNome] = useState('');
@@ -67,7 +70,34 @@ export default function CadastrarPetScreen() {
         <Image source={{ uri: imagem }} style={styles.preview} />
       )}
 
-      <TouchableOpacity style={styles.botaoFinalizar}>
+      <TouchableOpacity
+        style={styles.botaoFinalizar}
+        onPress={async () => {
+          try {
+            const base64 = imagem
+              ? await FileSystem.readAsStringAsync(imagem, { encoding: FileSystem.EncodingType.Base64 })
+              : null;
+
+            const petDTO = {
+              idUsuario: 1, // depois use o ID do usuário logado
+              nome: nome,
+              especie: "Cachorro", // pode tornar dinâmico se quiser
+              idade: 3,
+              porte: "PEQUENO",
+              peso: 5.2,
+              sexo: "M",
+              bio: bio,
+              fotos: base64
+            };
+
+            const resposta = await criarPet(petDTO);
+            console.log("Pet criado:", resposta);
+            alert("Pet cadastrado com sucesso!");
+          } catch (e) {
+            alert(e.message);
+          }
+        }}
+      >
         <Text style={styles.botaoTexto}>Finalizar</Text>
       </TouchableOpacity>
     </View>
