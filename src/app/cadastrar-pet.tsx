@@ -1,0 +1,140 @@
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
+import { useRouter } from 'expo-router';
+
+export default function CadastrarPetScreen() {
+  const [nome, setNome] = useState('');
+  const [raca, setRaca] = useState('');
+  const [bio, setBio] = useState('');
+  const [imagem, setImagem] = useState<string | null>(null);
+
+  const router = useRouter();
+
+  const selecionarImagem = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setImagem(result.assets[0].uri);
+    }
+  };
+
+  return (
+    <View style={styles.container}>
+      <TouchableOpacity style={styles.voltar} onPress={() => router.back()}>
+        <Ionicons name="arrow-back" size={24} color="black" />
+      </TouchableOpacity>
+
+      <Text style={styles.title}>Cadastro de novo Pet</Text>
+
+      <TextInput
+        style={styles.input}
+        placeholder="Nome"
+        placeholderTextColor="#aaa"
+        value={nome}
+        onChangeText={setNome}
+      />
+
+      <TextInput
+        style={styles.input}
+        placeholder="Raça"
+        placeholderTextColor="#aaa"
+        value={raca}
+        onChangeText={setRaca}
+      />
+
+      <TextInput
+        style={[styles.input, styles.inputBio]}
+        placeholder="Bio / Informações adicionais"
+        placeholderTextColor="#aaa"
+        value={bio}
+        onChangeText={setBio}
+        multiline
+      />
+
+      <TouchableOpacity style={styles.botaoImagem} onPress={selecionarImagem}>
+        <Text style={styles.botaoTexto}>
+          {imagem ? 'Trocar imagem' : 'Adicionar Fotos'}
+        </Text>
+      </TouchableOpacity>
+
+      {imagem && (
+        <Image source={{ uri: imagem }} style={styles.preview} />
+      )}
+
+      <TouchableOpacity style={styles.botaoFinalizar}>
+        <Text style={styles.botaoTexto}>Finalizar</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    padding: 24,
+    paddingTop: 60,
+  },
+  voltar: {
+    position: 'absolute',
+    top: 48,
+    left: 24,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    alignSelf: 'center',
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  input: {
+    width: '100%',
+    backgroundColor: '#F6F6F6',
+    borderRadius: 10,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    marginBottom: 12,
+    fontSize: 16,
+    borderColor: 'rgba(0, 0, 0, 0.2)',
+    borderWidth: 1,
+  },
+  inputBio: {
+    height: 100,
+    textAlignVertical: 'top',
+  },
+  botaoImagem: {
+    backgroundColor: '#EAEAEA',
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginBottom: 16,
+    borderColor: 'rgba(0, 0, 0, 0.2)',
+    borderWidth: 1,
+  },
+  botaoFinalizar: {
+    backgroundColor: '#F6F6F6',
+    paddingVertical: 16,
+    borderRadius: 50,
+    alignItems: 'center',
+    marginTop: 8,
+    borderColor: 'rgba(0, 0, 0, 0.2)',
+    borderWidth: 1,
+  },
+  botaoTexto: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  
+  preview: {
+    width: '100%',
+    height: 180,
+    borderRadius: 10,
+    marginBottom: 16,
+  },
+});
