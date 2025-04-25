@@ -23,6 +23,14 @@ export default function CadastrarScreen() {
     const [senhaRepetidaVisivel, setSenhaRepetidaVisivel] = useState(false);
     const [promocoes, setPromocoes] = useState(false);
     const [tipoPessoa, setTipoPessoa] = useState<'queroAdotar' | 'queroDoar' | null>(null);
+    const [nome, setNome] = useState('');
+    
+    const [cpf, setCpf] = useState('');
+    const [email, setEmail] = useState('');
+    const [telefone, setTelefone] = useState('');
+    const [senha, setSenha] = useState('');
+    const [senhaRepetida, setSenhaRepetida] = useState('');
+
     const [modalVisivel, setModalVisivel] = useState(false);
     const router = useRouter();
 
@@ -30,22 +38,28 @@ export default function CadastrarScreen() {
     const camposQueroDoar = ['Nome', 'CPF', 'Email', 'Telefone'];
 
     const handleCadastro = async () => {
+        if (senha !== senhaRepetida) {
+          alert("As senhas não coincidem.");
+          return;
+        }
+      
         const usuarioDTO = {
-          nome: "Exemplo", // você pode pegar dos TextInputs depois
-          telefone: "11999999999",
-          email: "usuario@email.com",
-          senha: "123456",
+          nome,
+          telefone,
+          email,
+          senha,
           tipo: tipoPessoa === "queroAdotar" ? "PESSOA" : "ONG"
         };
       
         try {
           const resposta = await criarUsuario(usuarioDTO);
           console.log("Usuário criado:", resposta);
-          setModalVisivel(true); // mostra modal de sucesso
+          setModalVisivel(true);
         } catch (error) {
-          alert(error.message); // mostra erro na tela
+          alert(error.message);
         }
       };
+      
 
     const renderFormulario = () => (
         <>
@@ -55,40 +69,52 @@ export default function CadastrarScreen() {
 
             <Text style={styles.title}>Cadastrar</Text>
 
-            {(tipoPessoa === 'queroAdotar' ? camposQueroAdotar : camposQueroDoar).map((placeholder, index) => (
-                <TextInput
-                    key={index}
-                    style={styles.input}
-                    placeholder={placeholder}
-                    placeholderTextColor="#aaa"
-                />
-            ))}
+            <TextInput
+                style={styles.input}
+                placeholder="Nome"
+                value={nome}
+                onChangeText={setNome}
+                placeholderTextColor="#aaa"
+            />
+            <TextInput
+                style={styles.input}
+                placeholder="CPF"
+                value={cpf}
+                onChangeText={setCpf}
+                placeholderTextColor="#aaa"
+            />
+            <TextInput
+                style={styles.input}
+                placeholder="Email"
+                value={email}
+                onChangeText={setEmail}
+                placeholderTextColor="#aaa"
+            />
+            <TextInput
+                style={styles.input}
+                placeholder="Telefone"
+                value={telefone}
+                onChangeText={setTelefone}
+                placeholderTextColor="#aaa"
+            />
 
-            {/* Senha */}
-            <View style={styles.inputComIcone}>
-                <TextInput
-                    style={styles.inputInterno}
-                    placeholder="Senha"
-                    placeholderTextColor="#aaa"
-                    secureTextEntry={!senhaVisivel}
-                />
-                <TouchableOpacity onPress={() => setSenhaVisivel(!senhaVisivel)}>
-                    <Ionicons name={senhaVisivel ? 'eye-off' : 'eye'} size={24} color="black" />
-                </TouchableOpacity>
-            </View>
-
-            {/* Repetir senha */}
-            <View style={styles.inputComIcone}>
-                <TextInput
-                    style={styles.inputInterno}
-                    placeholder="Repita a senha"
-                    placeholderTextColor="#aaa"
-                    secureTextEntry={!senhaRepetidaVisivel}
-                />
-                <TouchableOpacity onPress={() => setSenhaRepetidaVisivel(!senhaRepetidaVisivel)}>
-                    <Ionicons name={senhaRepetidaVisivel ? 'eye-off' : 'eye'} size={24} color="black" />
-                </TouchableOpacity>
-            </View>
+            <TextInput
+                style={styles.inputInterno}
+                placeholder="Senha"
+                value={senha}
+                onChangeText={setSenha}
+                placeholderTextColor="#aaa"
+                secureTextEntry={!senhaVisivel}
+            />
+        
+            <TextInput
+                style={styles.inputInterno}
+                placeholder="Repita a senha"
+                value={senhaRepetida}
+                onChangeText={setSenhaRepetida}
+                placeholderTextColor="#aaa"
+                secureTextEntry={!senhaRepetidaVisivel}
+            />
 
             <View style={styles.checkboxRow}>
                 <Switch

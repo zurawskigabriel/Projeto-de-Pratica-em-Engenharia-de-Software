@@ -1,4 +1,4 @@
-const BASE_URL = "http://localhost:8080/api"; // Substitua pelo IP da sua máquina na rede
+const BASE_URL = "http://localhost:8080/api"; 
 
 export async function criarUsuario(dadosUsuario) {
   const response = await fetch(`${BASE_URL}/usuarios`, {

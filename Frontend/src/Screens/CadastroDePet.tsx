@@ -38,26 +38,24 @@ export default function CadastrarPetScreen() {
       <TextInput
         style={styles.input}
         placeholder="Nome"
-        placeholderTextColor="#aaa"
         value={nome}
         onChangeText={setNome}
+        placeholderTextColor="#aaa"
       />
-
       <TextInput
         style={styles.input}
         placeholder="Raça"
-        placeholderTextColor="#aaa"
         value={raca}
         onChangeText={setRaca}
+        placeholderTextColor="#aaa"
       />
-
       <TextInput
         style={[styles.input, styles.inputBio]}
         placeholder="Bio / Informações adicionais"
-        placeholderTextColor="#aaa"
         value={bio}
         onChangeText={setBio}
         multiline
+        placeholderTextColor="#aaa"
       />
 
       <TouchableOpacity style={styles.botaoImagem} onPress={selecionarImagem}>
