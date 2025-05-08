@@ -54,11 +54,12 @@ public class UsuarioService {
     }
 
     public UsuarioResponseDTO buscarUsuarioPorId(Long id) {
-        Optional<Usuario> usuarioOptional = usuarioRepository.findById(id);
-        if (usuarioOptional.isEmpty()) {
-            throw new RuntimeException("Usuário não encontrado");
-        }
-        return convertToResponseDTO(usuarioOptional.get());
+        Usuario usuario = usuarioRepository.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.NOT_FOUND,
+                "Usuário não encontrado"
+            ));
+        return convertToResponseDTO(usuario);
     }
 
     @Transactional
