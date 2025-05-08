@@ -45,6 +45,11 @@ public class Usuario {
     @Enumerated(EnumType.STRING)
     private TipoUsuario tipo;
     
+    @NotNull(message = "O perfil de usuário é obrigatório")
+    @Enumerated(EnumType.STRING)
+    @Column(name = "Perfil_usuario", nullable = false, length = 20)
+    private PerfilUsuario perfilUsuario;
+
     public enum TipoUsuario {
         PESSOA("Pessoa"),
         ONG("ONG");
@@ -57,6 +62,33 @@ public class Usuario {
         
         public String getDescricao() {
             return descricao;
+        }
+    }
+
+    public enum PerfilUsuario {
+        ADOTANTE("Adotante"),
+        PROTETOR("Protetor"),
+        AMBOS("Ambos");
+        
+        private final String descricao;
+        
+        PerfilUsuario(String descricao) {
+            this.descricao = descricao;
+        }
+        
+        public String getDescricao() {
+            return descricao;
+        }
+    }
+
+    @PrePersist
+    @PreUpdate
+    private void validarPerfilParaOng() {
+        if (TipoUsuario.ONG.equals(this.tipo) 
+            && !PerfilUsuario.PROTETOR.equals(this.perfilUsuario)) {
+            throw new IllegalStateException(
+                "Usuários do tipo ONG só podem ter perfil PROTETOR"
+            );
         }
     }
 
@@ -114,5 +146,13 @@ public class Usuario {
 
     public void setTipo(TipoUsuario tipo) {
         this.tipo = tipo;
+    }
+
+    public PerfilUsuario getPerfilUsuario() {
+        return perfilUsuario;
+    }
+
+    public void setPerfilUsuario(PerfilUsuario perfilUsuario) {
+        this.perfilUsuario = perfilUsuario;
     }
 }

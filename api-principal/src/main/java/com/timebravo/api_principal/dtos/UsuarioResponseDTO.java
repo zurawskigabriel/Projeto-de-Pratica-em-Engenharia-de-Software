@@ -1,5 +1,6 @@
 package com.timebravo.api_principal.dtos;
 
+import com.timebravo.api_principal.entities.Usuario.PerfilUsuario;
 import com.timebravo.api_principal.entities.Usuario.TipoUsuario;
 import java.time.LocalDateTime;
 
@@ -10,6 +11,7 @@ public class UsuarioResponseDTO {
     private String email;
     private LocalDateTime dataCadastro;
     private TipoUsuario tipo;
+    private PerfilUsuario perfilUsuario;
 
     public Long getId() {
         return id;
@@ -57,5 +59,13 @@ public class UsuarioResponseDTO {
 
     public void setTipo(TipoUsuario tipo) {
         this.tipo = tipo;
+    }
+
+    public PerfilUsuario getPerfilUsuario() {
+        return perfilUsuario;
+    }
+
+    public void setPerfilUsuario(PerfilUsuario perfilUsuario) {
+        this.perfilUsuario = perfilUsuario;
     }
 }
