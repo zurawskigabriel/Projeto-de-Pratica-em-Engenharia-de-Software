@@ -7,6 +7,8 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "Usuario")
@@ -44,6 +46,14 @@ public class Usuario {
     @Column(name = "Tipo", nullable = false, length = 20)
     @Enumerated(EnumType.STRING)
     private TipoUsuario tipo;
+
+    @OneToMany(
+        mappedBy = "adotante",
+        cascade = CascadeType.REMOVE,
+        orphanRemoval = true,
+        fetch = FetchType.LAZY
+    )
+    private List<Adocao> adocoesComoAdotante = new ArrayList<>();
     
     public enum TipoUsuario {
         PESSOA("Pessoa"),
@@ -114,5 +124,13 @@ public class Usuario {
 
     public void setTipo(TipoUsuario tipo) {
         this.tipo = tipo;
+    }
+
+    public List<Adocao> getAdocoesComoAdotante() {
+        return adocoesComoAdotante;
+    }
+
+    public void setAdocoesComoAdotante(List<Adocao> adocoesComoAdotante) {
+        this.adocoesComoAdotante = adocoesComoAdotante;
     }
 }

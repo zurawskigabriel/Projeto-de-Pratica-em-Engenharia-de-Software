@@ -88,7 +88,10 @@ public class UsuarioService {
     @Transactional
     public void deletarUsuario(Long id) {
         if (!usuarioRepository.existsById(id)) {
-            throw new RuntimeException("Usuário não encontrado");
+            throw new ResponseStatusException(
+            HttpStatus.NOT_FOUND,
+            "Usuário não encontrado"
+        );
         }
         usuarioRepository.deleteById(id);
     }
