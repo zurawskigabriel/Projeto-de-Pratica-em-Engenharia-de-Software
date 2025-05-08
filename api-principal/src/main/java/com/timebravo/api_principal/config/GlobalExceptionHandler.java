@@ -1,4 +1,4 @@
-package com.timebravo.api_principal.exceptions;
+package com.timebravo.api_principal.config;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
