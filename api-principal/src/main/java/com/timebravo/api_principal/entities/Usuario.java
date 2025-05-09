@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "Usuario")
+@Table(name = "usuario")
 public class Usuario {
     
     @Id
@@ -54,6 +54,14 @@ public class Usuario {
         fetch = FetchType.LAZY
     )
     private List<Adocao> adocoesComoAdotante = new ArrayList<>();
+
+    @OneToMany(
+        mappedBy = "usuario",
+        cascade = CascadeType.REMOVE,
+        orphanRemoval = true,
+        fetch = FetchType.LAZY
+    )
+    private List<HistoricoUsuario> historico = new ArrayList<>();
     
     public enum TipoUsuario {
         PESSOA("Pessoa"),
@@ -70,67 +78,30 @@ public class Usuario {
         }
     }
 
-    public Long getId() {
-        return id;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public String getNome() { return nome; }
+    public void setNome(String nome) { this.nome = nome; }
 
-    public String getNome() {
-        return nome;
-    }
+    public String getTelefone() { return telefone; }
+    public void setTelefone(String telefone) { this.telefone = telefone; }
 
-    public void setNome(String nome) {
-        this.nome = nome;
-    }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
 
-    public String getTelefone() {
-        return telefone;
-    }
+    public String getSenhaHash() { return senhaHash; }
+    public void setSenhaHash(String senhaHash) { this.senhaHash = senhaHash; }
 
-    public void setTelefone(String telefone) {
-        this.telefone = telefone;
-    }
+    public LocalDateTime getDataCadastro() { return dataCadastro; }
+    public void setDataCadastro(LocalDateTime dataCadastro) { this.dataCadastro = dataCadastro; }
 
-    public String getEmail() {
-        return email;
-    }
+    public TipoUsuario getTipo() { return tipo; }
+    public void setTipo(TipoUsuario tipo) { this.tipo = tipo; }
 
-    public void setEmail(String email) {
-        this.email = email;
-    }
+    public List<Adocao> getAdocoesComoAdotante() { return adocoesComoAdotante; }
+    public void setAdocoesComoAdotante(List<Adocao> adocoesComoAdotante) { this.adocoesComoAdotante = adocoesComoAdotante; }
 
-    public String getSenhaHash() {
-        return senhaHash;
-    }
-
-    public void setSenhaHash(String senhaHash) {
-        this.senhaHash = senhaHash;
-    }
-
-    public LocalDateTime getDataCadastro() {
-        return dataCadastro;
-    }
-
-    public void setDataCadastro(LocalDateTime dataCadastro) {
-        this.dataCadastro = dataCadastro;
-    }
-
-    public TipoUsuario getTipo() {
-        return tipo;
-    }
-
-    public void setTipo(TipoUsuario tipo) {
-        this.tipo = tipo;
-    }
-
-    public List<Adocao> getAdocoesComoAdotante() {
-        return adocoesComoAdotante;
-    }
-
-    public void setAdocoesComoAdotante(List<Adocao> adocoesComoAdotante) {
-        this.adocoesComoAdotante = adocoesComoAdotante;
-    }
+    public List<HistoricoUsuario> getHistorico() { return historico; }
+    public void setHistorico(List<HistoricoUsuario> historico) { this.historico = historico; }
 }

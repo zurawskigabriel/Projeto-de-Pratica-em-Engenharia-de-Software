@@ -1,5 +1,7 @@
 package com.timebravo.api_principal.entities;
 
+import java.util.ArrayList;
+import java.util.List;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 
@@ -13,8 +15,9 @@ public class Adocao {
     private Long id;
 
     @NotNull
-    @Column(name = "Id_pet", nullable = false)
-    private Long idPet;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "Id_pet", nullable = false)
+    private Pet pet;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
@@ -26,6 +29,14 @@ public class Adocao {
     @Column(name = "Status", nullable = false, length = 20)
     private StatusAdocao status;
 
+    @OneToMany(
+         mappedBy = "adocao",
+         cascade = CascadeType.REMOVE,
+         orphanRemoval = true,
+         fetch = FetchType.LAZY
+     )
+     private List<HistoricoAdocao> historicoAdocao = new ArrayList<>();
+
     public enum StatusAdocao {
         Pendente,
         Aceita,
@@ -33,35 +44,18 @@ public class Adocao {
         Finalizada
     }
 
-    public Long getId() {
-        return id;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public Pet getPet() { return pet; }
+    public void setPet(Pet pet) { this.pet = pet; }
 
-    public Long getIdPet() {
-        return idPet;
-    }
+    public Usuario getAdotante() { return adotante; }
+    public void setAdotante(Usuario adotante) { this.adotante = adotante; }
 
-    public void setIdPet(Long idPet) {
-        this.idPet = idPet;
-    }
+    public StatusAdocao getStatus() { return status; }
+    public void setStatus(StatusAdocao status) { this.status = status; }
 
-    public Usuario getAdotante() {
-        return adotante;
-    }
-
-    public void setAdotante(Usuario adotante) {
-        this.adotante = adotante;
-    }
-
-    public StatusAdocao getStatus() {
-        return status;
-    }
-
-    public void setStatus(StatusAdocao status) {
-        this.status = status;
-    }
+    public List<HistoricoAdocao> getHistoricoAdocao() { return historicoAdocao; }
+    public void setHistoricoAdocao(List<HistoricoAdocao> historicoAdocao) { this.historicoAdocao = historicoAdocao; }
 }
