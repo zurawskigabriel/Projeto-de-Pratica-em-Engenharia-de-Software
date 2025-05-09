@@ -1,5 +1,7 @@
 package com.timebravo.api_principal.entities;
 
+import java.util.ArrayList;
+import java.util.List;
 import jakarta.persistence.*;
 
 @Entity
@@ -46,6 +48,29 @@ public class Pet {
     @Column(name = "Fotos")
     private byte[] fotos;
 
+    @OneToMany(
+    mappedBy = "pet",
+    cascade = CascadeType.REMOVE,
+    orphanRemoval = true
+    )
+    private List<Adocao> adocoes = new ArrayList<>();
+
+    @OneToMany(
+         mappedBy = "pet",
+         cascade = CascadeType.REMOVE,
+         orphanRemoval = true,
+         fetch = FetchType.LAZY
+     )
+     private List<HistoricoMedicoPet> historicoMedico = new ArrayList<>();
+
+     @OneToMany(
+         mappedBy = "pet",
+         cascade = CascadeType.REMOVE,
+         orphanRemoval = true,
+         fetch = FetchType.LAZY
+     )
+     private List<TagsPet> tagsPet = new ArrayList<>();
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -75,4 +100,13 @@ public class Pet {
 
     public byte[] getFotos() { return fotos; }
     public void setFotos(byte[] fotos) { this.fotos = fotos; }
+
+    public List<Adocao> getAdocoes() { return adocoes; }
+    public void setAdocoes(List<Adocao> adocoes) { this.adocoes = adocoes; }
+
+    public List<HistoricoMedicoPet> getHistoricoMedico() { return historicoMedico; }
+    public void setHistoricoMedico(List<HistoricoMedicoPet> historicoMedico) { this.historicoMedico = historicoMedico; }
+
+     public List<TagsPet> getTagsPet() { return tagsPet; }
+     public void setTagsPet(List<TagsPet> tagsPet) { this.tagsPet = tagsPet; }
 }

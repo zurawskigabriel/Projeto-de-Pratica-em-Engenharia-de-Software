@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/usuarios")
@@ -48,8 +49,9 @@ public class UsuarioController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletarUsuario(@PathVariable Long id) {
+    public ResponseEntity<Map<String, String>> deletarUsuario(@PathVariable Long id) {
         usuarioService.deletarUsuario(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity
+            .ok(Map.of("message", "Usuário deletado com sucesso"));
     }
 }
