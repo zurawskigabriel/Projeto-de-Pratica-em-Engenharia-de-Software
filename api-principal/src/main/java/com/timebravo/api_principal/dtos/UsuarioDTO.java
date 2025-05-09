@@ -1,5 +1,6 @@
 package com.timebravo.api_principal.dtos;
 
+import com.timebravo.api_principal.entities.Usuario.PerfilUsuario;
 import com.timebravo.api_principal.entities.Usuario.TipoUsuario;
 import jakarta.validation.constraints.*;
 
@@ -22,6 +23,9 @@ public class UsuarioDTO {
     
     @NotNull(message = "O tipo é obrigatório")
     private TipoUsuario tipo;
+
+    @NotNull(message = "O perfil de usuário é obrigatório")
+    private PerfilUsuario perfilUsuario;
 
     public String getNome() {
         return nome;
@@ -61,5 +65,13 @@ public class UsuarioDTO {
 
     public void setTipo(TipoUsuario tipo) {
         this.tipo = tipo;
+    }
+
+    public PerfilUsuario getPerfilUsuario() {
+        return perfilUsuario;
+    }
+
+    public void setPerfilUsuario(PerfilUsuario perfilUsuario) {
+        this.perfilUsuario = perfilUsuario;
     }
 }

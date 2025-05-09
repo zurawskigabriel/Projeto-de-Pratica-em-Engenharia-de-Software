@@ -6,7 +6,9 @@ CREATE TABLE IF NOT EXISTS usuario (
     Senha_hash VARCHAR(255) NOT NULL,
     Data_cadastro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     Tipo VARCHAR(20) NOT NULL,
-    CHECK (Tipo IN ('PESSOA', 'ONG'))
+    CHECK (Tipo IN ('PESSOA', 'ONG')),
+    Perfil_usuario   VARCHAR(20) NOT NULL,
+    CHECK (Perfil_usuario IN ('ADOTANTE', 'PROTETOR', 'AMBOS'))
 );
 
 CREATE TABLE IF NOT EXISTS historico_usuario (

@@ -3,6 +3,8 @@ package com.timebravo.api_principal.services;
 import com.timebravo.api_principal.dtos.UsuarioDTO;
 import com.timebravo.api_principal.dtos.UsuarioResponseDTO;
 import com.timebravo.api_principal.entities.Usuario;
+import com.timebravo.api_principal.entities.Usuario.PerfilUsuario;
+import com.timebravo.api_principal.entities.Usuario.TipoUsuario;
 import com.timebravo.api_principal.repositories.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -31,12 +33,15 @@ public class UsuarioService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email já está em uso");
         }
 
+        validarRegraOng(usuarioDTO.getTipo(), usuarioDTO.getPerfilUsuario());
+
         Usuario usuario = new Usuario();
         usuario.setNome(usuarioDTO.getNome());
         usuario.setTelefone(usuarioDTO.getTelefone());
         usuario.setEmail(usuarioDTO.getEmail());
         usuario.setSenhaHash(usuarioDTO.getSenha());
         usuario.setTipo(usuarioDTO.getTipo());
+        usuario.setPerfilUsuario(usuarioDTO.getPerfilUsuario());
         usuario.setDataCadastro(LocalDateTime.now());
 
         Usuario usuarioSalvo = usuarioRepository.save(usuario);
@@ -59,30 +64,31 @@ public class UsuarioService {
 
     @Transactional
     public UsuarioResponseDTO atualizarUsuario(Long id, UsuarioDTO usuarioDTO) {
-        Optional<Usuario> usuarioOptional = usuarioRepository.findById(id);
-        if (usuarioOptional.isEmpty()) {
-            throw new RuntimeException("Usuário não encontrado");
+        Usuario usuario = usuarioRepository.findById(id)
+            .orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado")
+            );
+
+        if (!usuario.getEmail().equals(usuarioDTO.getEmail())
+            && usuarioRepository.existsByEmail(usuarioDTO.getEmail())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email já está em uso");
         }
 
-        Usuario usuario = usuarioOptional.get();
+        validarRegraOng(usuarioDTO.getTipo(), usuarioDTO.getPerfilUsuario());
+
         usuario.setNome(usuarioDTO.getNome());
         usuario.setTelefone(usuarioDTO.getTelefone());
-        
-        if (!usuario.getEmail().equals(usuarioDTO.getEmail())) {
-            if (usuarioRepository.existsByEmail(usuarioDTO.getEmail())) {
-                throw new RuntimeException("Email já está em uso");
-            }
-            usuario.setEmail(usuarioDTO.getEmail());
-        }
+        usuario.setEmail(usuarioDTO.getEmail());
         
         if (usuarioDTO.getSenha() != null && !usuarioDTO.getSenha().isEmpty()) {
             usuario.setSenhaHash(usuarioDTO.getSenha());
         }
         
         usuario.setTipo(usuarioDTO.getTipo());
+        usuario.setPerfilUsuario(usuarioDTO.getPerfilUsuario());
 
-        Usuario usuarioAtualizado = usuarioRepository.save(usuario);
-        return convertToResponseDTO(usuarioAtualizado);
+        Usuario atualizado = usuarioRepository.save(usuario);
+        return convertToResponseDTO(atualizado);
     }
 
     @Transactional
@@ -96,6 +102,15 @@ public class UsuarioService {
         usuarioRepository.deleteById(id);
     }
 
+    private void validarRegraOng(TipoUsuario tipo, PerfilUsuario perfil) {
+        if (TipoUsuario.ONG.equals(tipo) && !PerfilUsuario.PROTETOR.equals(perfil)) {
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "Usuários do tipo ONG só podem ter perfil PROTETOR"
+            );
+        }
+    }
+
     private UsuarioResponseDTO convertToResponseDTO(Usuario usuario) {
         UsuarioResponseDTO responseDTO = new UsuarioResponseDTO();
         responseDTO.setId(usuario.getId());
@@ -104,6 +119,7 @@ public class UsuarioService {
         responseDTO.setEmail(usuario.getEmail());
         responseDTO.setDataCadastro(usuario.getDataCadastro());
         responseDTO.setTipo(usuario.getTipo());
+        responseDTO.setPerfilUsuario(usuario.getPerfilUsuario());
         return responseDTO;
     }
 }

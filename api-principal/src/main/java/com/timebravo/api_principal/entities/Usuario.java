@@ -47,6 +47,11 @@ public class Usuario {
     @Enumerated(EnumType.STRING)
     private TipoUsuario tipo;
 
+    @NotNull(message = "O perfil de usuário é obrigatório")
+    @Enumerated(EnumType.STRING)
+    @Column(name = "Perfil_usuario", nullable = false, length = 20)
+    private PerfilUsuario perfilUsuario;
+
     @OneToMany(
         mappedBy = "adotante",
         cascade = CascadeType.REMOVE,
@@ -78,6 +83,33 @@ public class Usuario {
         }
     }
 
+    public enum PerfilUsuario {
+        ADOTANTE("Adotante"),
+        PROTETOR("Protetor"),
+        AMBOS("Ambos");
+        
+        private final String descricao;
+        
+        PerfilUsuario(String descricao) {
+            this.descricao = descricao;
+        }
+        
+        public String getDescricao() {
+            return descricao;
+        }
+    }
+
+    @PrePersist
+    @PreUpdate
+    private void validarPerfilParaOng() {
+        if (TipoUsuario.ONG.equals(this.tipo) 
+            && !PerfilUsuario.PROTETOR.equals(this.perfilUsuario)) {
+            throw new IllegalStateException(
+                "Usuários do tipo ONG só podem ter perfil PROTETOR"
+            );
+        }
+    }
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -98,6 +130,9 @@ public class Usuario {
 
     public TipoUsuario getTipo() { return tipo; }
     public void setTipo(TipoUsuario tipo) { this.tipo = tipo; }
+
+    public PerfilUsuario getPerfilUsuario() { return perfilUsuario; }
+    public void setPerfilUsuario(PerfilUsuario perfilUsuario) { this.perfilUsuario = perfilUsuario; }
 
     public List<Adocao> getAdocoesComoAdotante() { return adocoesComoAdotante; }
     public void setAdocoesComoAdotante(List<Adocao> adocoesComoAdotante) { this.adocoesComoAdotante = adocoesComoAdotante; }
