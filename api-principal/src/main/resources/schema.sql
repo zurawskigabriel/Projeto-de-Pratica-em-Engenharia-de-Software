@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS pet (
     Id_usuario BIGINT NOT NULL,
     Nome VARCHAR(100) NOT NULL,
     Especie VARCHAR(50) NOT NULL,
+    Raca VARCHAR(70) NOT NULL,
     Idade INT,
     Porte VARCHAR(20),
     Peso DOUBLE,

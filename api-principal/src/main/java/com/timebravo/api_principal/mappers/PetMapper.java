@@ -12,6 +12,7 @@ public class PetMapper {
         dto.setIdUsuario(pet.getUsuario().getId());
         dto.setNome(pet.getNome());
         dto.setEspecie(pet.getEspecie());
+        dto.setRaca(pet.getRaca());
         dto.setIdade(pet.getIdade());
         dto.setPeso(pet.getPeso());
         dto.setBio(pet.getBio());
@@ -30,6 +31,7 @@ public class PetMapper {
         pet.setUsuario(usuario);
         pet.setNome(dto.getNome());
         pet.setEspecie(dto.getEspecie());
+        pet.setRaca(dto.getRaca());
         pet.setIdade(dto.getIdade());
         pet.setPeso(dto.getPeso());
         pet.setBio(dto.getBio());
