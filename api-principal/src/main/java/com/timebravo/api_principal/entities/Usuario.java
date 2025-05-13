@@ -7,9 +7,11 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
-@Table(name = "Usuario")
+@Table(name = "usuario")
 public class Usuario {
     
     @Id
@@ -44,6 +46,27 @@ public class Usuario {
     @Column(name = "Tipo", nullable = false, length = 20)
     @Enumerated(EnumType.STRING)
     private TipoUsuario tipo;
+
+    @NotNull(message = "O perfil de usuário é obrigatório")
+    @Enumerated(EnumType.STRING)
+    @Column(name = "Perfil_usuario", nullable = false, length = 20)
+    private PerfilUsuario perfilUsuario;
+
+    @OneToMany(
+        mappedBy = "adotante",
+        cascade = CascadeType.REMOVE,
+        orphanRemoval = true,
+        fetch = FetchType.LAZY
+    )
+    private List<Adocao> adocoesComoAdotante = new ArrayList<>();
+
+    @OneToMany(
+        mappedBy = "usuario",
+        cascade = CascadeType.REMOVE,
+        orphanRemoval = true,
+        fetch = FetchType.LAZY
+    )
+    private List<HistoricoUsuario> historico = new ArrayList<>();
     
     public enum TipoUsuario {
         PESSOA("Pessoa"),
@@ -60,59 +83,60 @@ public class Usuario {
         }
     }
 
-    public Long getId() {
-        return id;
+    public enum PerfilUsuario {
+        ADOTANTE("Adotante"),
+        PROTETOR("Protetor"),
+        AMBOS("Ambos");
+        
+        private final String descricao;
+        
+        PerfilUsuario(String descricao) {
+            this.descricao = descricao;
+        }
+        
+        public String getDescricao() {
+            return descricao;
+        }
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    @PrePersist
+    @PreUpdate
+    private void validarPerfilParaOng() {
+        if (TipoUsuario.ONG.equals(this.tipo) 
+            && !PerfilUsuario.PROTETOR.equals(this.perfilUsuario)) {
+            throw new IllegalStateException(
+                "Usuários do tipo ONG só podem ter perfil PROTETOR"
+            );
+        }
     }
 
-    public String getNome() {
-        return nome;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public void setNome(String nome) {
-        this.nome = nome;
-    }
+    public String getNome() { return nome; }
+    public void setNome(String nome) { this.nome = nome; }
 
-    public String getTelefone() {
-        return telefone;
-    }
+    public String getTelefone() { return telefone; }
+    public void setTelefone(String telefone) { this.telefone = telefone; }
 
-    public void setTelefone(String telefone) {
-        this.telefone = telefone;
-    }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
 
-    public String getEmail() {
-        return email;
-    }
+    public String getSenhaHash() { return senhaHash; }
+    public void setSenhaHash(String senhaHash) { this.senhaHash = senhaHash; }
 
-    public void setEmail(String email) {
-        this.email = email;
-    }
+    public LocalDateTime getDataCadastro() { return dataCadastro; }
+    public void setDataCadastro(LocalDateTime dataCadastro) { this.dataCadastro = dataCadastro; }
 
-    public String getSenhaHash() {
-        return senhaHash;
-    }
+    public TipoUsuario getTipo() { return tipo; }
+    public void setTipo(TipoUsuario tipo) { this.tipo = tipo; }
 
-    public void setSenhaHash(String senhaHash) {
-        this.senhaHash = senhaHash;
-    }
+    public PerfilUsuario getPerfilUsuario() { return perfilUsuario; }
+    public void setPerfilUsuario(PerfilUsuario perfilUsuario) { this.perfilUsuario = perfilUsuario; }
 
-    public LocalDateTime getDataCadastro() {
-        return dataCadastro;
-    }
+    public List<Adocao> getAdocoesComoAdotante() { return adocoesComoAdotante; }
+    public void setAdocoesComoAdotante(List<Adocao> adocoesComoAdotante) { this.adocoesComoAdotante = adocoesComoAdotante; }
 
-    public void setDataCadastro(LocalDateTime dataCadastro) {
-        this.dataCadastro = dataCadastro;
-    }
-
-    public TipoUsuario getTipo() {
-        return tipo;
-    }
-
-    public void setTipo(TipoUsuario tipo) {
-        this.tipo = tipo;
-    }
+    public List<HistoricoUsuario> getHistorico() { return historico; }
+    public void setHistorico(List<HistoricoUsuario> historico) { this.historico = historico; }
 }

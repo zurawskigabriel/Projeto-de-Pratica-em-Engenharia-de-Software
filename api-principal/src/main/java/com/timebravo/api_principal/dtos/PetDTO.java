@@ -17,6 +17,10 @@ public class PetDTO {
     @Size(max = 50, message = "A espécie deve ter no máximo 50 caracteres")
     private String especie;
 
+    @NotBlank(message = "A raça é obrigatória")
+    @Size(max = 70, message = "A raça deve ter no máximo 70 caracteres")
+    private String raca;
+
     private Integer idade;
 
     @Pattern(
@@ -55,6 +59,14 @@ public class PetDTO {
 
     public void setNome(String nome) {
         this.nome = nome;
+    }
+
+    public String getRaca() {
+        return raca;
+    }
+
+    public void setRaca(String raca) {
+        this.raca = raca;
     }
 
     public String getEspecie() {

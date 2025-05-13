@@ -1,9 +1,9 @@
 {
 	"info": {
-		"_postman_id": "c4805573-458c-4e82-95fc-6d76716fa669",
+		"_postman_id": "38107479-cbcb-4946-956a-4962a5707561",
 		"name": "MeAdota",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "29499177"
+		"_exporter_id": "26511245"
 	},
 	"item": [
 		{
@@ -36,7 +36,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n  \"nome\": \"João da Silva\",\r\n  \"telefone\": \"11999999999\",\r\n  \"email\": \"joao2@email.com\",\r\n  \"senha\": \"senhaSegura123\",\r\n  \"tipo\": \"PESSOA\"\r\n}\r\n",
+							"raw": "{\r\n  \"nome\": \"João da Silva\",\r\n  \"telefone\": \"11999999999\",\r\n  \"email\": \"joao2@email.com\",\r\n  \"senha\": \"senhaSegura123\",\r\n  \"tipo\": \"PESSOA\",\r\n  \"perfilUsuario\": \"ADOTANTE\"\r\n}\r\n",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -64,7 +64,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:8080/api/usuarios/{{id}}",
+							"raw": "http://localhost:8080/api/usuarios/:id",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -73,7 +73,13 @@
 							"path": [
 								"api",
 								"usuarios",
-								"{{id}}"
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "2"
+								}
 							]
 						}
 					},
@@ -86,7 +92,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n  \"nome\": \"Novo Nome2\",\r\n  \"telefone\": \"11999999999\",\r\n  \"email\": \"novo@email.com\",\r\n  \"senha\": \"novasenha123\",\r\n  \"tipo\": \"PESSOA\"\r\n}",
+							"raw": "{\r\n  \"nome\": \"Novo Nome2\",\r\n  \"telefone\": \"11999999999\",\r\n  \"email\": \"novo@email.com\",\r\n  \"senha\": \"novasenha123\",\r\n  \"tipo\": \"PESSOA\",\r\n  \"perfilUsuario\": \"AMBOS\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -94,7 +100,7 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:8080/api/usuarios/{{id}}",
+							"raw": "http://localhost:8080/api/usuarios/:id",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -103,7 +109,13 @@
 							"path": [
 								"api",
 								"usuarios",
-								"{{id}}"
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "2"
+								}
 							]
 						}
 					},
@@ -124,7 +136,7 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:8080/api/usuarios/{{id}}",
+							"raw": "http://localhost:8080/api/usuarios/:id",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -133,7 +145,13 @@
 							"path": [
 								"api",
 								"usuarios",
-								"{{id}}"
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
 							]
 						}
 					},
@@ -192,7 +210,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"idUsuario\": 3,\r\n    \"nome\": \"Luna teste\",\r\n    \"especie\": \"Gato\",\r\n    \"idade\": 2,\r\n    \"porte\": \"PEQUENO\",\r\n    \"peso\": 4.2,\r\n    \"sexo\": \"F\",\r\n    \"bio\": \"Gatinha tranquila que adora carinho\",\r\n    \"fotos\": null\r\n}",
+							"raw": "{\r\n    \"idUsuario\": 3,\r\n    \"nome\": \"Luna teste\",\r\n    \"especie\": \"Gato\",\r\n    \"raca\": \"VIRA-LATA\",\r\n    \"idade\": 2,\r\n    \"porte\": \"PEQUENO\",\r\n    \"peso\": 4.2,\r\n    \"sexo\": \"F\",\r\n    \"bio\": \"Gatinha tranquila que adora carinho\",\r\n    \"fotos\": null\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -250,7 +268,7 @@
 							"variable": [
 								{
 									"key": "id",
-									"value": "3"
+									"value": "1"
 								}
 							]
 						}
@@ -264,7 +282,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"idUsuario\": 3,\r\n    \"nome\": \"tommy\",\r\n    \"especie\": \"Cachorro\",\r\n    \"idade\": 11,\r\n    \"porte\": \"ANAO\",\r\n    \"peso\": 2.2,\r\n    \"sexo\": \"F\",\r\n    \"bio\": \"Cachorro tranquilo que adora carinho\",\r\n    \"fotos\": null\r\n}",
+							"raw": "{\r\n    \"idUsuario\": 3,\r\n    \"nome\": \"tommy\",\r\n    \"especie\": \"Cachorro\",\r\n    \"raca\": \"RACA-O-LOCO-BICHO\",\r\n    \"idade\": 11,\r\n    \"porte\": \"ANAO\",\r\n    \"peso\": 2.2,\r\n    \"sexo\": \"F\",\r\n    \"bio\": \"Cachorro tranquilo que adora carinho\",\r\n    \"fotos\": null\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"

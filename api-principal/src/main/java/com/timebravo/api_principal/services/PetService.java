@@ -57,6 +57,7 @@ public class PetService {
 
         pet.setNome(petDTO.getNome());
         pet.setEspecie(petDTO.getEspecie());
+        pet.setRaca(petDTO.getRaca());
         pet.setIdade(petDTO.getIdade());
         pet.setPeso(petDTO.getPeso());
         pet.setBio(petDTO.getBio());
