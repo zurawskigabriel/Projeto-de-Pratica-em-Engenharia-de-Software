@@ -15,8 +15,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import javax.crypto.SecretKey;
 
 @Configuration
-@EnableWebSecurity  
-@EnableGlobalMethodSecurity(prePostEnabled = true)
+@EnableWebSecurity
+@EnableGlobalMethodSecurity(prePostEnabled = true)  
 public class SecurityConfig {
 
     @Value("${jwt.secret}")
@@ -27,13 +27,16 @@ public class SecurityConfig {
         http
           .csrf().disable()
           .authorizeHttpRequests(auth -> auth
-            .requestMatchers(HttpMethod.POST, "/api/usuarios").permitAll()
+            .requestMatchers(HttpMethod.POST,
+                "/api/usuarios",
+                "/api/login"
+            ).permitAll()
             .anyRequest().authenticated()
           )
-
           .oauth2ResourceServer(oauth2 -> oauth2
             .jwt(jwt -> jwt
               .decoder(jwtDecoder())
+              .jwtAuthenticationConverter(jwtAuthenticationConverter())
             )
           );
 

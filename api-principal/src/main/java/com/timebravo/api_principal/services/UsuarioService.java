@@ -6,10 +6,10 @@ import com.timebravo.api_principal.entities.Usuario;
 import com.timebravo.api_principal.repositories.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -19,10 +19,13 @@ import java.util.stream.Collectors;
 public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public UsuarioService(UsuarioRepository usuarioRepository) {
+    public UsuarioService(UsuarioRepository usuarioRepository,
+                          PasswordEncoder passwordEncoder) {
         this.usuarioRepository = usuarioRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Transactional
@@ -35,13 +38,22 @@ public class UsuarioService {
         usuario.setNome(usuarioDTO.getNome());
         usuario.setTelefone(usuarioDTO.getTelefone());
         usuario.setEmail(usuarioDTO.getEmail());
-        usuario.setSenhaHash(usuarioDTO.getSenha());
+        usuario.setSenhaHash(passwordEncoder.encode(usuarioDTO.getSenha()));
         usuario.setTipo(usuarioDTO.getTipo());
         usuario.setDataCadastro(LocalDateTime.now());
 
         Usuario usuarioSalvo = usuarioRepository.save(usuario);
         return convertToResponseDTO(usuarioSalvo);
     }
+
+    public boolean validarCredenciais(String username, String rawPassword) {
+        Usuario usuario = usuarioRepository.findByEmail(username)
+            .orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.UNAUTHORIZED, "Usuário ou senha inválidos"));
+
+        return passwordEncoder.matches(rawPassword, usuario.getSenhaHash());
+    }
+
 
     public List<UsuarioResponseDTO> listarTodosUsuarios() {
         return usuarioRepository.findAll().stream()
@@ -76,7 +88,7 @@ public class UsuarioService {
         }
         
         if (usuarioDTO.getSenha() != null && !usuarioDTO.getSenha().isEmpty()) {
-            usuario.setSenhaHash(usuarioDTO.getSenha());
+            usuario.setSenhaHash(passwordEncoder.encode(usuarioDTO.getSenha()));
         }
         
         usuario.setTipo(usuarioDTO.getTipo());
