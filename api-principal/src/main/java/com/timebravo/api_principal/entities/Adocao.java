@@ -38,10 +38,10 @@ public class Adocao {
      private List<HistoricoAdocao> historicoAdocao = new ArrayList<>();
 
     public enum StatusAdocao {
-        Pendente,
-        Aceita,
-        Rejeitada,
-        Finalizada
+        Disponivel,
+        Adotado,
+        Falecido,
+        Perdido
     }
 
     public Long getId() { return id; }

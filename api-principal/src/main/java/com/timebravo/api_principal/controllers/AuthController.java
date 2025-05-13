@@ -31,6 +31,7 @@ public class AuthController {
         if (!usuarioService.validarCredenciais(creds.getUsername(), creds.getPassword())) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
+        
         String token = JwtUtil.generateToken(creds.getUsername(), jwtSecret);
         return ResponseEntity.ok(Map.of("token", token));
     }
