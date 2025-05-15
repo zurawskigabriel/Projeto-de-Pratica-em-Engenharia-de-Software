@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import com.timebravo.api_principal.entities.Usuario;
 
 import java.util.Map;
 
@@ -31,9 +32,17 @@ public class AuthController {
         if (!usuarioService.validarCredenciais(creds.getUsername(), creds.getPassword())) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
+
+        Usuario usuario = this.usuarioService.findUserByEmail(creds.getUsername());
         
-        String token = JwtUtil.generateToken(creds.getUsername(), jwtSecret);
-        return ResponseEntity.ok(Map.of("token", token));
+        if (usuario != null) {
+            String token = JwtUtil.generateToken(creds.getUsername(), usuario.getId(), jwtSecret);
+            return ResponseEntity.ok(Map.of("token", token));
+        }
+
+        return ResponseEntity
+            .status(HttpStatus.FORBIDDEN)
+            .body(Map.of("message", "Ocorreu algum erro. Não foi possível efetuar o login"));
     }
 
     @PostMapping("/logout")

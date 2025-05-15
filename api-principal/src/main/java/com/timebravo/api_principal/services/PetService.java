@@ -47,7 +47,23 @@ public class PetService {
     public PetDTO buscarPorId(Long id) {
         Pet pet = petRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pet não encontrado"));
+
         return PetMapper.toDTO(pet);
+    }
+
+    public List<PetDTO> buscarPetsRegistradosPorUsuario(Long idUsuario) {
+        Usuario usuario = usuarioRepository.findById(idUsuario)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado"));
+
+        List<Pet> pets = petRepository.findByUsuarioId(idUsuario);
+
+        if (pets.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não possui pets registrados");
+        }
+
+        return pets.stream()
+            .map(PetMapper::toDTO)
+            .collect(Collectors.toList());
     }
 
     @Transactional

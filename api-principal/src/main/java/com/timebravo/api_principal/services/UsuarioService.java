@@ -59,6 +59,13 @@ public class UsuarioService {
         return passwordEncoder.matches(rawPassword, usuario.getSenhaHash());
     }
 
+    public Usuario findUserByEmail(String username) {
+        Usuario usuario = usuarioRepository.findByEmail(username)
+            .orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.UNAUTHORIZED, "Usuário não encontrado"));
+
+        return usuario;
+    }
 
     public List<UsuarioResponseDTO> listarTodosUsuarios() {
         return usuarioRepository.findAll().stream()
