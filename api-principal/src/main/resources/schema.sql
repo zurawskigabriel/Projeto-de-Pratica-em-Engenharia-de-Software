@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS adocao (
     Id_pet BIGINT NOT NULL,
     Id_adotante BIGINT NOT NULL,
     Status VARCHAR(20) NOT NULL,
-    CHECK (Status IN ('Pendente', 'Aceita', 'Rejeitada', 'Finalizada')),
+    CHECK (Status IN ('Adotado', 'Falecido', 'Disponivel', 'Disponível', 'Perdido')),
     FOREIGN KEY (Id_pet) REFERENCES pet(Id_pet),
     FOREIGN KEY (Id_adotante) REFERENCES usuario(Id_usuario)
 );

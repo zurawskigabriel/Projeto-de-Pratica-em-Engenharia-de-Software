@@ -1,5 +1,5 @@
 INSERT INTO usuario (Nome, Telefone, Email, Senha_hash, Tipo, Perfil_usuario) VALUES 
-('João Silva', '(11) 99999-9999', 'joao@email.com', '$2a$10$xpto', 'PESSOA', 'ADOTANTE'),
+('João Silva', '(11) 99999-9999', 'joao@email.com', '$2a$$xpto', 'PESSOA', 'ADOTANTE'),
 ('Maria Souza', '(11) 88888-8888', 'maria@email.com', '$2a$10$xpto', 'PESSOA', 'AMBOS'),
 ('ONG Pets Felizes', '(11) 77777-7777', 'ong@pets.com', '$2a$10$xpto', 'ONG', 'PROTETOR');
 
@@ -29,8 +29,8 @@ INSERT INTO historico_medico_pet (Id_pet, Hospital, Resultado, Tratamento, Docum
 (2, 'Clínica Felina', 'Castração', 'Pós-operatório normal', 'castracao_002.pdf', '2025-02-20');
 
 INSERT INTO adocao (Id_pet, Id_adotante, Status) VALUES 
-(1, 1, 'Pendente'),
-(2, 1, 'Aceita');
+(1, 1, 'Adotado'),
+(2, 1, 'Falecido');
 
 INSERT INTO historico_adocao (Id_adocao, Id_protetor) VALUES 
 (1, 3),

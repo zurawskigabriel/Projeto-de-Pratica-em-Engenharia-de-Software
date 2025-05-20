@@ -1,23 +1,29 @@
 package com.timebravo.api_principal.controllers;
 
 import com.timebravo.api_principal.dtos.PetDTO;
+import com.timebravo.api_principal.utils.AuthUtil;
 import com.timebravo.api_principal.services.PetService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/pets")
 public class PetController {
 
     private final PetService petService;
+    private final AuthUtil authUtil;
 
     @Autowired
-    public PetController(PetService petService) {
+    public PetController(PetService petService, AuthUtil authUtil) {
         this.petService = petService;
+        this.authUtil = authUtil;
     }
 
     @PostMapping
@@ -51,4 +57,23 @@ public class PetController {
         petService.deletarPet(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/petsDoUsuario/{idUsuario}")
+    public ResponseEntity<List<PetDTO>> buscarPetsRegistradosPorUsuario(
+            @PathVariable Long idUsuario
+    ) {
+        // aqui ele verifica se o ID do usuário passado na URL é igual ao do usuário
+        // pq se não for, ele não pode consultar os pets de outro usuário!
+        Long loggedId = authUtil.getLoggedUserId();
+        if (!loggedId.equals(idUsuario)) {
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST, 
+                "Usuário logado não corresponde com ID especificado."
+            );
+        }
+
+        List<PetDTO> petsDoUsuario = petService.buscarPetsRegistradosPorUsuario(idUsuario);
+        return ResponseEntity.ok(petsDoUsuario);
+    }
+
 }

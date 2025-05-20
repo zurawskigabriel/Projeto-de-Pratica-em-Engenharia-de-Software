@@ -25,23 +25,26 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-          .csrf().disable()
-          .authorizeHttpRequests(auth -> auth
-            .requestMatchers(HttpMethod.POST,
-                "/api/usuarios",
-                "/api/login"
-            ).permitAll()
-            .anyRequest().authenticated()
-          )
-          .oauth2ResourceServer(oauth2 -> oauth2
-            .jwt(jwt -> jwt
-              .decoder(jwtDecoder())
-              .jwtAuthenticationConverter(jwtAuthenticationConverter())
+            .csrf().disable()
+            .headers(headers -> headers.frameOptions().disable())
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers(HttpMethod.POST,
+                    "/api/usuarios",
+                    "/api/login"
+                ).permitAll()
+                .requestMatchers("/h2-console/**").permitAll()
+                .anyRequest().authenticated()
             )
-          );
+            .oauth2ResourceServer(oauth2 -> oauth2
+                .jwt(jwt -> jwt
+                    .decoder(jwtDecoder())
+                    .jwtAuthenticationConverter(jwtAuthenticationConverter())
+                )
+            );
 
         return http.build();
     }
+
 
     @Bean
     public JwtDecoder jwtDecoder() {
