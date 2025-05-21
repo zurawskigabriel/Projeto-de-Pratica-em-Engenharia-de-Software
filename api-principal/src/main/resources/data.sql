@@ -22,7 +22,10 @@ INSERT INTO tags (Nome, Id_categoria) VALUES
 
 INSERT INTO pet (Id_usuario, Nome, Especie, Raca, Idade, Porte, Peso, Sexo, Bio) VALUES 
 (2, 'Rex', 'Cachorro', 'POODLE', 3, 'MEDIO', 12.5, 'M', 'Cachorro muito brincalhão e amoroso'),
-(3, 'Luna', 'Gato', 'PUG', 2, 'PEQUENO', 4.2, 'F', 'Gatinha tranquila que adora carinho');
+(3, 'Luna', 'Gato', 'PUG', 2, 'PEQUENO', 4.2, 'F', 'Gatinha tranquila que adora carinho'),
+(2, 'Max', 'Cachorro', 'BULLDOG', 5, 'GRANDE', 25.0, 'M', 'Cachorro protetor e leal'),
+(3, 'Mia', 'Gato', 'SIAMESE', 1, 'PEQUENO', 3.0, 'F', 'Gatinha curiosa e brincalhona');
+
 
 INSERT INTO historico_medico_pet (Id_pet, Hospital, Resultado, Tratamento, Documento, Data) VALUES 
 (1, 'Hospital Vet Plus', 'Exame de rotina', 'Vacina V10', 'vacinacao_001.pdf', '2025-03-15'),
@@ -30,7 +33,9 @@ INSERT INTO historico_medico_pet (Id_pet, Hospital, Resultado, Tratamento, Docum
 
 INSERT INTO adocao (Id_pet, Id_adotante, Status) VALUES 
 (1, 1, 'Adotado'),
-(2, 1, 'Falecido');
+(2, 1, 'Falecido'),
+(3, 2, 'Disponível'),
+(4, 2, 'Disponível');
 
 INSERT INTO historico_adocao (Id_adocao, Id_protetor) VALUES 
 (1, 3),
