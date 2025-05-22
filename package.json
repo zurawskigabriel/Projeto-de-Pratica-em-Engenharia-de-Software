@@ -1,5 +1,11 @@
 {
   "dependencies": {
-    "expo-router": "^5.0.7"
+    "@react-navigation/bottom-tabs": "^7.3.13",
+    "@react-navigation/native": "^7.1.9",
+    "expo-router": "^5.0.7",
+    "react-native-gesture-handler": "^2.25.0",
+    "react-native-reanimated": "^3.17.5",
+    "react-native-safe-area-context": "^5.4.1",
+    "react-native-screens": "^4.10.0"
   }
 }
