@@ -1,2 +1,2 @@
-import CadastrarScreen from '../src/Screens/CadastroDeUsuario';
+import CadastrarScreen from '../src/Screens/CadastrarScreen';
 export default CadastrarScreen;
