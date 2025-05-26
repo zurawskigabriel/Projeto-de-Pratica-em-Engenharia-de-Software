@@ -59,14 +59,14 @@ export default function LoginScreen() {
                     <TouchableOpacity><Text style={styles.visitante}>Entrar como visitante</Text></TouchableOpacity>
                 </View>
 
-                <TouchableOpacity style={styles.botaoEntrar} onPress={() => router.push('/cadastrar-pet')}>
+                <TouchableOpacity style={styles.botaoEntrar} onPress={() => router.push('/CadastrarPet')}>
                     <Text style={styles.botaoEntrarTexto}>Entrar</Text>
                 </TouchableOpacity>
 
 
                 <View style={styles.linksRow}>
                     <TouchableOpacity><Text style={styles.link}>Esqueceu a senha?</Text></TouchableOpacity>
-                    <TouchableOpacity onPress={() => router.push('/cadastrar')}>
+                    <TouchableOpacity onPress={() => router.push('/Cadastrar')}>
                         <Text style={styles.link}>Cadastrar</Text>
                     </TouchableOpacity>
 
