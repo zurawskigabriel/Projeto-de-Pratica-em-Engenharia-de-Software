@@ -1,2 +1,2 @@
-import FavoritoScreen from '../../src/Screens/FavoritoScreen';
+import FavoritoScreen from '../../src/Screens/TelaPetsFavoritos';
 export default FavoritoScreen;

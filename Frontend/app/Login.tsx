@@ -1,2 +1,2 @@
-import LoginScreen from '../src/Screens/LoginScreen';
-export default LoginScreen;
+import TelaLogin from '../src/Screens/TelaLogin';
+export default TelaLogin;

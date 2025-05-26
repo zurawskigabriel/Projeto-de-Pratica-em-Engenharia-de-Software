@@ -1,2 +1,2 @@
-import CadastrarPetScreen from '../src/Screens/CadastrarPetScreen';
-export default CadastrarPetScreen;
+import TelaCadastrarPet from '../src/Screens/TelaCadastrarPet';
+export default TelaCadastrarPet;

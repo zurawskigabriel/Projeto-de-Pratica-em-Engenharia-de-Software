@@ -13,12 +13,21 @@ import {
 import { FontAwesome, FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
-
-export default function LoginScreen() {
+export default function TelaLogin() {
     const [email, setEmail] = useState('');
     const [senha, setSenha] = useState('');
     const router = useRouter();
 
+    // 👇 DEFINA A FUNÇÃO handleLogin AQUI
+    const handleLogin = () => {
+        // Aqui você pode adicionar lógica de validação de email/senha no futuro.
+        // Por enquanto, apenas redirecionaremos.
+        console.log("Tentativa de login com:", email, senha); // Para depuração
+        // Certifique-se que o nome do arquivo da tela de usuário seja 'UsuarioScreen.tsx'
+        // e esteja na pasta 'app' para que a rota '/UsuarioScreen' funcione.
+        // Se o arquivo for 'app/Usuario.tsx', a rota seria '/Usuario'.
+        router.push('/PerfilDeUsuario'); // Redireciona para a tela de perfil de usuário
+    };
 
     return (
         <KeyboardAvoidingView
@@ -59,17 +68,16 @@ export default function LoginScreen() {
                     <TouchableOpacity><Text style={styles.visitante}>Entrar como visitante</Text></TouchableOpacity>
                 </View>
 
-                <TouchableOpacity style={styles.botaoEntrar} onPress={() => router.push('/CadastrarPet')}>
+                {/* Use a função handleLogin no onPress */}
+                <TouchableOpacity style={styles.botaoEntrar} onPress={handleLogin}>
                     <Text style={styles.botaoEntrarTexto}>Entrar</Text>
                 </TouchableOpacity>
 
-
                 <View style={styles.linksRow}>
                     <TouchableOpacity><Text style={styles.link}>Esqueceu a senha?</Text></TouchableOpacity>
-                    <TouchableOpacity onPress={() => router.push('/Cadastrar')}>
+                    <TouchableOpacity onPress={() => router.push('/CadastrarUsuario')}>
                         <Text style={styles.link}>Cadastrar</Text>
                     </TouchableOpacity>
-
                 </View>
             </ScrollView>
         </KeyboardAvoidingView>
@@ -163,7 +171,6 @@ const styles = StyleSheet.create({
     },
     link: {
         fontSize: 18,
-        fontWeight: 'bold', // ✅ isso sim funciona
-
+        fontWeight: 'bold',
     },
 });

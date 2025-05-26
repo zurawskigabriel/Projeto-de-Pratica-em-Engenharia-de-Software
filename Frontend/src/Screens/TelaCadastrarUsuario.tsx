@@ -18,7 +18,7 @@ import { useRouter } from 'expo-router';
 import { criarUsuario } from '../api/api';
 
 
-export default function CadastrarScreen() {
+export default function TelaCadastrarUsuario() {
     const [senhaVisivel, setSenhaVisivel] = useState(false);
     const [senhaRepetidaVisivel, setSenhaRepetidaVisivel] = useState(false);
     const [promocoes, setPromocoes] = useState(false);
@@ -56,7 +56,11 @@ export default function CadastrarScreen() {
           console.log("Usuário criado:", resposta);
           setModalVisivel(true);
         } catch (error) {
-          alert(error.message);
+          if (error instanceof Error) {
+            alert(error.message);
+          } else {
+            alert('Ocorreu um erro ao criar o usuário.');
+          }
         }
       };
       
