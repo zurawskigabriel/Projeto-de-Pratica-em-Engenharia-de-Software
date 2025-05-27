@@ -1,15 +1,27 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Image,
+  Alert,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { criarPet } from '../api/api';
-import * as FileSystem from 'expo-file-system'; // para converter imagem em base64
-
+import * as FileSystem from 'expo-file-system';
 
 export default function CadastrarPetScreen() {
   const [nome, setNome] = useState('');
   const [raca, setRaca] = useState('');
+  const [especie, setEspecie] = useState('');
+  const [idade, setIdade] = useState('');
+  const [porte, setPorte] = useState('');
+  const [peso, setPeso] = useState('');
+  const [sexo, setSexo] = useState('');
   const [bio, setBio] = useState('');
   const [imagem, setImagem] = useState<string | null>(null);
 
@@ -27,6 +39,40 @@ export default function CadastrarPetScreen() {
     }
   };
 
+  const handleFinalizar = async () => {
+    if (!nome || !raca || !especie || !idade || !porte || !peso || !sexo || !bio) {
+      Alert.alert('Erro', 'Preencha todos os campos obrigatórios.');
+      return;
+    }
+
+    try {
+      const base64 = imagem
+        ? await FileSystem.readAsStringAsync(imagem, { encoding: FileSystem.EncodingType.Base64 })
+        : null;
+
+      const petDTO = {
+        idUsuario: 1, // ajuste para usar o usuário logado
+        nome,
+        especie,
+        raca,
+        idade: parseInt(idade),
+        porte,
+        peso: parseFloat(peso),
+        sexo,
+        bio,
+        fotos: base64,
+      };
+
+      const resposta = await criarPet(petDTO);
+      console.log("Pet criado:", resposta);
+      Alert.alert('Sucesso', 'Pet cadastrado com sucesso!', [
+        { text: 'OK', onPress: () => router.replace('/') },
+      ]);
+    } catch (e: any) {
+      Alert.alert('Erro ao cadastrar pet', e.message || 'Erro desconhecido.');
+    }
+  };
+
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.voltar} onPress={() => router.back()}>
@@ -35,20 +81,13 @@ export default function CadastrarPetScreen() {
 
       <Text style={styles.title}>Cadastro de novo Pet</Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Nome"
-        value={nome}
-        onChangeText={setNome}
-        placeholderTextColor="#aaa"
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Raça"
-        value={raca}
-        onChangeText={setRaca}
-        placeholderTextColor="#aaa"
-      />
+      <TextInput style={styles.input} placeholder="Nome" value={nome} onChangeText={setNome} placeholderTextColor="#aaa" />
+      <TextInput style={styles.input} placeholder="Raça" value={raca} onChangeText={setRaca} placeholderTextColor="#aaa" />
+      <TextInput style={styles.input} placeholder="Espécie" value={especie} onChangeText={setEspecie} placeholderTextColor="#aaa" />
+      <TextInput style={styles.input} placeholder="Idade" value={idade} onChangeText={setIdade} keyboardType="numeric" placeholderTextColor="#aaa" />
+      <TextInput style={styles.input} placeholder="Porte" value={porte} onChangeText={setPorte} placeholderTextColor="#aaa" />
+      <TextInput style={styles.input} placeholder="Peso (kg)" value={peso} onChangeText={setPeso} keyboardType="decimal-pad" placeholderTextColor="#aaa" />
+      <TextInput style={styles.input} placeholder="Sexo (M ou F)" value={sexo} onChangeText={setSexo} maxLength={1} placeholderTextColor="#aaa" />
       <TextInput
         style={[styles.input, styles.inputBio]}
         placeholder="Bio / Informações adicionais"
@@ -60,7 +99,7 @@ export default function CadastrarPetScreen() {
 
       <TouchableOpacity style={styles.botaoImagem} onPress={selecionarImagem}>
         <Text style={styles.botaoTexto}>
-          {imagem ? 'Trocar imagem' : 'Adicionar Fotos'}
+          {imagem ? 'Trocar imagem' : 'Adicionar Foto'}
         </Text>
       </TouchableOpacity>
 
@@ -68,34 +107,7 @@ export default function CadastrarPetScreen() {
         <Image source={{ uri: imagem }} style={styles.preview} />
       )}
 
-      <TouchableOpacity
-        style={styles.botaoFinalizar}
-        onPress={async () => {
-          try {
-            const base64 = imagem
-              ? await FileSystem.readAsStringAsync(imagem, { encoding: FileSystem.EncodingType.Base64 })
-              : null;
-
-            const petDTO = {
-              idUsuario: 1, // depois use o ID do usuário logado
-              nome: nome,
-              especie: "Cachorro", // pode tornar dinâmico se quiser
-              idade: 3,
-              porte: "PEQUENO",
-              peso: 5.2,
-              sexo: "M",
-              bio: bio,
-              fotos: base64
-            };
-
-            const resposta = await criarPet(petDTO);
-            console.log("Pet criado:", resposta);
-            alert("Pet cadastrado com sucesso!");
-          } catch (e) {
-            alert(e.message);
-          }
-        }}
-      >
+      <TouchableOpacity style={styles.botaoFinalizar} onPress={handleFinalizar}>
         <Text style={styles.botaoTexto}>Finalizar</Text>
       </TouchableOpacity>
     </View>
@@ -158,7 +170,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
-  
   preview: {
     width: '100%',
     height: 180,

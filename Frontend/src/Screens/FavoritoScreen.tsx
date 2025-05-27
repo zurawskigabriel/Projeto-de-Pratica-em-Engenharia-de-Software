@@ -9,74 +9,91 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
-import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
+import { Ionicons, FontAwesome } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { listarPets } from '../api/api';
+import { LinearGradient } from 'expo-linear-gradient';
+import Footer from '../components/Footer';
 
-const PetCard = ({ name, gender }: { name: string; gender: 'male' | 'female' }) => (
-  <View style={styles.card}>
-    <Image
-      source={require('../../assets/logo.png')} // Imagem temporária
-      style={styles.image}
-    />
-    <View style={styles.overlay}>
-      <Text style={styles.name}>{name}</Text>
-      <FontAwesome5
-        name={gender === 'male' ? 'mars' : 'venus'}
-        size={16}
-        color="white"
+const PetCard = ({ id, nome, sexo, especie, idade, raca, onPressFavorito, favorito, onPress }) => {
+  const imageSource = especie?.toLowerCase().includes('cachorro')
+    ? require('../../assets/dog.jpg')
+    : require('../../assets/cat.jpg');
+
+  return (
+    <TouchableOpacity style={styles.petCardContainer} onPress={onPress}>
+      <Image source={imageSource} style={styles.petImage} />
+      <LinearGradient
+        colors={['transparent', 'rgba(0,0,0,0.5)', 'rgba(0,0,0,0.6)']}
+        style={styles.petImageShadow}
       />
-    </View>
-  </View>
-);
+      <View style={styles.petImageFooter}>
+        <View>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Text style={styles.petCardName}>{nome}</Text>
+            <FontAwesome
+              name={sexo === 'M' ? 'mars' : 'venus'}
+              size={24}
+              color="white"
+              style={{ marginLeft: 8, marginTop: 4 }}
+            />
+          </View>
+          <Text style={styles.petInfoText}>{idade} anos, {raca}</Text>
+        </View>
+      </View>
+      <TouchableOpacity
+        style={styles.petFavIcon}
+        onPress={onPressFavorito}
+      >
+        <FontAwesome
+          name='heart'
+          size={24}
+          color='red'
+        />
+      </TouchableOpacity>
+    </TouchableOpacity>
+  );
+};
 
 export default function FavoritoScreen() {
   const navigation = useNavigation();
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [data, setData] = useState<any[]>([]);
-  const [page, setPage] = useState(1);
+  const [data, setData] = useState([]);
   const [isFetching, setIsFetching] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
+  const [favoritos, setFavoritos] = useState({});
 
   useEffect(() => {
-    fetchMoreData();
+    fetchPets();
   }, []);
 
-  const fetchMoreData = async () => {
-    if (isFetching || !hasMore) return;
+  const fetchPets = async () => {
     setIsFetching(true);
+    try {
+      const pets = await listarPets();
+      setData(pets);
+    } catch (err) {
+      console.error('Erro ao buscar pets:', err);
+    }
+    setIsFetching(false);
+  };
 
-    // ✅ Substitua aqui com sua chamada real ao backend:
-    // const response = await fetch(`https://sua-api.com/pets?page=${page}`);
-    // const newItems = await response.json();
-
-    // Simulação local de dados
-    setTimeout(() => {
-      const newItems = Array.from({ length: 6 }, (_, i) => ({
-        id: `${(page - 1) * 6 + i + 1}`,
-        name: i % 2 === 0 ? 'Bidu' : 'Ariana',
-        gender: i % 2 === 0 ? 'male' : 'female',
-      }));
-
-      setData(prev => [...prev, ...newItems]);
-      setPage(prev => prev + 1);
-      if (page >= 5) setHasMore(false);
-      setIsFetching(false);
-    }, 1000);
+  const toggleFavorito = (id) => {
+    setFavoritos((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
   const filteredData = data.filter(item =>
-    item.name.toLowerCase().includes(searchTerm.toLowerCase())
+    item.nome.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity onPress={() => navigation.goBack()}>
-        <Ionicons name="arrow-back" size={28} color="black" style={{ marginBottom: 8 }} />
-      </TouchableOpacity>
-
-      <Text style={styles.title}>Favoritos</Text>
-
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', position: 'relative', marginBottom: 12 }}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={{ position: 'absolute', left: 0 }}>
+          <Ionicons name="arrow-back" size={28} color="black" />
+        </TouchableOpacity>
+        <Text style={styles.title}>Favoritos</Text>
+      </View>
       <View style={styles.searchContainer}>
         <TextInput
           placeholder="Procurar"
@@ -89,33 +106,44 @@ export default function FavoritoScreen() {
         </TouchableOpacity>
       </View>
 
-      {filteredData.length > 0 ? (
+      {isFetching ? (
+        <View style={styles.spinnerContainer}>
+          <ActivityIndicator size="large" color="#999" />
+        </View>
+      ) : filteredData.length > 0 ? (
         <FlatList
           data={filteredData}
           numColumns={2}
-          keyExtractor={item => item.id}
+          keyExtractor={item => item.id.toString()}
           renderItem={({ item }) => (
-            <PetCard name={item.name} gender={item.gender as 'male' | 'female'} />
+            <PetCard
+              id={item.id}
+              nome={item.nome}
+              sexo={item.sexo}
+              especie={item.especie}
+              idade={item.idade}
+              raca={item.raca}
+              favorito={!!favoritos[item.id]}
+              onPressFavorito={() => toggleFavorito(item.id)}
+              onPress={() => navigation.navigate('PerfilPet')}
+            />
           )}
-          onEndReached={fetchMoreData}
-          onEndReachedThreshold={0.2}
-          contentContainerStyle={styles.list}
-          ListFooterComponent={
-            isFetching ? (
-              <View style={styles.spinnerContainer}>
-                <ActivityIndicator size="large" color="#999" />
-              </View>
-            ) : null
-          }
+          contentContainerStyle={{ ...styles.list, paddingBottom: 100 }}
         />
       ) : (
         <Text style={styles.noResults}>Nenhum pet encontrado.</Text>
       )}
+
+      <Footer />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  petInfoText: {
+    color: 'white',
+    fontSize: 16,
+  },
   container: {
     flex: 1,
     backgroundColor: '#fff',
@@ -123,10 +151,10 @@ const styles = StyleSheet.create({
     paddingTop: 50,
   },
   title: {
-    fontSize: 24,
+    fontSize: 32,
     fontWeight: 'bold',
-    alignSelf: 'center',
-    marginBottom: 12,
+    marginLeft: 16,
+    textAlign: 'center',
   },
   searchContainer: {
     flexDirection: 'row',
@@ -148,36 +176,56 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  card: {
-    flex: 1,
-    margin: 6,
-    borderRadius: 12,
-    overflow: 'hidden',
-    backgroundColor: '#ccc',
-    aspectRatio: 1,
-  },
-  image: {
-    width: '100%',
-    height: '100%',
-  },
-  overlay: {
-    position: 'absolute',
-    bottom: 8,
-    left: 8,
-    right: 8,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  name: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
   noResults: {
     textAlign: 'center',
     fontSize: 16,
     color: '#999',
     marginTop: 20,
+  },
+  petCardContainer: {
+    width: 350,
+    height: 400,
+    margin: 6,
+    borderRadius: 20,
+    overflow: 'hidden',
+    backgroundColor: '#ddd',
+    position: 'relative',
+  },
+  petImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 20,
+  },
+  petImageShadow: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 100,
+    borderRadius: 20,
+  },
+  petImageFooter: {
+    position: 'absolute',
+    bottom: 10,
+    left: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  petCardName: {
+    color: 'white',
+    fontSize: 30,
+    fontWeight: 'bold',
+  },
+  petFavIcon: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    backgroundColor: 'white',
+    padding: 6,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 36,
+    height: 36,
   },
 });

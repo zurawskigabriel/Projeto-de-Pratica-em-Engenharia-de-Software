@@ -8,7 +8,7 @@ export default function Index() {
   useEffect(() => {
     // Aguarda um pequeno tempo para garantir que o roteador está montado
     const timeout = setTimeout(() => {
-      router.replace('/Login');
+      router.replace('/PerfilDeUsuario');
     }, 0); // ou até 100ms, se necessário
 
     return () => clearTimeout(timeout);
