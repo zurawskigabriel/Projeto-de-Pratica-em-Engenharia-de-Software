@@ -92,7 +92,25 @@ export default function LoginScreen() {
             <TouchableOpacity style={styles.icon}><FontAwesome5 name="google" size={18} color="white" /></TouchableOpacity>
             <TouchableOpacity style={styles.icon}><FontAwesome name="instagram" size={18} color="white" /></TouchableOpacity>
           </View>
-          <TouchableOpacity><Text style={styles.visitante}>Entrar como visitante</Text></TouchableOpacity>
+          <TouchableOpacity onPress={async () => {
+            try {
+              const dados = await fazerLogin('visitante@visitante', 'visitante');
+              const token = dados.token;
+              const base64Payload = token.split('.')[1];
+              const decodedPayload = JSON.parse(atob(base64Payload));
+              const userId = decodedPayload.userId;
+              if (!userId) throw new Error('ID do usuário não encontrado no token.');
+              await AsyncStorage.setItem('token', token);
+              await AsyncStorage.setItem('userId', userId.toString());
+              router.push('/Explorar');
+            } catch (error) {
+              console.error('Erro ao entrar como visitante:', error);
+              Alert.alert('Erro', error.message || 'Não foi possível entrar como visitante');
+            }
+          }}>
+          <Text style={styles.visitante}>Entrar como visitante</Text>
+            <TouchableOpacity onPress={() => router.push('/Cadastrar')}></TouchableOpacity>
+          </TouchableOpacity>
         </View>
 
         <TouchableOpacity style={styles.botaoEntrar} onPress={handleLogin}>

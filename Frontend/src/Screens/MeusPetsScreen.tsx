@@ -7,6 +7,7 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
@@ -67,7 +68,6 @@ export default function MeusPetsScreen() {
               <TouchableOpacity
                 style={{ flexDirection: 'row', flex: 1 }}
                 onPress={() => navigation.navigate('PerfilPet', { id: pet.id })}
-
               >
                 <Image source={getPetImage(pet.especie)} style={styles.imagem} />
                 <View style={styles.info}>
@@ -79,13 +79,26 @@ export default function MeusPetsScreen() {
 
               <TouchableOpacity
                 style={styles.botaoExcluir}
-                onPress={async () => {
-                  try {
-                    await deletarPet(pet.id);
-                    setPets(pets.filter((p) => p.id !== pet.id));
-                  } catch (error) {
-                    console.error('Erro ao excluir pet:', error);
-                  }
+                onPress={() => {
+                  Alert.alert(
+                    'Confirmar exclusão',
+                    `Deseja realmente excluir o pet ${pet.nome}?`,
+                    [
+                      { text: 'Cancelar', style: 'cancel' },
+                      {
+                        text: 'Excluir',
+                        style: 'destructive',
+                        onPress: async () => {
+                          try {
+                            await deletarPet(pet.id);
+                            setPets(pets.filter((p) => p.id !== pet.id));
+                          } catch (error) {
+                            console.error('Erro ao excluir pet:', error);
+                          }
+                        },
+                      },
+                    ]
+                  );
                 }}
               >
                 <Text style={styles.textoExcluir}>Excluir</Text>

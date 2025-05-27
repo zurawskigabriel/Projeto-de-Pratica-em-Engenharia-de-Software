@@ -19,7 +19,7 @@ import {
 } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { buscarPet, buscarUsuarioPorId } from '../api/api';
+import { buscarPet, buscarUsuarioPorId, deletarPet } from '../api/api';
 
 export default function PerfilPet() {
   const router = useRouter();
@@ -63,7 +63,6 @@ export default function PerfilPet() {
 
   return (
     <ScrollView style={styles.container}>
-      {/* Imagem com ícones */}
       <View style={styles.imageContainer}>
         <Image
           source={
@@ -108,7 +107,6 @@ export default function PerfilPet() {
             color={favorito ? 'red' : 'black'}
           />
         </TouchableOpacity>
-
         <View style={styles.imageFooter}>
           <View>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -120,12 +118,13 @@ export default function PerfilPet() {
                 style={{ marginLeft: 8 }}
               />
             </View>
-            <Text style={styles.petDesc}>Filhote, SRD</Text>
+            <Text style={styles.petDesc}>
+              {pet.idade} anos, {pet.raca.charAt(0).toUpperCase() + pet.raca.slice(1).toLowerCase()}
+            </Text>
           </View>
         </View>
       </View>
 
-      {/* Abas */}
       <View style={styles.tabs}>
         {['Resumo', 'Sobre Mim', 'Saúde', 'Histórico'].map((aba) => (
           <TouchableOpacity key={aba} onPress={() => setAbaAtiva(aba)}>
@@ -136,7 +135,6 @@ export default function PerfilPet() {
         ))}
       </View>
 
-      {/* Conteúdo das abas */}
       <View style={styles.contentContainer}>
         {abaAtiva === 'Resumo' && (
           <View style={styles.infoCard}>
@@ -170,41 +168,72 @@ export default function PerfilPet() {
         )}
       </View>
 
-      {/* Botões de ação */}
-      {adotando && (
-        <TouchableOpacity
-          style={styles.adotarBtn}
-          onPress={() => alert('Abrir acompanhamento')}
-        >
-          <Text style={styles.adotarTxt}>Acompanhar</Text>
-        </TouchableOpacity>
+      {meuUsuarioId !== pet.idUsuario && (
+        <>
+          {adotando && (
+            <TouchableOpacity
+              style={styles.adotarBtn}
+              onPress={() => alert('Abrir acompanhamento')}
+            >
+              <Text style={styles.adotarTxt}>Acompanhar</Text>
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity
+            style={[styles.adotarBtn, adotando && styles.adotarBtnAtivo]}
+            onPress={() => {
+              Alert.alert(
+                adotando ? 'Adoção cancelada! 😔' : 'Adoção iniciada! 😁',
+                adotando
+                  ? `Você saiu do processo de adoção de ${pet.nome}.`
+                  : `${pet.nome} vai ficar muito feliz com isso!`
+              );
+              setAdotando(!adotando);
+            }}
+          >
+            <Text style={styles.adotarTxt}>
+              {adotando ? 'Cancelar Adoção' : 'Adotar'}
+            </Text>
+          </TouchableOpacity>
+        </>
       )}
 
-      <TouchableOpacity
-        style={[styles.adotarBtn, adotando && styles.adotarBtnAtivo]}
-        onPress={() => {
-          Alert.alert(
-            adotando ? 'Adoção cancelada! 😔' : 'Adoção iniciada! 😁',
-            adotando
-              ? `Você saiu do processo de adoção de ${pet.nome}.`
-              : `${pet.nome} vai ficar muito feliz com isso!`
-          );
-          setAdotando(!adotando);
-        }}
-      >
-        <Text style={styles.adotarTxt}>
-          {adotando ? 'Cancelar Adoção' : 'Adotar'}
-        </Text>
-      </TouchableOpacity>
-
-      {/* Botão final: Contatar ou Editar */}
       {meuUsuarioId === pet.idUsuario ? (
-        <TouchableOpacity
-          style={[styles.contatarBtn, { backgroundColor: '#9A9A9A' }]}
-          onPress={() => router.push({ pathname: 'EditarPet', params: { id: pet.id } })}
-        >
-          <Text style={[styles.contatarTxt, { color: 'white' }]}>Editar</Text>
-        </TouchableOpacity>
+        <>
+          <TouchableOpacity
+            style={[styles.contatarBtn, { backgroundColor: '#9A9A9A' }]}
+            onPress={() => router.push({ pathname: 'EditarPet', params: { id: pet.id } })}
+          >
+            <Text style={[styles.contatarTxt, { color: 'white' }]}>Editar</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.excluirBtn}
+            onPress={() => {
+              Alert.alert(
+                'Excluir Pet',
+                `Tem certeza que deseja excluir ${pet.nome}?`,
+                [
+                  { text: 'Cancelar', style: 'cancel' },
+                  {
+                    text: 'Sim, excluir',
+                    style: 'destructive',
+                    onPress: async () => {
+                      try {
+                        await deletarPet(pet.id);
+                        Alert.alert('Pet excluído com sucesso!');
+                        router.replace('/MeusPets');
+                      } catch (err) {
+                        Alert.alert('Erro', 'Não foi possível excluir o pet.');
+                      }
+                    },
+                  },
+                ]
+              );
+            }}
+          >
+            <Text style={styles.botaoTexto}>Excluir Pet</Text>
+          </TouchableOpacity>
+        </>
       ) : (
         <TouchableOpacity
           style={styles.contatarBtn}
@@ -227,12 +256,12 @@ function InfoItem({ icon, text, lib = 'FontAwesome' }) {
     lib === 'FontAwesome'
       ? FontAwesome
       : lib === 'Feather'
-      ? Feather
-      : lib === 'Entypo'
-      ? Entypo
-      : lib === 'MaterialCommunityIcons'
-      ? MaterialCommunityIcons
-      : FontAwesome;
+        ? Feather
+        : lib === 'Entypo'
+          ? Entypo
+          : lib === 'MaterialCommunityIcons'
+            ? MaterialCommunityIcons
+            : FontAwesome;
 
   return (
     <View style={styles.infoItem}>
@@ -353,11 +382,24 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingVertical: 14,
     alignItems: 'center',
-    marginBottom: 30,
+    marginBottom: 10,
   },
   contatarTxt: {
     fontSize: 25,
     color: '#000',
+    fontWeight: 'bold',
+  },
+  excluirBtn: {
+    backgroundColor: '#FF5C5C',
+    marginHorizontal: 20,
+    borderRadius: 10,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginBottom: 30,
+  },
+  botaoTexto: {
+    color: '#fff',
+    fontSize: 24,
     fontWeight: 'bold',
   },
   contentContainer: {

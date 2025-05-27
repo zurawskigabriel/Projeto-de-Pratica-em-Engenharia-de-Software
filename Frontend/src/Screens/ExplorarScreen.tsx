@@ -9,6 +9,8 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Dimensions,
+  Modal,
+  Pressable,
 } from 'react-native';
 import { Ionicons, FontAwesome } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -45,7 +47,7 @@ const PetCard = ({ id, nome, sexo, especie, idade, raca, onPressFavorito, favori
               style={{ marginLeft: 8, marginTop: 4 }}
             />
           </View>
-          <Text style={styles.petInfoText}>{idade} anos, {raca}</Text>
+          <Text style={styles.petInfoText}>{idade} anos, {raca.charAt(0).toUpperCase() + raca.slice(1).toLowerCase()}</Text>
         </View>
       </View>
       <TouchableOpacity
@@ -59,12 +61,15 @@ const PetCard = ({ id, nome, sexo, especie, idade, raca, onPressFavorito, favori
 };
 
 export default function FavoritoScreen() {
+  const [formIconActive, setFormIconActive] = useState(false);
   const navigation = useNavigation();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [data, setData] = useState([]);
   const [isFetching, setIsFetching] = useState(false);
   const [favoritos, setFavoritos] = useState({});
+  const [showFilter, setShowFilter] = useState(false);
+  const [selectedFilter, setSelectedFilter] = useState('todos');
 
   useEffect(() => {
     fetchPets();
@@ -85,26 +90,61 @@ export default function FavoritoScreen() {
     setFavoritos((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const filteredData = data.filter(item =>
-    item.nome.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredData = data.filter(item => {
+    const termo = searchTerm.toLowerCase();
+    const nomeMatch = item.nome.toLowerCase().includes(termo);
+    const racaMatch = item.raca.toLowerCase().includes(termo);
+    const idadeMatch = item.idade.toString().includes(termo);
+    const filtroMatch = selectedFilter === 'todos' || item.sexo === selectedFilter;
+    return (nomeMatch || racaMatch || idadeMatch) && filtroMatch;
+  });
 
   return (
     <View style={styles.container}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', position: 'relative', marginBottom: 12 }}>
-        <Text style={styles.title}>Explorar</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginHorizontal: 16, marginBottom: 12 }}>
+  <View style={{ flex: 1, alignItems: 'center' }}>
+    <Text style={styles.title}>Explorar</Text>
+  </View>
+  <TouchableOpacity onPress={() => setFormIconActive(!formIconActive)}>
+    <Ionicons name="document-text-outline" size={28} color={formIconActive ? '#7FCAD2' : 'black'} />
+  </TouchableOpacity>
       </View>
       <View style={styles.searchContainer}>
         <TextInput
-          placeholder="Procurar"
+          placeholder="Procurar por nome, raça ou idade"
           style={styles.input}
           value={searchTerm}
           onChangeText={setSearchTerm}
         />
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => setShowFilter(true)}>
           <Ionicons name="filter" size={24} color="black" />
         </TouchableOpacity>
       </View>
+
+      <Modal
+        visible={showFilter}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowFilter(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Filtrar por sexo</Text>
+            {['todos', 'M', 'F'].map(option => (
+              <Pressable
+                key={option}
+                style={styles.filterOption}
+                onPress={() => {
+                  setSelectedFilter(option);
+                  setShowFilter(false);
+                }}
+              >
+                <Text style={styles.filterOptionText}>{option === 'todos' ? 'Todos' : option === 'M' ? 'Machos' : 'Fêmeas'}</Text>
+              </Pressable>
+            ))}
+          </View>
+        </View>
+      </Modal>
 
       {isFetching ? (
         <View style={styles.spinnerContainer}>
@@ -226,5 +266,28 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: 36,
     height: 36,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 20,
+    width: 250,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  filterOption: {
+    paddingVertical: 10,
+  },
+  filterOptionText: {
+    fontSize: 16,
   },
 });

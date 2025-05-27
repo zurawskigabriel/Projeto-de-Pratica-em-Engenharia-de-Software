@@ -8,12 +8,21 @@ import {
   Image,
   TouchableOpacity,
   ActivityIndicator,
+  Dimensions,
+  Modal,
+  Pressable,
 } from 'react-native';
 import { Ionicons, FontAwesome } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { listarPets } from '../api/api';
 import { LinearGradient } from 'expo-linear-gradient';
 import Footer from '../components/Footer';
+
+const screenWidth = Dimensions.get('window').width;
+const screenHeight = Dimensions.get('window').height;
+const cardMargin = 12;
+const cardWidth = (screenWidth - cardMargin * 3) / 2;
+const cardHeight = (screenHeight - cardMargin * 3) / 3;
 
 const PetCard = ({ id, nome, sexo, especie, idade, raca, onPressFavorito, favorito, onPress }) => {
   const imageSource = especie?.toLowerCase().includes('cachorro')
@@ -38,18 +47,14 @@ const PetCard = ({ id, nome, sexo, especie, idade, raca, onPressFavorito, favori
               style={{ marginLeft: 8, marginTop: 4 }}
             />
           </View>
-          <Text style={styles.petInfoText}>{idade} anos, {raca}</Text>
+          <Text style={styles.petInfoText}>{idade} anos, {raca.charAt(0).toUpperCase() + raca.slice(1).toLowerCase()}</Text>
         </View>
       </View>
       <TouchableOpacity
         style={styles.petFavIcon}
         onPress={onPressFavorito}
       >
-        <FontAwesome
-          name='heart'
-          size={24}
-          color='red'
-        />
+        <FontAwesome name='heart' size={24} color='red' />
       </TouchableOpacity>
     </TouchableOpacity>
   );
@@ -62,6 +67,8 @@ export default function FavoritoScreen() {
   const [data, setData] = useState([]);
   const [isFetching, setIsFetching] = useState(false);
   const [favoritos, setFavoritos] = useState({});
+  const [showFilter, setShowFilter] = useState(false);
+  const [selectedFilter, setSelectedFilter] = useState('todos');
 
   useEffect(() => {
     fetchPets();
@@ -82,9 +89,14 @@ export default function FavoritoScreen() {
     setFavoritos((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const filteredData = data.filter(item =>
-    item.nome.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredData = data.filter(item => {
+    const termo = searchTerm.toLowerCase();
+    const nomeMatch = item.nome.toLowerCase().includes(termo);
+    const racaMatch = item.raca.toLowerCase().includes(termo);
+    const idadeMatch = item.idade.toString().includes(termo);
+    const filtroMatch = selectedFilter === 'todos' || item.sexo === selectedFilter;
+    return (nomeMatch || racaMatch || idadeMatch) && filtroMatch;
+  });
 
   return (
     <View style={styles.container}>
@@ -93,15 +105,40 @@ export default function FavoritoScreen() {
       </View>
       <View style={styles.searchContainer}>
         <TextInput
-          placeholder="Procurar"
+          placeholder="Procurar por nome, raça ou idade"
           style={styles.input}
           value={searchTerm}
           onChangeText={setSearchTerm}
         />
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => setShowFilter(true)}>
           <Ionicons name="filter" size={24} color="black" />
         </TouchableOpacity>
       </View>
+
+      <Modal
+        visible={showFilter}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowFilter(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Filtrar por sexo</Text>
+            {['todos', 'M', 'F'].map(option => (
+              <Pressable
+                key={option}
+                style={styles.filterOption}
+                onPress={() => {
+                  setSelectedFilter(option);
+                  setShowFilter(false);
+                }}
+              >
+                <Text style={styles.filterOptionText}>{option === 'todos' ? 'Todos' : option === 'M' ? 'Machos' : 'Fêmeas'}</Text>
+              </Pressable>
+            ))}
+          </View>
+        </View>
+      </Modal>
 
       {isFetching ? (
         <View style={styles.spinnerContainer}>
@@ -125,7 +162,7 @@ export default function FavoritoScreen() {
               onPress={() => navigation.navigate('PerfilPet', { id: item.id })}
             />
           )}
-          contentContainerStyle={{ ...styles.list, paddingBottom: 100 }}
+          contentContainerStyle={{ paddingBottom: 100, paddingHorizontal: cardMargin }}
         />
       ) : (
         <Text style={styles.noResults}>Nenhum pet encontrado.</Text>
@@ -144,13 +181,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    paddingHorizontal: 16,
     paddingTop: 50,
   },
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    marginLeft: 16,
     textAlign: 'center',
   },
   searchContainer: {
@@ -159,6 +194,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#eee',
     borderRadius: 12,
     paddingHorizontal: 12,
+    marginHorizontal: 16,
     marginBottom: 16,
   },
   input: {
@@ -180,9 +216,9 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   petCardContainer: {
-    width: 350,
-    height: 400,
-    margin: 6,
+    width: cardWidth,
+    height: cardHeight,
+    margin: cardMargin / 2,
     borderRadius: 20,
     overflow: 'hidden',
     backgroundColor: '#ddd',
@@ -224,5 +260,28 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: 36,
     height: 36,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 20,
+    width: 250,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  filterOption: {
+    paddingVertical: 10,
+  },
+  filterOptionText: {
+    fontSize: 16,
   },
 });
