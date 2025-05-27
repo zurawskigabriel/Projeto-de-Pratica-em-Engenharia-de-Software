@@ -14,7 +14,9 @@ import {
 import { FontAwesome, FontAwesome5 } from '@expo/vector-icons';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { criarUsuario } from '../api/api';
+import { criarUsuario, fazerLogin } from '../api/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { decode as atob } from 'base-64';
 
 export default function CadastrarScreen() {
   const [senhaVisivel, setSenhaVisivel] = useState(false);
@@ -27,12 +29,12 @@ export default function CadastrarScreen() {
   const [telefone, setTelefone] = useState('');
   const [senha, setSenha] = useState('');
   const [senhaRepetida, setSenhaRepetida] = useState('');
-  const [modalVisivel, setModalVisivel] = useState(false);
   const router = useRouter();
 
   const formatarCPF = (texto: string) => {
     return texto
       .replace(/\D/g, '')
+      .slice(0, 11)
       .replace(/(\d{3})(\d)/, '$1.$2')
       .replace(/(\d{3})(\d)/, '$1.$2')
       .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
@@ -41,6 +43,7 @@ export default function CadastrarScreen() {
   const formatarTelefone = (texto: string) => {
     return texto
       .replace(/\D/g, '')
+      .slice(0, 11)
       .replace(/(\d{2})(\d)/, '($1) $2')
       .replace(/(\d{5})(\d)/, '$1-$2')
       .slice(0, 15);
@@ -72,9 +75,17 @@ export default function CadastrarScreen() {
 
     try {
       const resposta = await criarUsuario(usuarioDTO);
-      console.log("Usuário criado:", resposta);
-      setModalVisivel(true);
-    } catch (error) {
+      const loginResponse = await fazerLogin(email, senha);
+      const token = loginResponse.token;
+      const base64Payload = token.split('.')[1];
+      const decodedPayload = JSON.parse(atob(base64Payload));
+      const userId = decodedPayload.userId;
+
+      await AsyncStorage.setItem('token', token);
+      await AsyncStorage.setItem('userId', userId.toString());
+      alert("Cadastro concluído com sucesso!");
+      router.replace('/Explorar');
+    } catch (error: any) {
       alert(error.message || "Erro ao criar usuário.");
     }
   };
@@ -88,9 +99,9 @@ export default function CadastrarScreen() {
       <Text style={styles.title}>Cadastrar</Text>
 
       <TextInput style={styles.input} placeholder="Nome" value={nome} onChangeText={setNome} placeholderTextColor="#aaa" />
-      <TextInput style={styles.input} placeholder="CPF" value={cpf} onChangeText={text => setCpf(formatarCPF(text))} keyboardType="numeric" placeholderTextColor="#aaa" />
+      <TextInput style={styles.input} placeholder="CPF" value={cpf} onChangeText={text => setCpf(formatarCPF(text))} keyboardType="numeric" placeholderTextColor="#aaa" maxLength={14} />
       <TextInput style={styles.input} placeholder="Email" value={email} onChangeText={setEmail} keyboardType="email-address" placeholderTextColor="#aaa" />
-      <TextInput style={styles.input} placeholder="Telefone" value={telefone} onChangeText={text => setTelefone(formatarTelefone(text))} keyboardType="phone-pad" placeholderTextColor="#aaa" />
+      <TextInput style={styles.input} placeholder="Telefone" value={telefone} onChangeText={text => setTelefone(formatarTelefone(text))} keyboardType="phone-pad" placeholderTextColor="#aaa" maxLength={15} />
 
       <View style={styles.inputComIcone}>
         <TextInput style={styles.inputInterno} placeholder="Senha" value={senha} onChangeText={setSenha} placeholderTextColor="#aaa" secureTextEntry={!senhaVisivel} />
@@ -144,23 +155,13 @@ export default function CadastrarScreen() {
 
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      {modalVisivel ? (
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTexto}>Cadastro concluído com sucesso!</Text>
-            <TouchableOpacity style={styles.botaoOK} onPress={() => router.replace('/')}>
-              <Text style={styles.botaoCadastrarTexto}>OK</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      ) : (
-        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-          {renderFormulario()}
-        </ScrollView>
-      )}
+      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+        {renderFormulario()}
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }
+
 
 const styles = StyleSheet.create({
   selectorContainer: {

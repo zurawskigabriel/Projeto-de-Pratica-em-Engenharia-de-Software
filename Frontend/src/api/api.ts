@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const BASE_URL = "http://192.168.0.198:8080/api";
+const BASE_URL = "http://192.168.0.197:8080/api";
 
 async function getAuthHeaders() {
   const token = await AsyncStorage.getItem('token');
@@ -77,6 +77,23 @@ export async function excluirUsuario(id: number) {
 
   return true;
 }
+export async function atualizarUsuario(id, dados) {
+  const headers = await getAuthHeaders();
+
+  const response = await fetch(`${BASE_URL}/usuarios/${id}`, {
+    method: "PUT",
+    headers,
+    body: JSON.stringify(dados),
+  });
+
+  if (!response.ok) {
+    const erro = await response.text(); // ← aqui ainda pode usar text()
+    throw new Error(`Erro ao atualizar usuário: ${erro}`);
+  }
+
+  return await response.json(); // retorna os dados atualizados
+}
+
 
 // ---------------- PETS ----------------
 
@@ -163,4 +180,21 @@ export async function deletarPet(id: number) {
   }
 
   return true;
+}
+
+export async function atualizarPet(id: number, dadosPet) {
+  const headers = await getAuthHeaders();
+
+  const response = await fetch(`${BASE_URL}/pets/${id}`, {
+    method: 'PUT',
+    headers,
+    body: JSON.stringify(dadosPet),
+  });
+
+  if (!response.ok) {
+    const erro = await response.text();
+    throw new Error(`Erro ao atualizar pet: ${erro}`);
+  }
+
+  return await response.json(); // retorna os dados atualizados do pet
 }

@@ -59,19 +59,21 @@ export default function MeusPetsScreen() {
 
         {carregando ? (
           <ActivityIndicator size="large" color="#000" style={{ marginTop: 20 }} />
+        ) : pets.length === 0 ? (
+          <Text style={styles.subtitulo}>Você ainda não cadastrou nenhum pet.</Text>
         ) : (
           pets.map((pet) => (
             <View key={pet.id} style={styles.card}>
               <TouchableOpacity
                 style={{ flexDirection: 'row', flex: 1 }}
-                onPress={() => navigation.navigate('PerfilPet', { pet })}
+                onPress={() => navigation.navigate('PerfilPet', { id: pet.id })}
+
               >
                 <Image source={getPetImage(pet.especie)} style={styles.imagem} />
                 <View style={styles.info}>
                   <Text style={styles.nome}>{pet.nome}</Text>
                   <Text style={styles.descricao}>{pet.raca}, {pet.idade} anos</Text>
-                <Text style={styles.evento}>Último evento ocorrido</Text>
-
+                  <Text style={styles.evento}>Último evento ocorrido</Text>
                 </View>
               </TouchableOpacity>
 
@@ -116,7 +118,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   botaoTexto: {
-    fontSize: 28,
+    fontSize: 20,
     color: 'white',
     fontWeight: 'bold',
   },
@@ -126,6 +128,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 30,
     marginTop: 20,
+  },
+  subtitulo: {
+    fontSize: 18,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 20,
   },
   card: {
     flexDirection: 'row',
@@ -152,6 +160,11 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#333',
   },
+  evento: {
+    fontSize: 16,
+    color: '#666',
+    marginTop: 4,
+  },
   botaoExcluir: {
     backgroundColor: '#ff5c5c',
     paddingHorizontal: 16,
@@ -165,10 +178,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
-  evento: {
-    fontSize: 16,
-    color: '#666',
-    marginTop: 4,
-  },
-  
 });

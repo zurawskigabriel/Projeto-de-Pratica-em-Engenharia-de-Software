@@ -8,29 +8,45 @@ import {
   ScrollView,
   Linking,
   Alert,
+  Share,
 } from 'react-native';
-import { FontAwesome, Entypo, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {
+  FontAwesome,
+  Entypo,
+  Feather,
+  MaterialCommunityIcons,
+} from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Share } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { buscarPet } from '../api/api';
+import { buscarPet, buscarUsuarioPorId } from '../api/api';
 
 export default function PerfilPet() {
   const router = useRouter();
   const { id } = useLocalSearchParams();
   const [pet, setPet] = useState(null);
+  const [nomeProtetor, setNomeProtetor] = useState('');
   const [favorito, setFavorito] = useState(false);
   const [abaAtiva, setAbaAtiva] = useState('Resumo');
   const [adotando, setAdotando] = useState(false);
+  const [meuUsuarioId, setMeuUsuarioId] = useState<number | null>(null);
 
   useEffect(() => {
     const carregarPet = async () => {
       try {
+        const idSalvo = await AsyncStorage.getItem('userId');
+        setMeuUsuarioId(idSalvo ? parseInt(idSalvo, 10) : null);
+
         if (!id) return;
         const dados = await buscarPet(parseInt(id));
         setPet(dados);
+
+        if (dados.idUsuario) {
+          const dono = await buscarUsuarioPorId(dados.idUsuario);
+          setNomeProtetor(dono.nome);
+        }
       } catch (erro) {
-        console.error('Erro ao buscar pet:', erro);
+        console.error('Erro ao buscar pet ou protetor:', erro);
       }
     };
 
@@ -62,7 +78,10 @@ export default function PerfilPet() {
           colors={['transparent', 'rgba(0,0,0,0.5)', 'rgba(0,0,0,0.6)']}
           style={styles.imageShadow}
         />
-        <TouchableOpacity style={styles.topLeftIcon} onPress={() => router.back()}>
+        <TouchableOpacity
+          style={styles.topLeftIcon}
+          onPress={() => router.back()}
+        >
           <Entypo name="chevron-left" size={20} color="black" />
         </TouchableOpacity>
         <TouchableOpacity
@@ -125,6 +144,9 @@ export default function PerfilPet() {
             <InfoItem icon="dna" text={pet.raca} lib="MaterialCommunityIcons" />
             <InfoItem icon="ruler" text={pet.porte} lib="Entypo" />
             <InfoItem icon="mars" text={pet.sexo === 'M' ? 'Macho' : 'Fêmea'} />
+            {nomeProtetor && (
+              <InfoItem icon="user" text={`Protetor: ${nomeProtetor}`} />
+            )}
           </View>
         )}
         {abaAtiva === 'Sobre Mim' && (
@@ -175,17 +197,27 @@ export default function PerfilPet() {
         </Text>
       </TouchableOpacity>
 
-      <TouchableOpacity
-        style={styles.contatarBtn}
-        onPress={() => {
-          const numeroWhatsApp = '5555996168060';
-          const mensagem = 'Olá! Tenho interesse no pet para adoção.';
-          const url = `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensagem)}`;
-          Linking.openURL(url);
-        }}
-      >
-        <Text style={styles.contatarTxt}>Contatar Protetor</Text>
-      </TouchableOpacity>
+      {/* Botão final: Contatar ou Editar */}
+      {meuUsuarioId === pet.idUsuario ? (
+        <TouchableOpacity
+          style={[styles.contatarBtn, { backgroundColor: '#9A9A9A' }]}
+          onPress={() => router.push({ pathname: 'EditarPet', params: { id: pet.id } })}
+        >
+          <Text style={[styles.contatarTxt, { color: 'white' }]}>Editar</Text>
+        </TouchableOpacity>
+      ) : (
+        <TouchableOpacity
+          style={styles.contatarBtn}
+          onPress={() => {
+            const numeroWhatsApp = '5555996168060';
+            const mensagem = 'Olá! Tenho interesse no pet para adoção.';
+            const url = `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensagem)}`;
+            Linking.openURL(url);
+          }}
+        >
+          <Text style={styles.contatarTxt}>Contatar Protetor</Text>
+        </TouchableOpacity>
+      )}
     </ScrollView>
   );
 }
@@ -210,134 +242,128 @@ function InfoItem({ icon, text, lib = 'FontAwesome' }) {
   );
 }
 
-
-
 const styles = StyleSheet.create({
-    container: {
-        backgroundColor: '#fff',
-    },
-    imageContainer: {
-        position: 'relative',
-    },
-    image: {
-        width: '100%',
-        height: 700,
-        borderBottomLeftRadius: 20,
-        borderBottomRightRadius: 20,
-    },
-    imageShadow: {
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        height: 250, // altura da sombra
-        borderBottomLeftRadius: 20,
-        borderBottomRightRadius: 20,
-    },
-
-    topLeftIcon: {
-        position: 'absolute',
-        top: 40,
-        left: 30,
-        backgroundColor: 'white',
-        padding: 8,
-        borderRadius: 999,
-        elevation: 5,
-    },
-    topRightIcon: {
-        position: 'absolute',
-        top: 40,
-        right: 30,
-        backgroundColor: 'white',
-        padding: 8,
-        borderRadius: 999,
-        elevation: 5,
-    },
-    imageFooter: {
-        position: 'absolute',
-        bottom: 20,
-        left: 30,
-        right: 40,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'flex-end',
-    },
-    petName: {
-        fontSize: 60,
-        color: 'white',
-        fontWeight: 'bold',
-    },
-    petDesc: {
-        fontSize: 35,
-        color: 'white',
-    },
-    tabs: {
-        flexDirection: 'row',
-        justifyContent: 'space-around',
-        marginTop: 20,
-    },
-    tab: {
-        fontSize: 25,
-        color: '#888',
-        paddingBottom: 0,
-    },
-    activeTab: {
-        color: '#000',
-        borderBottomWidth: 2,
-        borderBottomColor: '#000',
-    },
-    infoCard: {
-        margin: 20,
-        padding: 16,
-        borderRadius: 12,
-        backgroundColor: '#F8F8F8',
-        elevation: 2,
-        height: 150, // ← altura fixa
-
-    },
-    infoItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 10,
-    },
-    infoText: {
-        marginLeft: 10,
-        fontSize: 16,
-
-    },
-    adotarBtn: {
-        backgroundColor: '#7FCAD2',
-        marginHorizontal: 20,
-        borderRadius: 10,
-        paddingVertical: 14,
-        alignItems: 'center',
-        marginBottom: 10,
-    },
-    adotarBtnAtivo: {
-        backgroundColor: '#FF6B6B', // vermelho claro
-    },
-    adotarTxt: {
-        fontSize: 25,
-        color: 'white',
-        fontWeight: 'bold',
-    },
-    contatarBtn: {
-        backgroundColor: '#9A9A9A',
-        marginHorizontal: 20,
-        borderRadius: 10,
-        paddingVertical: 14,
-        alignItems: 'center',
-        marginBottom: 30,
-    },
-    contatarTxt: {
-        fontSize: 25,
-        color: '#000',
-        fontWeight: 'bold',
-    },
-    contentContainer: {
-        marginTop: 0,
-        paddingHorizontal: 0,
-        borderRadius: 12,
-        justifyContent: 'center',
-    },
+  container: {
+    backgroundColor: '#fff',
+  },
+  imageContainer: {
+    position: 'relative',
+  },
+  image: {
+    width: '100%',
+    height: 700,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+  },
+  imageShadow: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 250,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+  },
+  topLeftIcon: {
+    position: 'absolute',
+    top: 40,
+    left: 30,
+    backgroundColor: 'white',
+    padding: 8,
+    borderRadius: 999,
+    elevation: 5,
+  },
+  topRightIcon: {
+    position: 'absolute',
+    top: 40,
+    right: 30,
+    backgroundColor: 'white',
+    padding: 8,
+    borderRadius: 999,
+    elevation: 5,
+  },
+  imageFooter: {
+    position: 'absolute',
+    bottom: 20,
+    left: 30,
+    right: 40,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+  },
+  petName: {
+    fontSize: 60,
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  petDesc: {
+    fontSize: 35,
+    color: 'white',
+  },
+  tabs: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginTop: 20,
+  },
+  tab: {
+    fontSize: 25,
+    color: '#888',
+    paddingBottom: 0,
+  },
+  activeTab: {
+    color: '#000',
+    borderBottomWidth: 2,
+    borderBottomColor: '#000',
+  },
+  infoCard: {
+    margin: 20,
+    padding: 16,
+    borderRadius: 12,
+    backgroundColor: '#F8F8F8',
+    elevation: 2,
+  },
+  infoItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  infoText: {
+    marginLeft: 10,
+    fontSize: 16,
+  },
+  adotarBtn: {
+    backgroundColor: '#7FCAD2',
+    marginHorizontal: 20,
+    borderRadius: 10,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  adotarBtnAtivo: {
+    backgroundColor: '#FF6B6B',
+  },
+  adotarTxt: {
+    fontSize: 25,
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  contatarBtn: {
+    backgroundColor: '#9A9A9A',
+    marginHorizontal: 20,
+    borderRadius: 10,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginBottom: 30,
+  },
+  contatarTxt: {
+    fontSize: 25,
+    color: '#000',
+    fontWeight: 'bold',
+  },
+  contentContainer: {
+    marginTop: 0,
+    paddingHorizontal: 0,
+    borderRadius: 12,
+    justifyContent: 'center',
+  },
 });

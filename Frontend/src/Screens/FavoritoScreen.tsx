@@ -89,9 +89,6 @@ export default function FavoritoScreen() {
   return (
     <View style={styles.container}>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', position: 'relative', marginBottom: 12 }}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={{ position: 'absolute', left: 0 }}>
-          <Ionicons name="arrow-back" size={28} color="black" />
-        </TouchableOpacity>
         <Text style={styles.title}>Favoritos</Text>
       </View>
       <View style={styles.searchContainer}>
