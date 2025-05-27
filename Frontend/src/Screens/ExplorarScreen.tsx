@@ -8,12 +8,19 @@ import {
   Image,
   TouchableOpacity,
   ActivityIndicator,
+  Dimensions,
 } from 'react-native';
 import { Ionicons, FontAwesome } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { listarPets } from '../api/api';
 import { LinearGradient } from 'expo-linear-gradient';
 import Footer from '../components/Footer';
+
+const screenWidth = Dimensions.get('window').width;
+const screenHeight = Dimensions.get('window').height;
+const cardMargin = 12;
+const cardWidth = (screenWidth - cardMargin * 3) / 2;
+const cardHeight = (screenHeight - cardMargin * 3) / 3;
 
 const PetCard = ({ id, nome, sexo, especie, idade, raca, onPressFavorito, favorito, onPress }) => {
   const imageSource = especie?.toLowerCase().includes('cachorro')
@@ -124,7 +131,7 @@ export default function FavoritoScreen() {
               onPress={() => navigation.navigate('PerfilPet', { id: item.id })}
             />
           )}
-          contentContainerStyle={{ ...styles.list, paddingBottom: 100 }}
+          contentContainerStyle={{ paddingBottom: 100, paddingHorizontal: cardMargin }}
         />
       ) : (
         <Text style={styles.noResults}>Nenhum pet encontrado.</Text>
@@ -143,13 +150,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    paddingHorizontal: 16,
     paddingTop: 50,
   },
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    marginLeft: 16,
     textAlign: 'center',
   },
   searchContainer: {
@@ -158,6 +163,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#eee',
     borderRadius: 12,
     paddingHorizontal: 12,
+    marginHorizontal: 16,
     marginBottom: 16,
   },
   input: {
@@ -179,9 +185,9 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   petCardContainer: {
-    width: 350,
-    height: 400,
-    margin: 6,
+    width: cardWidth,
+    height: cardHeight,
+    margin: cardMargin / 2,
     borderRadius: 20,
     overflow: 'hidden',
     backgroundColor: '#ddd',
