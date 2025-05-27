@@ -125,7 +125,7 @@ export default function FavoritoScreen() {
               raca={item.raca}
               favorito={!!favoritos[item.id]}
               onPressFavorito={() => toggleFavorito(item.id)}
-              onPress={() => navigation.navigate('PerfilPet')}
+              onPress={() => navigation.navigate('PerfilPet', { id: item.id })}
             />
           )}
           contentContainerStyle={{ ...styles.list, paddingBottom: 100 }}

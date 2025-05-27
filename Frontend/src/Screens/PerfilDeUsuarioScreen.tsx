@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View,
   Text,
@@ -11,8 +12,6 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-
 import FooterNav from '../components/Footer';
 import perfilImage from '../../assets/perfil.jpg';
 import { buscarUsuarioPorId, excluirUsuario } from '../api/api';
@@ -21,13 +20,22 @@ export default function UsuarioScreen() {
   const router = useRouter();
   const [usuario, setUsuario] = useState(null);
   const [carregando, setCarregando] = useState(true);
-
-  const userId = 8; // ID real do usuário logado (idealmente vem do login/token)
+  const [userId, setUserId] = useState<number | null>(null);
 
   useEffect(() => {
     const carregarUsuario = async () => {
       try {
-        const dados = await buscarUsuarioPorId(userId);
+        const idSalvo = await AsyncStorage.getItem('userId');
+        if (!idSalvo) {
+          Alert.alert('Erro', 'Usuário não autenticado.');
+          router.replace('/Login');
+          return;
+        }
+
+        const id = parseInt(idSalvo, 10);
+        setUserId(id);
+
+        const dados = await buscarUsuarioPorId(id);
         setUsuario(dados);
       } catch (error) {
         Alert.alert('Erro ao carregar usuário', error.message);
@@ -39,8 +47,8 @@ export default function UsuarioScreen() {
     carregarUsuario();
   }, []);
 
-  const handleLogoff = () => {
-    console.log("Usuário fez logoff");
+  const handleLogoff = async () => {
+    await AsyncStorage.clear();
     router.replace('/Login');
   };
 
@@ -55,9 +63,12 @@ export default function UsuarioScreen() {
           style: "destructive",
           onPress: async () => {
             try {
-              await excluirUsuario(userId);
-              Alert.alert("Conta excluída com sucesso.");
-              router.replace('/Login');
+              if (userId !== null) {
+                await excluirUsuario(userId);
+                await AsyncStorage.clear();
+                Alert.alert("Conta excluída com sucesso.");
+                router.replace('/Login');
+              }
             } catch (error) {
               Alert.alert("Erro", error.message || "Erro ao excluir a conta.");
             }
@@ -99,7 +110,7 @@ export default function UsuarioScreen() {
           <Text style={styles.userDetail}>Desde: {usuario.dataCadastro}</Text>
         </View>
 
-        <TouchableOpacity style={[styles.botaoCinza]} onPress={handleLogoff}>
+        <TouchableOpacity style={styles.botaoCinza} onPress={handleLogoff}>
           <Text style={styles.botaoTexto}>Sair</Text>
         </TouchableOpacity>
 

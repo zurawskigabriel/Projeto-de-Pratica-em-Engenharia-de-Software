@@ -1,225 +1,216 @@
-import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView } from 'react-native';
-import { FontAwesome, Entypo, Feather, MaterialCommunityIcons, } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+  ScrollView,
+  Linking,
+  Alert,
+} from 'react-native';
+import { FontAwesome, Entypo, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useState } from 'react';
-import { Linking } from 'react-native';
 import { Share } from 'react-native';
-import { useEffect } from 'react';
-import { Alert } from 'react-native';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { buscarPet } from '../api/api';
 
 export default function PerfilPet() {
-    const router = useRouter();
+  const router = useRouter();
+  const { id } = useLocalSearchParams();
+  const [pet, setPet] = useState(null);
+  const [favorito, setFavorito] = useState(false);
+  const [abaAtiva, setAbaAtiva] = useState('Resumo');
+  const [adotando, setAdotando] = useState(false);
 
-    //Buscar info do pet
-    const [pet, setPet] = useState(null);
-    useEffect(() => {
-        const carregarPet = async () => {
-          try {
-            const dados = await buscarPet(1); // não precisa mais passar o token
-            setPet(dados);
-          } catch (erro) {
-            console.error('Erro ao buscar pet:', erro);
+  useEffect(() => {
+    const carregarPet = async () => {
+      try {
+        if (!id) return;
+        const dados = await buscarPet(parseInt(id));
+        setPet(dados);
+      } catch (erro) {
+        console.error('Erro ao buscar pet:', erro);
+      }
+    };
+
+    carregarPet();
+  }, [id]);
+
+  if (!pet) {
+    return (
+      <View style={styles.container}>
+        <Text style={{ padding: 20 }}>Carregando pet...</Text>
+      </View>
+    );
+  }
+
+  return (
+    <ScrollView style={styles.container}>
+      {/* Imagem com ícones */}
+      <View style={styles.imageContainer}>
+        <Image
+          source={
+            pet.especie?.toLowerCase().includes('cachorro')
+              ? require('../../assets/dog.jpg')
+              : require('../../assets/cat.jpg')
           }
-        };
-      
-        carregarPet();
-      }, []);
-    //Printa se carregou correto no console
-    useEffect(() => {
-        if (pet) {
-            console.log('Dados do pet carregados:', pet);
-        }
-    }, [pet]);
+          style={styles.image}
+          resizeMode="cover"
+        />
+        <LinearGradient
+          colors={['transparent', 'rgba(0,0,0,0.5)', 'rgba(0,0,0,0.6)']}
+          style={styles.imageShadow}
+        />
+        <TouchableOpacity style={styles.topLeftIcon} onPress={() => router.back()}>
+          <Entypo name="chevron-left" size={20} color="black" />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.topRightIcon}
+          onPress={async () => {
+            try {
+              await Share.share({
+                message: `Adote o ${pet.nome}! Veja mais detalhes no nosso app.`,
+              });
+            } catch (error) {
+              console.error('Erro ao compartilhar:', error);
+            }
+          }}
+        >
+          <Entypo name="share" size={20} color="black" />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.topRightIcon, { right: 80 }]}
+          onPress={() => setFavorito(!favorito)}
+        >
+          <FontAwesome
+            name={favorito ? 'heart' : 'heart-o'}
+            size={20}
+            color={favorito ? 'red' : 'black'}
+          />
+        </TouchableOpacity>
 
-
-    //botao favorito
-    const [favorito, setFavorito] = useState(false);
-    //aba Resumo/Sobre/Saude/Historico
-    const [abaAtiva, setAbaAtiva] = useState('Resumo');
-    //botao de adotar/cancelaradocao
-    const [adotando, setAdotando] = useState(false);
-
-    //testa se carregou o pet
-    if (!pet) {
-        return (
-            <View style={styles.container}>
-                <Text>Carregando...</Text>
+        <View style={styles.imageFooter}>
+          <View>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={styles.petName}>{pet.nome}</Text>
+              <FontAwesome
+                name={pet.sexo === 'M' ? 'mars' : 'venus'}
+                size={50}
+                color="white"
+                style={{ marginLeft: 8 }}
+              />
             </View>
-        );
-    }
-
-
-    return (
-
-        <ScrollView style={styles.container}>
-            {/* Imagem e botões superiores */}
-            <View style={styles.imageContainer}>
-                <Image source={require('../../assets/dog.jpg')} style={styles.image} resizeMode="cover" />
-                {/* Sombra na base da imagem */}
-                <LinearGradient
-                    colors={['transparent', 'rgba(0,0,0,0.5)', 'rgba(0,0,0,0.6)']}
-                    style={styles.imageShadow}
-                />
-                <TouchableOpacity style={styles.topLeftIcon} onPress={() => router.back()}>
-                    <Entypo name="chevron-left" size={20} color="black" />
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={styles.topRightIcon}
-                    onPress={async () => {
-                        try {
-                            await Share.share({
-                                message: 'Adote o ' + pet.nome + '! Veja mais detalhes no nosso app ou acesse: https://example.com/pet/' + pet.nome,
-                            });
-                        } catch (error) {
-                            console.error('Erro ao compartilhar:', error);
-                        }
-                    }}
-                >
-                    <Entypo name="share" size={20} color="black" />
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                    style={[styles.topRightIcon, { right: 80 }]}
-                    onPress={() => setFavorito(!favorito)}
-                >
-                    <FontAwesome
-                        name={favorito ? 'heart' : 'heart-o'}
-                        size={20}
-                        color={favorito ? 'red' : 'black'}
-                    />
-                </TouchableOpacity>
-
-
-                <View style={styles.imageFooter}>
-                    <View>
-                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            <Text style={styles.petName}>{pet.nome}</Text>
-                            <FontAwesome name={pet.sexo === 'M' ? 'mars' : 'venus'} size={50} color="white" style={{ marginLeft: 8 }} />
-                        </View>
-                        <Text style={styles.petDesc}>Filhote, SRD</Text>
-                    </View>
-                </View>
-            </View>
-
-            {/* Aba de navegação */}
-            <View style={styles.tabs}>
-                {['Resumo', 'Sobre Mim', 'Saúde', 'Histórico'].map((aba) => (
-                    <TouchableOpacity key={aba} onPress={() => setAbaAtiva(aba)}>
-                        <Text style={[styles.tab, abaAtiva === aba && styles.activeTab]}>
-                            {aba}
-                        </Text>
-                    </TouchableOpacity>
-                ))}
-            </View>
-
-            {/* Cartão com informações */}
-            <View style={styles.contentContainer}>
-                {abaAtiva === 'Resumo' && (
-                    <View style={styles.infoCard}>
-                        <InfoItem icon="calendar" text={pet.idade + ' meses/anos'} />
-                        <InfoItem icon="dna" text={pet.raca} lib="MaterialCommunityIcons" />
-                        <InfoItem icon="ruler" text={pet.porte} lib="Entypo" />
-                        <InfoItem icon="mars" text={pet.sexo === 'M' ? 'Macho' : 'Fêmea'} />
-                    </View>
-                )}
-
-                {abaAtiva === 'Sobre Mim' && (
-                    <View style={styles.infoCard}>
-                        <Text style={styles.infoText}>
-                            {pet.bio}
-                        </Text>
-                    </View>
-                )}
-
-                {abaAtiva === 'Saúde' && (
-                    <View style={styles.infoCard}>
-                        <Text style={styles.infoText}>
-                            Estou com a vacinação em dia, vermifugado e saudável. Prontinho para adoção!
-                        </Text>
-                    </View>
-                )}
-
-                {abaAtiva === 'Histórico' && (
-                    <View style={styles.infoCard}>
-                        <Text style={styles.infoText}>
-                            Fui resgatado em março de 2024, depois de ser encontrado sozinho na rua. Desde então, estou sendo bem cuidado.
-                        </Text>
-                    </View>
-                )}
-            </View>
-
-
-            {/* Botões */}
-
-            {adotando && (
-                <TouchableOpacity
-                    style={styles.adotarBtn}
-                    onPress={() => alert('Abrir acompanhamento')}
-                >
-                    <Text style={styles.adotarTxt}>Acompanhar</Text>
-                </TouchableOpacity>
-            )}
-
-
-            <TouchableOpacity
-                style={[styles.adotarBtn, adotando && styles.adotarBtnAtivo]}
-                onPress={() => {
-                    if (adotando) {
-
-                        Alert.alert('Adoção cancelada! 😔', 'Você saiu do processo de adoção de ' + pet.nome + ', que pena...', [
-                            { text: 'OK', onPress: () => console.log('Confirmado') }
-                        ]);
-
-
-                    }
-                    else {
-                        Alert.alert('Adoção iniciada! 😁', pet.nome + ' vai ficar muito feliz em saber disso!', [
-                            { text: 'OK', onPress: () => console.log('Confirmado') }
-                        ]);
-                    }
-                    setAdotando(!adotando)
-                }}
-            >
-                <Text style={[styles.adotarTxt]}>
-                    {adotando ? 'Cancelar Adoção' : 'Adotar'}
-                </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-                style={styles.contatarBtn}
-                onPress={() => {
-                    const numeroWhatsApp = '5555996168060'; // coloque aqui o número com DDI e DDD, só números
-                    const mensagem = 'Olá! Tenho interesse no pet para adoção.';
-                    const url = `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensagem)}`;
-                    Linking.openURL(url);
-                }}
-            >
-                <Text style={styles.contatarTxt}>Contatar Protetor</Text>
-            </TouchableOpacity>
-
-        </ScrollView>
-    );
-}
-
-function InfoItem({ icon, text, lib = 'FontAwesome' }: InfoItemProps) {
-    const IconComponent =
-        lib === 'FontAwesome' ? FontAwesome :
-            lib === 'Feather' ? Feather :
-                lib === 'Entypo' ? Entypo :
-                    lib === 'MaterialCommunityIcons' ? MaterialCommunityIcons :
-
-                        FontAwesome; // fallback
-
-    return (
-        <View style={styles.infoItem}>
-            <IconComponent name={icon} size={16} color="#000" />
-            <Text style={styles.infoText}>{text}</Text>
+            <Text style={styles.petDesc}>Filhote, SRD</Text>
+          </View>
         </View>
-    );
+      </View>
+
+      {/* Abas */}
+      <View style={styles.tabs}>
+        {['Resumo', 'Sobre Mim', 'Saúde', 'Histórico'].map((aba) => (
+          <TouchableOpacity key={aba} onPress={() => setAbaAtiva(aba)}>
+            <Text style={[styles.tab, abaAtiva === aba && styles.activeTab]}>
+              {aba}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {/* Conteúdo das abas */}
+      <View style={styles.contentContainer}>
+        {abaAtiva === 'Resumo' && (
+          <View style={styles.infoCard}>
+            <InfoItem icon="calendar" text={`${pet.idade} meses/anos`} />
+            <InfoItem icon="dna" text={pet.raca} lib="MaterialCommunityIcons" />
+            <InfoItem icon="ruler" text={pet.porte} lib="Entypo" />
+            <InfoItem icon="mars" text={pet.sexo === 'M' ? 'Macho' : 'Fêmea'} />
+          </View>
+        )}
+        {abaAtiva === 'Sobre Mim' && (
+          <View style={styles.infoCard}>
+            <Text style={styles.infoText}>{pet.bio}</Text>
+          </View>
+        )}
+        {abaAtiva === 'Saúde' && (
+          <View style={styles.infoCard}>
+            <Text style={styles.infoText}>
+              Estou com a vacinação em dia, vermifugado e saudável.
+            </Text>
+          </View>
+        )}
+        {abaAtiva === 'Histórico' && (
+          <View style={styles.infoCard}>
+            <Text style={styles.infoText}>
+              Fui resgatado em março de 2024. Desde então, estou sendo bem cuidado.
+            </Text>
+          </View>
+        )}
+      </View>
+
+      {/* Botões de ação */}
+      {adotando && (
+        <TouchableOpacity
+          style={styles.adotarBtn}
+          onPress={() => alert('Abrir acompanhamento')}
+        >
+          <Text style={styles.adotarTxt}>Acompanhar</Text>
+        </TouchableOpacity>
+      )}
+
+      <TouchableOpacity
+        style={[styles.adotarBtn, adotando && styles.adotarBtnAtivo]}
+        onPress={() => {
+          Alert.alert(
+            adotando ? 'Adoção cancelada! 😔' : 'Adoção iniciada! 😁',
+            adotando
+              ? `Você saiu do processo de adoção de ${pet.nome}.`
+              : `${pet.nome} vai ficar muito feliz com isso!`
+          );
+          setAdotando(!adotando);
+        }}
+      >
+        <Text style={styles.adotarTxt}>
+          {adotando ? 'Cancelar Adoção' : 'Adotar'}
+        </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.contatarBtn}
+        onPress={() => {
+          const numeroWhatsApp = '5555996168060';
+          const mensagem = 'Olá! Tenho interesse no pet para adoção.';
+          const url = `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensagem)}`;
+          Linking.openURL(url);
+        }}
+      >
+        <Text style={styles.contatarTxt}>Contatar Protetor</Text>
+      </TouchableOpacity>
+    </ScrollView>
+  );
 }
+
+function InfoItem({ icon, text, lib = 'FontAwesome' }) {
+  const IconComponent =
+    lib === 'FontAwesome'
+      ? FontAwesome
+      : lib === 'Feather'
+      ? Feather
+      : lib === 'Entypo'
+      ? Entypo
+      : lib === 'MaterialCommunityIcons'
+      ? MaterialCommunityIcons
+      : FontAwesome;
+
+  return (
+    <View style={styles.infoItem}>
+      <IconComponent name={icon} size={16} color="#000" />
+      <Text style={styles.infoText}>{text}</Text>
+    </View>
+  );
+}
+
+
 
 const styles = StyleSheet.create({
     container: {

@@ -8,21 +8,30 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
-import Footer from '../components/Footer'; // ajuste o caminho se necessário
-import { listarPets, deletarPet } from '../api/api'; // função deletarPet adicionada
+import Footer from '../components/Footer';
+import { listarPets, deletarPet } from '../api/api';
 
 export default function MeusPetsScreen() {
   const navigation = useNavigation();
-  const catImage = require('../../assets/cat.jpg');
   const [pets, setPets] = useState([]);
   const [carregando, setCarregando] = useState(true);
 
   useEffect(() => {
     const carregarPets = async () => {
       try {
+        const userIdStr = await AsyncStorage.getItem('userId');
+        const userId = userIdStr ? parseInt(userIdStr, 10) : null;
+
+        if (!userId) {
+          console.warn('Usuário não identificado.');
+          return;
+        }
+
         const resposta = await listarPets();
-        setPets(resposta);
+        const meusPets = resposta.filter((pet) => pet.idUsuario === userId);
+        setPets(meusPets);
       } catch (error) {
         console.error('Erro ao carregar pets:', error);
       } finally {
@@ -32,6 +41,16 @@ export default function MeusPetsScreen() {
 
     carregarPets();
   }, []);
+
+  const getPetImage = (especie) => {
+    if (especie.toLowerCase() === 'gato') {
+      return require('../../assets/cat.jpg');
+    } else if (especie.toLowerCase() === 'cachorro') {
+      return require('../../assets/dog.jpg');
+    } else {
+      return require('../../assets/cat.jpg'); // fallback
+    }
+  };
 
   return (
     <View style={{ flex: 1 }}>
@@ -47,10 +66,12 @@ export default function MeusPetsScreen() {
                 style={{ flexDirection: 'row', flex: 1 }}
                 onPress={() => navigation.navigate('PerfilPet', { pet })}
               >
-                <Image source={catImage} style={styles.imagem} />
+                <Image source={getPetImage(pet.especie)} style={styles.imagem} />
                 <View style={styles.info}>
                   <Text style={styles.nome}>{pet.nome}</Text>
                   <Text style={styles.descricao}>{pet.raca}, {pet.idade} anos</Text>
+                <Text style={styles.evento}>Último evento ocorrido</Text>
+
                 </View>
               </TouchableOpacity>
 
@@ -59,7 +80,7 @@ export default function MeusPetsScreen() {
                 onPress={async () => {
                   try {
                     await deletarPet(pet.id);
-                    setPets(pets.filter((p) => p.id !== pet.id)); // remove o pet da lista
+                    setPets(pets.filter((p) => p.id !== pet.id));
                   } catch (error) {
                     console.error('Erro ao excluir pet:', error);
                   }
@@ -87,64 +108,67 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   botaoCadastrar: {
-    width: '100%',
-    backgroundColor: '#000',
-    paddingVertical: 14,
-    borderRadius: 50,
+    backgroundColor: '#7FCAD2',
+    marginHorizontal: 20,
+    borderRadius: 12,
+    paddingVertical: 18,
     alignItems: 'center',
-    marginTop: 30,
-    marginBottom: 40,
+    marginBottom: 20,
   },
   botaoTexto: {
-    color: '#fff',
-    fontSize: 16,
+    fontSize: 28,
+    color: 'white',
     fontWeight: 'bold',
   },
   titulo: {
-    fontSize: 24,
+    fontSize: 30,
     fontWeight: 'bold',
     textAlign: 'center',
-    marginBottom: 20,
-    marginTop: 10,
-  },
-  subtitulo: {
-    fontSize: 18,
-    fontWeight: 'bold',
+    marginBottom: 30,
     marginTop: 20,
-    marginBottom: 10,
   },
   card: {
     flexDirection: 'row',
-    marginBottom: 12,
+    marginBottom: 30,
     alignItems: 'center',
+    padding: 20,
+    borderRadius: 16,
+    backgroundColor: '#f2f2f2',
   },
   imagem: {
-    width: 60,
-    height: 60,
-    borderRadius: 10,
-    marginRight: 12,
+    width: 100,
+    height: 100,
+    borderRadius: 12,
+    marginRight: 20,
   },
   info: {
     flex: 1,
   },
   nome: {
-    fontSize: 16,
+    fontSize: 24,
     fontWeight: 'bold',
   },
   descricao: {
-    fontSize: 14,
+    fontSize: 18,
     color: '#333',
   },
   botaoExcluir: {
     backgroundColor: '#ff5c5c',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-    marginLeft: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 10,
+    marginLeft: 10,
     alignSelf: 'center',
   },
   textoExcluir: {
     color: '#fff',
+    fontSize: 16,
     fontWeight: 'bold',
   },
+  evento: {
+    fontSize: 16,
+    color: '#666',
+    marginTop: 4,
+  },
+  
 });

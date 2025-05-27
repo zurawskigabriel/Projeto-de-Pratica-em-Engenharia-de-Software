@@ -13,6 +13,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { criarPet } from '../api/api';
 import * as FileSystem from 'expo-file-system';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function CadastrarPetScreen() {
   const [nome, setNome] = useState('');
@@ -46,12 +47,20 @@ export default function CadastrarPetScreen() {
     }
 
     try {
+      const userIdStr = await AsyncStorage.getItem('userId');
+      const userId = userIdStr ? parseInt(userIdStr, 10) : null;
+
+      if (!userId) {
+        Alert.alert('Erro', 'Não foi possível identificar o usuário logado.');
+        return;
+      }
+
       const base64 = imagem
         ? await FileSystem.readAsStringAsync(imagem, { encoding: FileSystem.EncodingType.Base64 })
         : null;
 
       const petDTO = {
-        idUsuario: 1, // ajuste para usar o usuário logado
+        idUsuario: userId,
         nome,
         especie,
         raca,
