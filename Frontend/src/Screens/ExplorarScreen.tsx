@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { Ionicons, FontAwesome } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { listarPets } from '../api/api';
+import { listarPets } from '../api/api'; //
 import { LinearGradient } from 'expo-linear-gradient';
 import Footer from '../components/Footer';
 
@@ -22,10 +22,17 @@ const cardMargin = 12;
 const cardWidth = (screenWidth - cardMargin * 3) / 2;
 const cardHeight = (screenHeight - cardMargin * 3) / 3;
 
-const PetCard = ({ id, nome, sexo, especie, idade, raca, onPressFavorito, favorito, onPress }) => {
-  const imageSource = especie?.toLowerCase().includes('cachorro')
-    ? require('../../assets/dog.jpg')
-    : require('../../assets/cat.jpg');
+const PetCard = ({ id, nome, sexo, especie, idade, raca, fotos, onPressFavorito, favorito, onPress }) => {
+  let imageSource;
+
+  if (fotos) { // Assumindo que 'fotos' é a string Base64 vinda da API
+    imageSource = { uri: `data:image/jpeg;base64,${fotos}` }; // Usar diretamente
+  } else {
+    // Fallback se não houver imagem ou 'fotos' for nulo/undefined
+    imageSource = especie?.toLowerCase().includes('cachorro')
+      ? require('../../assets/dog.jpg')
+      : require('../../assets/cat.jpg');
+  }
 
   return (
     <TouchableOpacity style={styles.petCardContainer} onPress={onPress}>
@@ -45,48 +52,48 @@ const PetCard = ({ id, nome, sexo, especie, idade, raca, onPressFavorito, favori
               style={{ marginLeft: 8, marginTop: 4 }}
             />
           </View>
-          <Text style={styles.petInfoText}>{idade} anos, {raca}</Text>
+          <Text style={styles.petInfoText}>{idade} {idade === 1 ? 'ano' : 'anos'}, {raca}</Text>
         </View>
       </View>
       <TouchableOpacity
         style={styles.petFavIcon}
         onPress={onPressFavorito}
       >
-        <FontAwesome name='heart-o' size={24} color='black' />
+        <FontAwesome name={favorito ? 'heart' : 'heart-o'} size={24} color={favorito ? 'red' : 'black'} />
       </TouchableOpacity>
     </TouchableOpacity>
   );
 };
 
-export default function FavoritoScreen() {
-  const navigation = useNavigation();
+export default function ExplorarScreen() { // Nome do componente como no arquivo original
+  const navigation = useNavigation(); //
 
-  const [searchTerm, setSearchTerm] = useState('');
-  const [data, setData] = useState([]);
-  const [isFetching, setIsFetching] = useState(false);
-  const [favoritos, setFavoritos] = useState({});
+  const [searchTerm, setSearchTerm] = useState(''); //
+  const [data, setData] = useState([]); //
+  const [isFetching, setIsFetching] = useState(false); //
+  const [favoritos, setFavoritos] = useState({}); //
 
   useEffect(() => {
-    fetchPets();
+    fetchPets(); //
   }, []);
 
   const fetchPets = async () => {
-    setIsFetching(true);
+    setIsFetching(true); //
     try {
-      const pets = await listarPets();
-      setData(pets);
+      const pets = await listarPets(); // // Certifique-se que listarPets() está correta em api.ts
+      setData(pets); //
     } catch (err) {
-      console.error('Erro ao buscar pets:', err);
+      console.error('Erro ao buscar pets:', err); //
     }
-    setIsFetching(false);
+    setIsFetching(false); //
   };
 
   const toggleFavorito = (id) => {
-    setFavoritos((prev) => ({ ...prev, [id]: !prev[id] }));
+    setFavoritos((prev) => ({ ...prev, [id]: !prev[id] })); //
   };
 
   const filteredData = data.filter(item =>
-    item.nome.toLowerCase().includes(searchTerm.toLowerCase())
+    item.nome.toLowerCase().includes(searchTerm.toLowerCase()) //
   );
 
   return (
@@ -115,26 +122,27 @@ export default function FavoritoScreen() {
         </View>
       ) : filteredData.length > 0 ? (
         <FlatList
-          data={filteredData}
+          data={filteredData} //
           numColumns={2}
-          keyExtractor={item => item.id.toString()}
+          keyExtractor={item => item.id.toString()} //
           renderItem={({ item }) => (
             <PetCard
-              id={item.id}
-              nome={item.nome}
-              sexo={item.sexo}
-              especie={item.especie}
-              idade={item.idade}
-              raca={item.raca}
-              favorito={!!favoritos[item.id]}
-              onPressFavorito={() => toggleFavorito(item.id)}
-              onPress={() => navigation.navigate('PerfilPet', { id: item.id })}
+              id={item.id} //
+              nome={item.nome} //
+              sexo={item.sexo} //
+              especie={item.especie} //
+              idade={item.idade} //
+              raca={item.raca} //
+              fotos={item.fotos} // Passa o campo 'fotos' (supostamente Base64)
+              favorito={!!favoritos[item.id]} //
+              onPressFavorito={() => toggleFavorito(item.id)} //
+              onPress={() => navigation.navigate('PerfilPet', { petId: item.id })} // Ajustado para 'petId'
             />
           )}
           contentContainerStyle={{ paddingBottom: 100, paddingHorizontal: cardMargin }}
         />
       ) : (
-        <Text style={styles.noResults}>Nenhum pet encontrado.</Text>
+        <Text style={styles.noResults}>Nenhum pet encontrado.</Text> //
       )}
 
       <Footer />
@@ -142,7 +150,7 @@ export default function FavoritoScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = StyleSheet.create({ // Estilos baseados no arquivo ExplorarScreen.tsx
   petInfoText: {
     color: 'white',
     fontSize: 16,
@@ -170,7 +178,7 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 40,
   },
-  list: {
+  list: { // Embora 'list' não seja usado diretamente, mantido para referência se necessário
     paddingBottom: 80,
   },
   spinnerContainer: {
@@ -190,7 +198,7 @@ const styles = StyleSheet.create({
     margin: cardMargin / 2,
     borderRadius: 20,
     overflow: 'hidden',
-    backgroundColor: '#ddd',
+    backgroundColor: '#ddd', // Cor de fundo enquanto a imagem carrega
     position: 'relative',
   },
   petImage: {

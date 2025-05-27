@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const BASE_URL = "http://192.168.0.198:8080/api";
+// const BASE_URL = "http://192.168.0.198:8080/api"; // IP do Allan
+const BASE_URL = "http://192.168.0.48:8080/api"; // IP do Gabriel 
 
 async function getAuthHeaders() {
   const token = await AsyncStorage.getItem('token');
@@ -118,19 +119,34 @@ export async function adicionarPet(dadosPet) {
 }
 
 export async function buscarPet(id: number) {
+  console.log(`[api.ts] Iniciando buscarPet para id: ${id}`); // Log API 1
   const headers = await getAuthHeaders();
+  const url = `${BASE_URL}/pets/${id}`;
+  console.log(`[api.ts] URL da requisição: ${url}`); // Log API 2
 
-  const response = await fetch(`${BASE_URL}/pets/${id}`, {
-    method: 'GET',
-    headers,
-  });
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers,
+    });
 
-  if (!response.ok) {
-    const erro = await response.text();
-    throw new Error(`Erro ao buscar pet: ${erro}`);
+    console.log(`[api.ts] Status da resposta para ${url}: ${response.status}`); // Log API 3
+
+    if (!response.ok) {
+      const erroText = await response.text(); // Tenta ler o corpo do erro como texto
+      console.error(`[api.ts] Erro na API (status ${response.status}) para ${url}: ${erroText}`); // Log API 4
+      throw new Error(`Erro ao buscar pet (status ${response.status}): ${erroText}`);
+    }
+
+    const data = await response.json();
+    console.log(`[api.ts] Dados recebidos da API para ${url}:`, data); // Log API 5
+    return data;
+
+  } catch (error) {
+    console.error(`[api.ts] Exceção na função buscarPet para id ${id}:`, error); // Log API 6
+    // É importante re-lançar o erro para que o catch em TelaDetalhesPet possa lidar com ele e atualizar a UI.
+    throw error;
   }
-
-  return await response.json();
 }
 
 export async function listarPets(id: number) {
