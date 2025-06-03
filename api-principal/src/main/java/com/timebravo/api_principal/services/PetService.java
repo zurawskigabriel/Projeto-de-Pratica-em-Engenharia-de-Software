@@ -66,6 +66,13 @@ public class PetService {
             .collect(Collectors.toList());
     }
 
+    public List<PetDTO> buscarPetsDisponiveis() {
+        return petRepository.findPetsDisponiveis()
+                .stream()
+                .map(PetMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
     @Transactional
     public PetDTO atualizarPet(Long id, PetDTO petDTO) {
         Pet pet = petRepository.findById(id)

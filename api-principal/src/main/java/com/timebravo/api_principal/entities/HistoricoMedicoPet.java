@@ -25,24 +25,44 @@ public class HistoricoMedicoPet {
     )
     private Pet pet;
 
-    @Size(max = 100)
-    @Column(name = "Hospital", length = 100)
-    private String hospital;
+    public enum Tipo {
+        VACINA("Vacina"),
+        REMEDIO("Remédio"),
+        DOENCA("Doença"),
+        TRATAMENTO("Tratamento"),
+        RESULTADO_EXAME("Resultado exame"),
+        HISTORICO("Histórico"),
+        RESTRICAO_MOBILIDADE("Restrição Mobilidade"),
+        COMPORTAMENTO("Comportamento"),
+        ALIMENTACAO("Alimentação"),
+        OUTROS("Outros");
+        
+        private final String descricao;
+        
+        Tipo(String descricao) {
+            this.descricao = descricao;
+        }
+        
+        public String getDescricao() {
+            return descricao;
+        }
+    }
 
-    @Lob
-    @Column(name = "Resultado")
-    private String resultado;
+    @NotNull(message = "O tipo é obrigatório")
+    @Column(name = "Tipo", nullable = false, length = 20)
+    @Enumerated(EnumType.STRING)
+    private Tipo tipo;
+    
+    @Size(max = 200)
+    @Column(name = "Descricao", length = 200)
+    private String descricao;
 
-    @Lob
-    @Column(name = "Tratamento")
-    private String tratamento;
+    @Column(name = "Data")
+    private LocalDate data;
 
     @Size(max = 255)
     @Column(name = "Documento", length = 255)
     private String documento;
-
-    @Column(name = "Data")
-    private LocalDate data;
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -50,19 +70,16 @@ public class HistoricoMedicoPet {
     public Pet getPet() { return pet; }
     public void setPet(Pet pet) { this.pet = pet; }
 
-    public String getHospital() { return hospital; }
-    public void setHospital(String hospital) { this.hospital = hospital; }
+    public Tipo getTipo() { return tipo; }
+    public void setTipo(Tipo tipo) { this.tipo = tipo; }
 
-    public String getResultado() { return resultado; }
-    public void setResultado(String resultado) { this.resultado = resultado; }
-
-    public String getTratamento() { return tratamento; }
-    public void setTratamento(String tratamento) { this.tratamento = tratamento; }
-
-    public String getDocumento() { return documento; }
-    public void setDocumento(String documento) { this.documento = documento; }
+    public String getDescricao() { return descricao; }
+    public void setDescricao(String descricao) {  this.descricao = descricao; }
 
     public LocalDate getData() { return data; }
     public void setData(LocalDate data) { this.data = data; }
+
+    public String getDocumento() { return documento; }
+    public void setDocumento(String documento) { this.documento = documento; }
 }
 

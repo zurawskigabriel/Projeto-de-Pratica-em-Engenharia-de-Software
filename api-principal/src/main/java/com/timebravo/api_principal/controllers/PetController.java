@@ -76,4 +76,9 @@ public class PetController {
         return ResponseEntity.ok(petsDoUsuario);
     }
 
+    @GetMapping("/petsDisponiveis")
+    public ResponseEntity<List<PetDTO>> buscarPetsDisponiveis() {
+        List<PetDTO> petsDisponiveis = petService.buscarPetsDisponiveis();
+        return ResponseEntity.ok(petsDisponiveis);
+    }
 }

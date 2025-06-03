@@ -1,9 +1,9 @@
 {
 	"info": {
-		"_postman_id": "38107479-cbcb-4946-956a-4962a5707561",
+		"_postman_id": "52465157-3f4c-464e-b468-7a48bcff84a5",
 		"name": "MeAdota",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "26511245"
+		"_exporter_id": "31188143"
 	},
 	"item": [
 		{
@@ -303,6 +303,14 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Pets Disponiveis",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
 				}
 			]
 		},
@@ -388,7 +396,7 @@
 		"bearer": [
 			{
 				"key": "token",
-				"value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqb2FvMkBlbWFpbC5jb20iLCJpYXQiOjE3NDcxNzk5ODcsImV4cCI6MTc0NzE4MzU4N30.VboxGzCmPbbBHQSonMy6hap1074l42SR5naAtVHX_xw",
+				"value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqb2FvMkBlbWFpbC5jb20iLCJ1c2VySWQiOjQsImlhdCI6MTc0Nzc3NjgzOSwiZXhwIjoxNzQ3NzgwNDM5fQ.nz16KSqbCRLy8ok97le1lPjMaBKRBr3iZiFqJZL37s0",
 				"type": "string"
 			}
 		]

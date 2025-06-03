@@ -22,15 +22,24 @@ INSERT INTO tags (Nome, Id_categoria) VALUES
 
 INSERT INTO pet (Id_usuario, Nome, Especie, Raca, Idade, Porte, Peso, Sexo, Bio) VALUES 
 (2, 'Rex', 'Cachorro', 'POODLE', 3, 'MEDIO', 12.5, 'M', 'Cachorro muito brincalhão e amoroso'),
-(3, 'Luna', 'Gato', 'PUG', 2, 'PEQUENO', 4.2, 'F', 'Gatinha tranquila que adora carinho');
+(3, 'Luna', 'Gato', 'PUG', 2, 'PEQUENO', 4.2, 'F', 'Gatinha tranquila que adora carinho'),
+(2, 'Max', 'Cachorro', 'BULLDOG', 5, 'GRANDE', 25.0, 'M', 'Cachorro protetor e leal'),
+(3, 'Mia', 'Gato', 'SIAMESE', 1, 'PEQUENO', 3.0, 'F', 'Gatinha curiosa e brincalhona');
 
-INSERT INTO historico_medico_pet (Id_pet, Hospital, Resultado, Tratamento, Documento, Data) VALUES 
-(1, 'Hospital Vet Plus', 'Exame de rotina', 'Vacina V10', 'vacinacao_001.pdf', '2025-03-15'),
-(2, 'Clínica Felina', 'Castração', 'Pós-operatório normal', 'castracao_002.pdf', '2025-02-20');
+INSERT INTO historico_medico_pet (Id_pet, Tipo, Descricao, Data, Documento) VALUES 
+(1, 'VACINA', 'Vacina V8 aplicada com sucesso.', '2024-05-10', null),
+(1, 'DOENCA', 'Diagnosticado com cinomose em 2023. Totalmente recuperado.', '2023-09-01', NULL),
+(1, 'OUTROS', 'O cachorro se jogou da janela e acabou quebrando suas patas.', '2024-05-27', null),
+(1, 'ALIMENTACAO', 'Necessário ração hipoalergênica. Não pode comer frango.', NULL, NULL),
+(1, 'TRATAMENTO', 'Uso diário de medicamento para controle de ansiedade.', '2024-03-15', 'receita_controlada.pdf'),
+(1, 'COMPORTAMENTO', 'Agressivo com homens desconhecidos. Precisa de aproximação lenta.', NULL, NULL),
+(1, 'RESTRICAO_MOBILIDADE', 'Problema na pata traseira esquerda. Limitação ao caminhar.', '2024-04-05', NULL);
 
 INSERT INTO adocao (Id_pet, Id_adotante, Status) VALUES 
 (1, 1, 'Adotado'),
-(2, 1, 'Falecido');
+(2, 1, 'Falecido'),
+(3, 2, 'Disponível'),
+(4, 2, 'Disponível');
 
 INSERT INTO historico_adocao (Id_adocao, Id_protetor) VALUES 
 (1, 3),
