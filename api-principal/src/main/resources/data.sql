@@ -20,11 +20,11 @@ INSERT INTO tags (Nome, Id_categoria) VALUES
 ('Castrado', 2),
 ('Banho', 3);
 
-INSERT INTO pet (Id_usuario, Nome, Especie, Raca, Idade, Porte, Peso, Sexo, Bio) VALUES 
-(2, 'Rex', 'Cachorro', 'POODLE', 3, 'MEDIO', 12.5, 'M', 'Cachorro muito brincalhão e amoroso'),
-(3, 'Luna', 'Gato', 'PUG', 2, 'PEQUENO', 4.2, 'F', 'Gatinha tranquila que adora carinho'),
-(2, 'Max', 'Cachorro', 'BULLDOG', 5, 'GRANDE', 25.0, 'M', 'Cachorro protetor e leal'),
-(3, 'Mia', 'Gato', 'SIAMESE', 1, 'PEQUENO', 3.0, 'F', 'Gatinha curiosa e brincalhona');
+INSERT INTO pet (Id_usuario, Nome, Especie, Raca, Idade, Porte, Peso, Sexo, Bio, Favorito) VALUES 
+(2, 'Rex', 'Cachorro', 'POODLE', 3, 'MEDIO', 12.5, 'M', 'Cachorro muito brincalhão e amoroso', true),
+(3, 'Luna', 'Gato', 'PUG', 2, 'PEQUENO', 4.2, 'F', 'Gatinha tranquila que adora carinho', true),
+(2, 'Max', 'Cachorro', 'BULLDOG', 5, 'GRANDE', 25.0, 'M', 'Cachorro protetor e leal', false),
+(3, 'Mia', 'Gato', 'SIAMESE', 1, 'PEQUENO', 3.0, 'F', 'Gatinha curiosa e brincalhona', false);
 
 INSERT INTO historico_medico_pet (Id_pet, Tipo, Descricao, Data, Documento) VALUES 
 (1, 'VACINA', 'Vacina V8 aplicada com sucesso.', '2024-05-10', null),

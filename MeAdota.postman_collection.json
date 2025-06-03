@@ -180,6 +180,49 @@
 					"response": []
 				},
 				{
+					"name": "Listar Pets Disponíveis",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/pets/petsDisponiveis",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"pets",
+								"petsDisponiveis"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Todos Pets do Usuario",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/pets/petsDoUsuario/:idUsuario",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"pets",
+								"petsDoUsuario",
+								":idUsuario"
+							],
+							"variable": [
+								{
+									"key": "idUsuario",
+									"value": "2"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Listar Pet",
 					"request": {
 						"method": "GET",
@@ -210,7 +253,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"idUsuario\": 3,\r\n    \"nome\": \"Luna teste\",\r\n    \"especie\": \"Gato\",\r\n    \"raca\": \"VIRA-LATA\",\r\n    \"idade\": 2,\r\n    \"porte\": \"PEQUENO\",\r\n    \"peso\": 4.2,\r\n    \"sexo\": \"F\",\r\n    \"bio\": \"Gatinha tranquila que adora carinho\",\r\n    \"fotos\": null\r\n}",
+							"raw": "{\r\n    \"idUsuario\": 3,\r\n    \"nome\": \"Luna teste\",\r\n    \"especie\": \"Gato\",\r\n    \"raca\": \"VIRA-LATA\",\r\n    \"idade\": 2,\r\n    \"porte\": \"PEQUENO\",\r\n    \"peso\": 4.2,\r\n    \"sexo\": \"F\",\r\n    \"favorito\": false,\r\n    \"bio\": \"Gatinha tranquila que adora carinho\",\r\n    \"fotos\": null\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -282,7 +325,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"idUsuario\": 3,\r\n    \"nome\": \"tommy\",\r\n    \"especie\": \"Cachorro\",\r\n    \"raca\": \"RACA-O-LOCO-BICHO\",\r\n    \"idade\": 11,\r\n    \"porte\": \"ANAO\",\r\n    \"peso\": 2.2,\r\n    \"sexo\": \"F\",\r\n    \"bio\": \"Cachorro tranquilo que adora carinho\",\r\n    \"fotos\": null\r\n}",
+							"raw": "{\r\n    \"idUsuario\": 1,\r\n    \"nome\": \"tommy\",\r\n    \"especie\": \"Cachorro\",\r\n    \"raca\": \"RACA-O-LOCO-BICHO\",\r\n    \"idade\": 11,\r\n    \"porte\": \"ANAO\",\r\n    \"peso\": 2.2,\r\n    \"sexo\": \"F\",\r\n    \"favorito\": true,\r\n    \"bio\": \"Cachorro tranquilo que adora carinho\",\r\n    \"fotos\": null\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -305,8 +348,129 @@
 					"response": []
 				}
 			]
+		},
+		{
+			"name": "Adoções",
+			"item": [
+				{
+					"name": "(PROTETOR) Atualizar Status Adoção do Pet",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"idAdotante\": 2,\r\n    \"status\": \"Adotado\" // Adotado, Falecido, Disponivel, Perdido \r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/adocoes/:id_pet/status",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"adocoes",
+								":id_pet",
+								"status"
+							],
+							"variable": [
+								{
+									"key": "id_pet",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"joao2@email.com\",\r\n    \"password\": \"senhaSegura123\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/login",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Histórico Médico do Pet",
+			"item": [
+				{
+					"name": "Registar Histórico Médico",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"idPet\": 2,\r\n    \"tipo\": \"OUTROS\",\r\n    \"descricao\": \"Foi atropelado, acabou quebrando as duas patas.\",\r\n    \"documento\": null,\r\n    \"data\": \"2025-03-27\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/pets/historico-medico",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"pets",
+								"historico-medico"
+							]
+						}
+					},
+					"response": []
+				}
+			]
 		}
 	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqb2FvMkBlbWFpbC5jb20iLCJ1c2VySWQiOjQsImlhdCI6MTc0ODk5MDc5MywiZXhwIjoxNzQ4OTk0MzkzfQ.55uLeXsYIgIBipbkiJdeaB5UVK_mWxFjcPwGmHwm5xU",
+				"type": "string"
+			}
+		]
+	},
 	"event": [
 		{
 			"listen": "prerequest",

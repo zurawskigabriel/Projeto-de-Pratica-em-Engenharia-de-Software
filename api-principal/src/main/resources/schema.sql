@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS pet (
     Porte VARCHAR(20),
     Peso DOUBLE,
     Sexo CHAR(1) CHECK (Sexo IN ('M', 'F', 'O')),
+    Favorito BOOLEAN,
     Bio CLOB,
     Fotos BLOB,
     FOREIGN KEY (Id_usuario) REFERENCES usuario(Id_usuario)

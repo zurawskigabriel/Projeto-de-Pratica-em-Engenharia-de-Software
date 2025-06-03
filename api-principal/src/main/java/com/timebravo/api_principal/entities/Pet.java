@@ -47,6 +47,9 @@ public class Pet {
     @Column(name = "Bio")
     private String bio;
 
+    @Column(name = "Favorito")
+    private boolean favorito;
+
     @Lob
     @Column(name = "Fotos")
     private byte[] fotos;
@@ -71,8 +74,8 @@ public class Pet {
          cascade = CascadeType.REMOVE,
          orphanRemoval = true,
          fetch = FetchType.LAZY
-     )
-     private List<TagsPet> tagsPet = new ArrayList<>();
+    )
+    private List<TagsPet> tagsPet = new ArrayList<>();
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -106,6 +109,9 @@ public class Pet {
 
     public byte[] getFotos() { return fotos; }
     public void setFotos(byte[] fotos) { this.fotos = fotos; }
+    
+    public boolean getFavorito() { return favorito; }
+    public void setFavorito(boolean favorito) { this.favorito = favorito; }
 
     public List<Adocao> getAdocoes() { return adocoes; }
     public void setAdocoes(List<Adocao> adocoes) { this.adocoes = adocoes; }
@@ -113,6 +119,6 @@ public class Pet {
     public List<HistoricoMedicoPet> getHistoricoMedico() { return historicoMedico; }
     public void setHistoricoMedico(List<HistoricoMedicoPet> historicoMedico) { this.historicoMedico = historicoMedico; }
 
-     public List<TagsPet> getTagsPet() { return tagsPet; }
-     public void setTagsPet(List<TagsPet> tagsPet) { this.tagsPet = tagsPet; }
+    public List<TagsPet> getTagsPet() { return tagsPet; }
+    public void setTagsPet(List<TagsPet> tagsPet) { this.tagsPet = tagsPet; }
 }
