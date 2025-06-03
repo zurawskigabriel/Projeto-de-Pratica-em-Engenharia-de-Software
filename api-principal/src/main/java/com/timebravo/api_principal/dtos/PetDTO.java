@@ -1,6 +1,7 @@
 package com.timebravo.api_principal.dtos;
 
 import jakarta.validation.constraints.*;
+import java.util.List;
 
 public class PetDTO {
 
@@ -36,6 +37,8 @@ public class PetDTO {
     private String bio;
 
     private byte[] fotos;
+
+    private List<HistoricoMedicoDTO> historicoMedico;
 
     public Long getId() {
         return id;
@@ -123,5 +126,13 @@ public class PetDTO {
 
     public void setFotos(byte[] fotos) {
         this.fotos = fotos;
+    }
+
+    public List<HistoricoMedicoDTO> getHistoricoMedico() {
+        return this.historicoMedico;
+    }
+
+    public void setHistoricoMedico(List<HistoricoMedicoDTO> historicoMedico) {
+        this.historicoMedico = historicoMedico;
     }
 }

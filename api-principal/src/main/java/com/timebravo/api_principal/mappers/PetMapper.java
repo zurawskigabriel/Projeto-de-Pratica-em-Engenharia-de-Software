@@ -3,6 +3,8 @@ package com.timebravo.api_principal.mappers;
 import com.timebravo.api_principal.dtos.PetDTO;
 import com.timebravo.api_principal.entities.Pet;
 import com.timebravo.api_principal.entities.Usuario;
+import com.timebravo.api_principal.mappers.HistoricoMedicoMapper;
+import java.util.stream.Collectors;
 
 public class PetMapper {
 
@@ -22,6 +24,13 @@ public class PetMapper {
         if (pet.getPorte() != null) {
             dto.setPorte(pet.getPorte().name());
         }
+
+        dto.setHistoricoMedico(
+            pet.getHistoricoMedico()
+                .stream()
+                .map(HistoricoMedicoMapper::toDTO)
+                .collect(Collectors.toList())
+        );
 
         return dto;
     }
