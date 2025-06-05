@@ -9,6 +9,7 @@ import {
   Linking,
   Alert,
   Share,
+  Dimensions,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
@@ -20,6 +21,8 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { buscarPet, buscarUsuarioPorId, deletarPet } from '../api/api';
+
+const { width, height } = Dimensions.get('window');
 
 export default function PerfilPet() {
   const router = useRouter();
@@ -81,41 +84,46 @@ export default function PerfilPet() {
           style={styles.topLeftIcon}
           onPress={() => router.back()}
         >
-          <Entypo name="chevron-left" size={20} color="black" />
+          <Entypo name="chevron-left" size={height * 0.03} color="black" />
         </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.topRightIcon}
-          onPress={async () => {
-            try {
-              await Share.share({
-                message: `Adote o ${pet.nome}! Veja mais detalhes no nosso app.`,
-              });
-            } catch (error) {
-              console.error('Erro ao compartilhar:', error);
-            }
-          }}
-        >
-          <Entypo name="share" size={20} color="black" />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.topRightIcon, { right: 80 }]}
-          onPress={() => setFavorito(!favorito)}
-        >
-          <FontAwesome
-            name={favorito ? 'heart' : 'heart-o'}
-            size={20}
-            color={favorito ? 'red' : 'black'}
-          />
-        </TouchableOpacity>
+        <View style={styles.topRightIconsContainer}>
+          <TouchableOpacity
+            onPress={() => setFavorito(!favorito)}
+            style={styles.iconButton}
+          >
+            <FontAwesome
+              name={favorito ? 'heart' : 'heart-o'}
+              size={height * 0.03}
+              color={favorito ? 'red' : 'black'}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={async () => {
+              try {
+                await Share.share({
+                  message: `Adote o ${pet.nome}! Veja mais detalhes no nosso app.`,
+                });
+              } catch (error) {
+                console.error('Erro ao compartilhar:', error);
+              }
+            }}
+            style={styles.iconButton}
+          >
+            <Entypo name="share" size={height * 0.03} color="black" />
+          </TouchableOpacity>
+
+
+        </View>
+
         <View style={styles.imageFooter}>
           <View>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <Text style={styles.petName}>{pet.nome}</Text>
               <FontAwesome
                 name={pet.sexo === 'M' ? 'mars' : 'venus'}
-                size={50}
+                size={height * 0.06}
                 color="white"
-                style={{ marginLeft: 8 }}
+                style={{ marginLeft: width * 0.02 }}
               />
             </View>
             <Text style={styles.petDesc}>
@@ -175,7 +183,7 @@ export default function PerfilPet() {
               style={styles.adotarBtn}
               onPress={() => alert('Abrir acompanhamento')}
             >
-              <Text style={styles.adotarTxt}>Acompanhar</Text>
+              <Text style={styles.buttonTxt}>Acompanhar</Text>
             </TouchableOpacity>
           )}
           <TouchableOpacity
@@ -190,7 +198,7 @@ export default function PerfilPet() {
               setAdotando(!adotando);
             }}
           >
-            <Text style={styles.adotarTxt}>
+            <Text style={styles.buttonTxt}>
               {adotando ? 'Cancelar Adoção' : 'Adotar'}
             </Text>
           </TouchableOpacity>
@@ -203,7 +211,7 @@ export default function PerfilPet() {
             style={[styles.contatarBtn, { backgroundColor: '#9A9A9A' }]}
             onPress={() => router.push({ pathname: 'EditarPet', params: { id: pet.id } })}
           >
-            <Text style={[styles.contatarTxt, { color: 'white' }]}>Editar</Text>
+            <Text style={[styles.buttonTxt, { color: 'white' }]}>Editar</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -231,7 +239,7 @@ export default function PerfilPet() {
               );
             }}
           >
-            <Text style={styles.botaoTexto}>Excluir Pet</Text>
+            <Text style={styles.buttonTxt}>Excluir Pet</Text>
           </TouchableOpacity>
         </>
       ) : (
@@ -244,7 +252,7 @@ export default function PerfilPet() {
             Linking.openURL(url);
           }}
         >
-          <Text style={styles.contatarTxt}>Contatar Protetor</Text>
+          <Text style={styles.buttonTxt}>Contatar Protetor</Text>
         </TouchableOpacity>
       )}
     </ScrollView>
@@ -280,132 +288,140 @@ const styles = StyleSheet.create({
   },
   image: {
     width: '100%',
-    height: 700,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
+    height: height * 0.6,
+    borderBottomLeftRadius: height / 70,
+    borderBottomRightRadius: height / 70,
   },
   imageShadow: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    height: 250,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
+    height: height * 0.3,
+    borderBottomLeftRadius: height / 70,
+    borderBottomRightRadius: height / 70,
   },
   topLeftIcon: {
     position: 'absolute',
-    top: 40,
-    left: 30,
+    top: height * 0.04,
+    left: width * 0.04,
     backgroundColor: 'white',
-    padding: 8,
+    padding: width * 0.02,
     borderRadius: 999,
     elevation: 5,
   },
   topRightIcon: {
     position: 'absolute',
-    top: 40,
-    right: 30,
+    top: height * 0.04,
+    right: width * 0.04,
     backgroundColor: 'white',
-    padding: 8,
+    padding: width * 0.02,
     borderRadius: 999,
     elevation: 5,
   },
   imageFooter: {
     position: 'absolute',
-    bottom: 20,
-    left: 30,
-    right: 40,
+    bottom: height * 0.02,
+    left: width * 0.04,
+    right: width * 0.04,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-end',
   },
   petName: {
-    fontSize: 60,
+    fontSize: width * 0.1,
     color: 'white',
     fontWeight: 'bold',
   },
   petDesc: {
-    fontSize: 35,
+    fontSize: width * 0.05,
     color: 'white',
   },
   tabs: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginTop: 20,
+    marginTop: height * 0.02,
   },
   tab: {
-    fontSize: 25,
+    fontSize: width * 0.045,
     color: '#888',
-    paddingBottom: 0,
+    paddingBottom: height * 0.002,
   },
   activeTab: {
     color: '#000',
-    borderBottomWidth: 2,
+    borderBottomWidth: height * 0.002,
     borderBottomColor: '#000',
+    marginBottom: height * 0.005,
+
   },
   infoCard: {
-    margin: 20,
-    padding: 16,
-    borderRadius: 12,
+    margin: width * 0.02,
+    padding: width * 0.02,
+    borderRadius: height * 0.02,
     backgroundColor: '#F8F8F8',
     elevation: 2,
+    marginBottom: height * 0.02,
+
+
   },
   infoItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: height * 0.015,
   },
   infoText: {
-    marginLeft: 10,
-    fontSize: 16,
+    marginLeft: width * 0.025,
+    fontSize: width * 0.045,
   },
   adotarBtn: {
     backgroundColor: '#7FCAD2',
-    marginHorizontal: 20,
-    borderRadius: 10,
-    paddingVertical: 14,
+    marginHorizontal: width * 0.02,
+    borderRadius: height * 0.02,
+    paddingVertical: height * 0.02,
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: height * 0.015,
   },
   adotarBtnAtivo: {
     backgroundColor: '#FF6B6B',
   },
-  adotarTxt: {
-    fontSize: 25,
+  buttonTxt: {
+    fontSize: width * 0.05,
     color: 'white',
     fontWeight: 'bold',
   },
   contatarBtn: {
     backgroundColor: '#9A9A9A',
-    marginHorizontal: 20,
-    borderRadius: 10,
-    paddingVertical: 14,
+    marginHorizontal: width * 0.02,
+    borderRadius: height * 0.02,
+    paddingVertical: height * 0.02,
     alignItems: 'center',
-    marginBottom: 10,
-  },
-  contatarTxt: {
-    fontSize: 25,
-    color: '#000',
-    fontWeight: 'bold',
+    marginBottom: height * 0.015,
   },
   excluirBtn: {
     backgroundColor: '#FF5C5C',
-    marginHorizontal: 20,
-    borderRadius: 10,
-    paddingVertical: 14,
+    marginHorizontal: width * 0.02,
+    borderRadius: height * 0.02,
+    paddingVertical: height * 0.02,
     alignItems: 'center',
-    marginBottom: 30,
-  },
-  botaoTexto: {
-    color: '#fff',
-    fontSize: 24,
-    fontWeight: 'bold',
+    marginBottom: height * 0.015,
   },
   contentContainer: {
     marginTop: 0,
     paddingHorizontal: 0,
     borderRadius: 12,
     justifyContent: 'center',
+  },
+  topRightIconsContainer: {
+    position: 'absolute',
+    top: height * 0.04,
+    right: width * 0.04,
+    flexDirection: 'row',
+    gap: width * 0.03, // espaçamento entre os ícones
+  },
+  iconButton: {
+    backgroundColor: 'white',
+    padding: width * 0.02,
+    borderRadius: 999,
+    elevation: 5,
   },
 });
