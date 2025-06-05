@@ -26,6 +26,10 @@ INSERT INTO pet (Id_usuario, Nome, Especie, Raca, Idade, Porte, Peso, Sexo, Bio,
 (2, 'Max', 'Cachorro', 'BULLDOG', 5, 'GRANDE', 25.0, 'M', 'Cachorro protetor e leal', false),
 (3, 'Mia', 'Gato', 'SIAMESE', 1, 'PEQUENO', 3.0, 'F', 'Gatinha curiosa e brincalhona', false);
 
+INSERT INTO pet_favoritos (Id_usuario, Id_pet) VALUES
+(1, 2),
+(2, 3);
+
 INSERT INTO historico_medico_pet (Id_pet, Tipo, Descricao, Data, Documento) VALUES 
 (1, 'VACINA', 'Vacina V8 aplicada com sucesso.', '2024-05-10', null),
 (1, 'DOENCA', 'Diagnosticado com cinomose em 2023. Totalmente recuperado.', '2023-09-01', NULL),

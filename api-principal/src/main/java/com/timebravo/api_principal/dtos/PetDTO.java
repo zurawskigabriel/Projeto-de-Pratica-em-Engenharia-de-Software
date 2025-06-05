@@ -34,8 +34,6 @@ public class PetDTO {
 
     private char sexo;
 
-    private boolean favorito;
-
     private String bio;
 
     private byte[] fotos;
@@ -112,14 +110,6 @@ public class PetDTO {
 
     public void setSexo(char sexo) {
         this.sexo = sexo;
-    }
-
-    public boolean getFavorito() {
-        return favorito;
-    }
-
-    public void setFavorito(boolean favorito) {
-        this.favorito = favorito;
     }
 
     public String getBio() {
