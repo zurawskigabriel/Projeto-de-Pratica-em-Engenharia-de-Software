@@ -1,15 +1,14 @@
-import { useRouter, useNavigationContainerRef } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useEffect } from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator, Text } from 'react-native';
 
 export default function Index() {
   const router = useRouter();
 
   useEffect(() => {
-    // Aguarda um pequeno tempo para garantir que o roteador está montado
     const timeout = setTimeout(() => {
-      router.replace('/Login');
-    }, 0); // ou até 100ms, se necessário
+      router.replace('/Map');
+    }, 0);
 
     return () => clearTimeout(timeout);
   }, []);
@@ -17,6 +16,9 @@ export default function Index() {
   return (
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
       <ActivityIndicator size="large" />
+      <Text style={{ marginTop: 20, fontFamily: 'Afacad_400Regular', fontSize: 16 }}>
+        Carregando...
+      </Text>
     </View>
   );
 }
