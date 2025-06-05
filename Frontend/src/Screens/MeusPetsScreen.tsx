@@ -63,29 +63,31 @@ export default function MeusPetsScreen() {
 
   return (
     <View style={{ flex: 1 }}>
-      <ScrollView contentContainerStyle={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Meus Pets</Text>
-          <TouchableOpacity
-            style={styles.iconeAdicionar}
-            onPress={() =>
-              Alert.alert(
-                'Adicionar Pet',
-                'Deseja adicionar um novo pet?',
-                [
-                  { text: 'Cancelar', style: 'cancel' },
-                  {
-                    text: 'Sim',
-                    onPress: () => navigation.navigate('CadastrarPet'),
-                  },
-                ]
-              )
-            }
-          >
-            <Icon name="add" size={width * 0.07} color="#000" />
-          </TouchableOpacity>
-        </View>
+      {/* HEADER FIXO */}
+      <View style={styles.header}>
+        <Text style={styles.title}>Meus Pets</Text>
+        <TouchableOpacity
+          style={styles.iconeAdicionar}
+          onPress={() =>
+            Alert.alert(
+              'Adicionar Pet',
+              'Deseja adicionar um novo pet?',
+              [
+                { text: 'Cancelar', style: 'cancel' },
+                {
+                  text: 'Sim',
+                  onPress: () => navigation.navigate('CadastrarPet'),
+                },
+              ]
+            )
+          }
+        >
+          <Icon name="add" size={width * 0.07} color="#000" />
+        </TouchableOpacity>
+      </View>
 
+      {/* SCROLL DE PETS */}
+      <ScrollView contentContainerStyle={styles.containerScroll}>
         {carregando ? (
           <ActivityIndicator size="large" color="#000" style={{ marginTop: 20 }} />
         ) : pets.length === 0 ? (
@@ -117,11 +119,7 @@ export default function MeusPetsScreen() {
                     )}
                   </View>
                   <Text style={styles.descricao}>{pet.raca}, {pet.idade} anos</Text>
-                  <Text
-                    style={styles.evento}
-                    numberOfLines={2}
-                    ellipsizeMode="tail"
-                  >
+                  <Text style={styles.evento} numberOfLines={2} ellipsizeMode="tail">
                     Último evento: {pet.ultimoEvento || 'Sem eventos registrados'}
                   </Text>
                 </View>
@@ -130,28 +128,34 @@ export default function MeusPetsScreen() {
           ))
         )}
       </ScrollView>
+
+      {/* FOOTER FIXO */}
       <Footer />
     </View>
   );
-}
 
+}
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  containerScroll: {
     backgroundColor: '#fff',
     paddingTop: height * 0.03,
     paddingHorizontal: width * 0.02,
+    paddingBottom: height * 0.1,
   },
   header: {
     alignItems: 'center',
+    justifyContent: 'center',
     position: 'relative',
+    marginTop: height * 0.03,
+    paddingHorizontal: width * 0.02,
+    marginBottom: height * 0.01,
   },
   title: {
     fontSize: height * 0.035,
     fontWeight: 'bold',
     textAlign: 'center',
-    marginBottom: height * 0.01,
   },
+
   iconeAdicionar: {
     position: 'absolute',
     right: 0,
@@ -173,44 +177,43 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
     alignItems: 'center', // centraliza imagem e texto no eixo vertical
-    marginBottom: height * 0.03,
+    marginBottom: height * 0.01,
     paddingHorizontal: width * 0.03,
     paddingVertical: height * 0.015,
     borderRadius: height * 0.02,
     backgroundColor: '#f2f2f2',
   },
-  
+
   imagem: {
-    width: width * 0.25,
-    height: width * 0.25,
+    width: width * 0.20,
+    height: width * 0.20,
     borderRadius: height * 0.01,
     marginRight: width * 0.02,
     resizeMode: 'cover',
   },
-  
+
   info: {
     flex: 1,
-    justifyContent: 'center', // <-- aqui é o segredo
+    justifyContent: 'center',
   },
-  
+
   nomeContainer: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   nome: {
-    fontSize: width * 0.07,
+    fontSize: width * 0.058,
     fontWeight: 'bold',
   },
   iconeSexo: {
     marginLeft: width * 0.01,
-
   },
   descricao: {
     fontSize: width * 0.04,
     color: '#333',
   },
   evento: {
-    fontSize: width * 0.035,
+    fontSize: width * 0.04,
     color: '#666',
   },
 });
