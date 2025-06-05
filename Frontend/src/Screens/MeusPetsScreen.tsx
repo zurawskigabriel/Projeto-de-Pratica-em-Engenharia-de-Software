@@ -8,11 +8,16 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
+  Dimensions,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import Footer from '../components/Footer';
-import { listarPets, deletarPet } from '../api/api';
+import { listarPets } from '../api/api';
+import Icon from 'react-native-vector-icons/MaterialIcons'; // Ícone de adicionar
+import { FontAwesome } from '@expo/vector-icons'; // Ícones ♂ e ♀ compatíveis com Expo
+
+const { width, height } = Dimensions.get('window');
 
 export default function MeusPetsScreen() {
   const navigation = useNavigation();
@@ -33,6 +38,9 @@ export default function MeusPetsScreen() {
         const resposta = await listarPets();
         const meusPets = resposta.filter((pet) => pet.idUsuario === userId);
         setPets(meusPets);
+
+        console.log('Pets carregados:', meusPets);
+
       } catch (error) {
         console.error('Erro ao carregar pets:', error);
       } finally {
@@ -56,7 +64,27 @@ export default function MeusPetsScreen() {
   return (
     <View style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.titulo}>Meus Pets</Text>
+        <View style={styles.header}>
+          <Text style={styles.title}>Meus Pets</Text>
+          <TouchableOpacity
+            style={styles.iconeAdicionar}
+            onPress={() =>
+              Alert.alert(
+                'Adicionar Pet',
+                'Deseja adicionar um novo pet?',
+                [
+                  { text: 'Cancelar', style: 'cancel' },
+                  {
+                    text: 'Sim',
+                    onPress: () => navigation.navigate('CadastrarPet'),
+                  },
+                ]
+              )
+            }
+          >
+            <Icon name="add" size={width * 0.07} color="#000" />
+          </TouchableOpacity>
+        </View>
 
         {carregando ? (
           <ActivityIndicator size="large" color="#000" style={{ marginTop: 20 }} />
@@ -71,45 +99,36 @@ export default function MeusPetsScreen() {
               >
                 <Image source={getPetImage(pet.especie)} style={styles.imagem} />
                 <View style={styles.info}>
-                  <Text style={styles.nome}>{pet.nome}</Text>
+                  <View style={styles.nomeContainer}>
+                    <Text style={styles.nome}>{pet.nome}</Text>
+                    {pet.sexo?.toLowerCase() === 'm' && (
+                      <FontAwesome
+                        name="mars"
+                        size={width * 0.06}
+                        style={styles.iconeSexo}
+                      />
+                    )}
+                    {pet.sexo?.toLowerCase() === 'f' && (
+                      <FontAwesome
+                        name="venus"
+                        size={width * 0.06}
+                        style={styles.iconeSexo}
+                      />
+                    )}
+                  </View>
                   <Text style={styles.descricao}>{pet.raca}, {pet.idade} anos</Text>
-                  <Text style={styles.evento}>Último evento ocorrido</Text>
+                  <Text
+                    style={styles.evento}
+                    numberOfLines={2}
+                    ellipsizeMode="tail"
+                  >
+                    Último evento: {pet.ultimoEvento || 'Sem eventos registrados'}
+                  </Text>
                 </View>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.botaoExcluir}
-                onPress={() => {
-                  Alert.alert(
-                    'Confirmar exclusão',
-                    `Deseja realmente excluir o pet ${pet.nome}?`,
-                    [
-                      { text: 'Cancelar', style: 'cancel' },
-                      {
-                        text: 'Excluir',
-                        style: 'destructive',
-                        onPress: async () => {
-                          try {
-                            await deletarPet(pet.id);
-                            setPets(pets.filter((p) => p.id !== pet.id));
-                          } catch (error) {
-                            console.error('Erro ao excluir pet:', error);
-                          }
-                        },
-                      },
-                    ]
-                  );
-                }}
-              >
-                <Text style={styles.textoExcluir}>Excluir</Text>
               </TouchableOpacity>
             </View>
           ))
         )}
-
-        <TouchableOpacity style={styles.botaoCadastrar} onPress={() => navigation.navigate('CadastrarPet')}>
-          <Text style={styles.botaoTexto}>+ Novo Pet</Text>
-        </TouchableOpacity>
       </ScrollView>
       <Footer />
     </View>
@@ -118,77 +137,80 @@ export default function MeusPetsScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
-    paddingBottom: 140,
+    flex: 1,
     backgroundColor: '#fff',
+    paddingTop: height * 0.03,
+    paddingHorizontal: width * 0.02,
   },
-  botaoCadastrar: {
-    backgroundColor: '#7FCAD2',
-    marginHorizontal: 20,
-    borderRadius: 12,
-    paddingVertical: 18,
+  header: {
     alignItems: 'center',
-    marginBottom: 20,
+    position: 'relative',
   },
-  botaoTexto: {
-    fontSize: 20,
-    color: 'white',
-    fontWeight: 'bold',
-  },
-  titulo: {
-    fontSize: 30,
+  title: {
+    fontSize: height * 0.035,
     fontWeight: 'bold',
     textAlign: 'center',
-    marginBottom: 30,
-    marginTop: 20,
+    marginBottom: height * 0.01,
+  },
+  iconeAdicionar: {
+    position: 'absolute',
+    right: 0,
+    borderRadius: width * 0.08,
+    width: width * 0.1,
+    height: width * 0.1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 0,
+    borderColor: '#000',
+    backgroundColor: 'transparent',
   },
   subtitulo: {
-    fontSize: 18,
+    fontSize: width * 0.045,
     color: '#666',
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: height * 0.02,
   },
   card: {
     flexDirection: 'row',
-    marginBottom: 30,
-    alignItems: 'center',
-    padding: 20,
-    borderRadius: 16,
+    alignItems: 'center', // centraliza imagem e texto no eixo vertical
+    marginBottom: height * 0.03,
+    paddingHorizontal: width * 0.03,
+    paddingVertical: height * 0.015,
+    borderRadius: height * 0.02,
     backgroundColor: '#f2f2f2',
   },
+  
   imagem: {
-    width: 100,
-    height: 100,
-    borderRadius: 12,
-    marginRight: 20,
+    width: width * 0.25,
+    height: width * 0.25,
+    borderRadius: height * 0.01,
+    marginRight: width * 0.02,
+    resizeMode: 'cover',
   },
+  
   info: {
     flex: 1,
+    justifyContent: 'center', // <-- aqui é o segredo
+  },
+  
+  nomeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   nome: {
-    fontSize: 24,
+    fontSize: width * 0.07,
     fontWeight: 'bold',
   },
+  iconeSexo: {
+    marginLeft: width * 0.01,
+
+  },
   descricao: {
-    fontSize: 18,
+    fontSize: width * 0.04,
     color: '#333',
   },
   evento: {
-    fontSize: 16,
+    fontSize: width * 0.035,
     color: '#666',
-    marginTop: 4,
-  },
-  botaoExcluir: {
-    backgroundColor: '#ff5c5c',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 10,
-    marginLeft: 10,
-    alignSelf: 'center',
-  },
-  textoExcluir: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
   },
 });
