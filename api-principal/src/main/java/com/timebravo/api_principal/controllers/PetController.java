@@ -81,4 +81,18 @@ public class PetController {
         List<PetDTO> petsDisponiveis = petService.buscarPetsDisponiveis();
         return ResponseEntity.ok(petsDisponiveis);
     }
+
+    @GetMapping("/petsPorFiltro")
+    public ResponseEntity<List<PetDTO>> buscarPetsPorFiltro(
+        @RequestParam(required = false) String especie, 
+        @RequestParam(required = false) String raca, 
+        @RequestParam(required = false) Integer idadeMinima, 
+        @RequestParam(required = false) Integer idadeMaxima,
+        @RequestParam(required = false) String porte, 
+        @RequestParam(required = false) Character sexo,
+        @RequestParam(required = false) Boolean temHistoricoMedico) {
+        
+        List<PetDTO> petsFiltrados = petService.buscarPetsPorFiltro(especie, raca, idadeMinima, idadeMaxima, porte, sexo, temHistoricoMedico);
+        return ResponseEntity.ok(petsFiltrados);
+    }
 }
