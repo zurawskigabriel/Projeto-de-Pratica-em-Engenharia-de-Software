@@ -85,10 +85,4 @@ public class PetController {
         List<PetDTO> petsDisponiveis = petService.buscarPetsDisponiveis();
         return ResponseEntity.ok(petsDisponiveis);
     }
-
-    @GetMapping("/favoritos/{idUsuario}")
-    public ResponseEntity<List<PetFavoritoDTO>> listarFavoritos(@PathVariable Long idUsuario) {
-        List<PetFavoritoDTO> favoritos = petFavoritoService.listarPetsFavoritos(idUsuario);
-        return ResponseEntity.ok(favoritos);
-    }
 }

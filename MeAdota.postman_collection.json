@@ -198,31 +198,6 @@
 					"response": []
 				},
 				{
-					"name": "Listar Pets Favoritos do Usuário",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{url}}/pets/favoritos/:idUsuario",
-							"host": [
-								"{{url}}"
-							],
-							"path": [
-								"pets",
-								"favoritos",
-								":idUsuario"
-							],
-							"variable": [
-								{
-									"key": "idUsuario",
-									"value": "1"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
 					"name": "Listar Todos Pets do Usuario",
 					"request": {
 						"method": "GET",
@@ -484,6 +459,61 @@
 					"response": []
 				}
 			]
+		},
+		{
+			"name": "Pets Favoritos",
+			"item": [
+				{
+					"name": "Registrar Pet Favorito",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"idUsuario\": 2,\r\n    \"idPet\": 2\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/pets-favoritos",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"pets-favoritos"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Pets Favoritos do Usuário",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/pets-favoritos/:idUsuario",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"pets-favoritos",
+								":idUsuario"
+							],
+							"variable": [
+								{
+									"key": "idUsuario",
+									"value": "2"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
 		}
 	],
 	"auth": {
@@ -491,7 +521,7 @@
 		"bearer": [
 			{
 				"key": "token",
-				"value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqb2FvMkBlbWFpbC5jb20iLCJ1c2VySWQiOjQsImlhdCI6MTc0OTE1OTE1NSwiZXhwIjoxNzQ5MTYyNzU1fQ.XmKh8j4DG3CkcRT3kDZCheMEneYwC7x4LLGYtw3sivQ",
+				"value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqb2FvMkBlbWFpbC5jb20iLCJ1c2VySWQiOjQsImlhdCI6MTc0OTU4OTczMSwiZXhwIjoxNzQ5NTkzMzMxfQ.r1d0HXQz203P87sy7-cV9JznAvHvzXD98vEYndjUg_U",
 				"type": "string"
 			}
 		]

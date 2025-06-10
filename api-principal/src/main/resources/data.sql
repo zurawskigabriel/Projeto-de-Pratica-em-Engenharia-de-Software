@@ -28,6 +28,7 @@ INSERT INTO pet (Id_usuario, Nome, Especie, Raca, Idade, Porte, Peso, Sexo, Bio,
 
 INSERT INTO pet_favoritos (Id_usuario, Id_pet) VALUES
 (1, 2),
+(2, 1),
 (2, 3);
 
 INSERT INTO historico_medico_pet (Id_pet, Tipo, Descricao, Data, Documento) VALUES 
@@ -42,8 +43,8 @@ INSERT INTO historico_medico_pet (Id_pet, Tipo, Descricao, Data, Documento) VALU
 INSERT INTO adocao (Id_pet, Id_adotante, Status) VALUES 
 (1, 1, 'Adotado'),
 (2, 1, 'Falecido'),
-(3, 2, 'Disponível'),
-(4, 2, 'Disponível');
+(3, 2, 'Disponivel'),
+(4, 2, 'Disponivel');
 
 INSERT INTO historico_adocao (Id_adocao, Id_protetor) VALUES 
 (1, 3),
