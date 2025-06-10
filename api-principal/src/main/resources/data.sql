@@ -20,18 +20,6 @@ INSERT INTO tags (Nome, Id_categoria) VALUES
 ('Castrado', 2),
 ('Banho', 3);
 
-<<<<<<< HEAD
-INSERT INTO pet (Id_usuario, Nome, Especie, Raca, Idade, Porte, Peso, Sexo, Bio, Favorito) VALUES 
-(2, 'Rex', 'Cachorro', 'POODLE', 3, 'MEDIO', 12.5, 'M', 'Cachorro muito brincalhão e amoroso', true),
-(3, 'Luna', 'Gato', 'PUG', 2, 'PEQUENO', 4.2, 'F', 'Gatinha tranquila que adora carinho', true),
-(2, 'Max', 'Cachorro', 'BULLDOG', 5, 'GRANDE', 25.0, 'M', 'Cachorro protetor e leal', false),
-(3, 'Mia', 'Gato', 'SIAMESE', 1, 'PEQUENO', 3.0, 'F', 'Gatinha curiosa e brincalhona', false);
-
-INSERT INTO pet_favoritos (Id_usuario, Id_pet) VALUES
-(1, 2),
-(2, 1),
-(2, 3);
-=======
 INSERT INTO pet (Id_usuario, Nome, Especie, Raca, Idade, Porte, Peso, Sexo, Bio) VALUES 
 (1, 'Rex', 'Cachorro', 'POODLE', 3, 'MEDIO', 12.5, 'M', 'Cachorro muito brincalhao e amoroso'),             --1
 (2, 'Luna', 'Gato', 'PUG', 2, 'PEQUENO', 4.2, 'F', 'Gatinha tranquila que adora carinho'),                  --2
@@ -95,8 +83,13 @@ INSERT INTO pet (Id_usuario, Nome, Especie, Raca, Idade, Porte, Peso, Sexo, Bio)
 (3, 'Tina', 'Gato', 'ANGORA', 10, 'PEQUENO', 3.9, 'F', 'Muito calma e afetuosa'),
 (1, 'Guga', 'Cachorro', 'BASSET', 14, 'MEDIO', 20.0, 'M', 'Idoso simpatico e adora companhia'),
 (2, 'Lola', 'Coelho', 'MINI LOP', 9, 'PEQUENO', 1.9, 'F', 'Alegre, mesmo com a idade'),
-(3, 'Teco', 'Hamster', 'SIRIO', 2, 'PEQUENO', 0.18, 'M', 'Idoso para a especie, mas ativo');            --63
->>>>>>> sp2/main
+(3, 'Teco', 'Hamster', 'SIRIO', 2, 'PEQUENO', 0.18, 'M', 'Idoso para a especie, mas ativo');    
+
+
+INSERT INTO pet_favoritos (Id_usuario, Id_pet) VALUES
+(1, 2),
+(2, 1),
+(2, 3);        
 
 INSERT INTO historico_medico_pet (Id_pet, Tipo, Descricao, Data, Documento) VALUES 
 (5, 'VACINA', 'Vacina V8 aplicada com sucesso.', '2024-05-10', null),
@@ -106,14 +99,6 @@ INSERT INTO historico_medico_pet (Id_pet, Tipo, Descricao, Data, Documento) VALU
 (1, 'TRATAMENTO', 'Uso diário de medicamento para controle de ansiedade.', '2024-03-15', 'receita_controlada.pdf'),
 (1, 'COMPORTAMENTO', 'Agressivo com homens desconhecidos. Precisa de aproximação lenta.', NULL, NULL),
 (1, 'RESTRICAO_MOBILIDADE', 'Problema na pata traseira esquerda. Limitação ao caminhar.', '2024-04-05', NULL);
-
-<<<<<<< HEAD
-INSERT INTO adocao (Id_pet, Id_adotante, Status) VALUES 
-(1, 1, 'Adotado'),
-(2, 1, 'Falecido'),
-(3, 2, 'Disponivel'),
-(4, 2, 'Disponivel');
-=======
 
 INSERT INTO adocao (Id_pet, Id_adotante, Status) VALUES
 (1, 1, 'Disponivel'),
@@ -179,7 +164,6 @@ INSERT INTO adocao (Id_pet, Id_adotante, Status) VALUES
 (61, 1, 'Disponivel'),
 (62, 2, 'Disponivel'),
 (63, 3, 'Disponivel');
->>>>>>> sp2/main
 
 INSERT INTO historico_adocao (Id_adocao, Id_protetor) VALUES 
 (1, 3),
