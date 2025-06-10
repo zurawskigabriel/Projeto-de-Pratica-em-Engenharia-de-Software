@@ -34,4 +34,13 @@ public class PetFavoritoController
         petFavoritoService.favoritarPet(petDTO);
         return ResponseEntity.status(HttpStatus.CREATED).build(); 
     }
+
+    @DeleteMapping("/{idUsuario}/{idPet}")
+    public ResponseEntity<Void> desfavoritarPet(
+            @PathVariable Long idUsuario,
+            @PathVariable Long idPet
+    ) {
+        petFavoritoService.desfavoritarPet(idUsuario, idPet);
+        return ResponseEntity.noContent().build(); 
+    }
 }

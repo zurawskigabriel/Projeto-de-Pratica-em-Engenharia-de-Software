@@ -62,4 +62,16 @@ public class PetFavoritoService {
         PetFavorito salvo = favoritoRepository.save(petFavorito);
         return PetFavoritoMapper.toDTO(salvo);
     }
+
+    @Transactional
+    public void desfavoritarPet(Long idUsuario, Long idPet) {
+        PetFavorito favorito = favoritoRepository
+            .findByUsuarioIdAndPetId(idUsuario, idPet)
+            .orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.NOT_FOUND,
+                "Pet favorito não encontrado para esse usuário."
+            ));
+
+        favoritoRepository.delete(favorito);
+    }
 }

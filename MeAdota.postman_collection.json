@@ -512,6 +512,35 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Deletar Pet Favorito do Usuário",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/pets-favoritos/:idUsuario/:idPet",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"pets-favoritos",
+								":idUsuario",
+								":idPet"
+							],
+							"variable": [
+								{
+									"key": "idUsuario",
+									"value": "2"
+								},
+								{
+									"key": "idPet",
+									"value": "3"
+								}
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		}
