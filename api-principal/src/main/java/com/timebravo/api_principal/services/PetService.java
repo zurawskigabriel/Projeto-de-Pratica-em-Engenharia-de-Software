@@ -67,10 +67,28 @@ public class PetService {
     }
 
     public List<PetDTO> buscarPetsDisponiveis() {
-        return petRepository.findPetsDisponiveis()
-                .stream()
+        List<Pet> pets = petRepository.findPetsDisponiveis();
+
+        if (pets.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Nenhum pet disponível encontrado");
+        }
+
+        return pets.stream()
                 .map(PetMapper::toDTO)
                 .collect(Collectors.toList());
+    }
+
+    public List<PetDTO> buscarPetsPorFiltro(String especie, String raca, Integer idadeMinima, Integer idadeMaxima, String porte, Character sexo, Boolean temHistoricoMedico) {
+
+        List<Pet> pets = petRepository.findPetsByFilter(especie, raca, idadeMinima, idadeMaxima, porte, sexo, temHistoricoMedico);
+
+        if (pets.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Nenhum pet encontrado com os critérios especificados");
+        }
+        return pets.stream()
+                .map(PetMapper::toDTO)
+                .collect(Collectors.toList());
+
     }
 
     @Transactional
