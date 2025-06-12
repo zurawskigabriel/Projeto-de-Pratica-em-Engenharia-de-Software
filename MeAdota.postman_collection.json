@@ -160,6 +160,42 @@
 			]
 		},
 		{
+		"name": "Matches",
+		"item": [
+			{
+			"name": "Calcular Matches",
+			"request": {
+				"method": "POST",
+				"header": [
+				{
+					"key": "Content-Type",
+					"value": "application/json"
+				}
+				],
+				"body": {
+				"mode": "raw",
+				"raw": "{\n  \"usuario\": {\n    \"id\": 42,\n    \"nome\": \"Maria\",\n    \"email\": \"maria@exemplo.com\",\n    \"telefone\": \"555-1234\",\n    \"senhaHash\": \"hash-segura\",\n    \"dataCadastro\": \"2025-06-01T10:00:00\",\n    \"tipo\": \"PESSOA\",\n    \"perfilUsuario\": \"ADOTANTE\"\n  },\n  \"pets\": [\n    {\n      \"id\": 1,\n      \"nome\": \"Rex\",\n      \"especie\": \"Cão\",\n      \"raca\": \"Labrador\",\n      \"idade\": 3,\n      \"porte\": \"MEDIO\"\n    },\n    {\n      \"id\": 2,\n      \"nome\": \"Mimi\",\n      \"especie\": \"Gato\",\n      \"raca\": \"Siamês\",\n      \"idade\": 2,\n      \"porte\": \"PEQUENO\"\n    }\n  ]\n}",
+				"options": {
+					"raw": {
+					"language": "json"
+					}
+				}
+				},
+				"url": {
+				"raw": "{{url}}/matches",
+				"host": [
+					"{{url}}"
+				],
+				"path": [
+					"matches"
+				]
+				}
+			},
+			"response": []
+			}
+		]
+		},
+		{
 			"name": "Pets",
 			"item": [
 				{

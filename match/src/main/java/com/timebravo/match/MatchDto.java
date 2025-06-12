@@ -2,21 +2,21 @@ package com.timebravo.match;
 
 public class MatchDto {
     private Long usuarioId;
-    private Long petId;
+    private PetDto pet;      // antes: petId
     private double score;
 
     public MatchDto() {}
 
-    public MatchDto(Long usuarioId, Long petId, double score) {
+    public MatchDto(Long usuarioId, PetDto pet, double score) {
         this.usuarioId = usuarioId;
-        this.petId = petId;
-        this.score = score;
+        this.pet       = pet;
+        this.score     = score;
     }
 
     public static MatchDto from(MatchResult mr) {
         return new MatchDto(
             mr.getUsuario().getId(),
-            mr.getPet().getId(),
+            PetDto.from(mr.getPet()),   // agora todo o PetDto
             mr.getScore()
         );
     }
@@ -29,12 +29,12 @@ public class MatchDto {
         this.usuarioId = usuarioId;
     }
 
-    public Long getPetId() {
-        return petId;
+    public PetDto getPet() {
+        return pet;
     }
 
-    public void setPetId(Long petId) {
-        this.petId = petId;
+    public void setPet(PetDto pet) {
+        this.pet = pet;
     }
 
     public double getScore() {

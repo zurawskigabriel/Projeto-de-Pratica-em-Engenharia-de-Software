@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import org.springframework.stereotype.Service;
 
+@Service
 public class MatchService {
     private final ChatGptClient client = new ChatGptClient();
 
