@@ -134,25 +134,49 @@ export default function PerfilPet() {
       </View>
 
       <View style={styles.tabs}>
-        {['Resumo', 'Sobre Mim', 'Saúde', 'Histórico'].map((aba) => (
-          <TouchableOpacity key={aba} onPress={() => setAbaAtiva(aba)}>
-            <Text style={[styles.tab, abaAtiva === aba && styles.activeTab]}>
-              {aba}
-            </Text>
-          </TouchableOpacity>
-        ))}
+        {['Resumo', 'Sobre Mim', 'Saúde', 'Histórico'].map((aba) => {
+          const isAtiva = abaAtiva === aba;
+          return (
+            <TouchableOpacity
+              key={aba}
+              onPress={() => setAbaAtiva(aba)}
+              style={[
+                styles.tabContainer,
+                isAtiva && styles.activeTab,
+              ]}
+            >
+              <Text style={[styles.tab, isAtiva && { color: '#000' }]}>
+                {aba}
+              </Text>
+            </TouchableOpacity>
+
+          );
+        })}
       </View>
+
 
       <View style={styles.contentContainer}>
         {abaAtiva === 'Resumo' && (
           <View style={styles.infoCard}>
             <InfoItem icon="calendar" text={`${pet.idade} meses/anos`} />
+            <View style={styles.linhaCaderno} />
+
             <InfoItem icon="dna" text={pet.raca} lib="MaterialCommunityIcons" />
+            <View style={styles.linhaCaderno} />
+
             <InfoItem icon="ruler" text={pet.porte} lib="Entypo" />
+            <View style={styles.linhaCaderno} />
+
             <InfoItem icon="mars" text={pet.sexo === 'M' ? 'Macho' : 'Fêmea'} />
+            <View style={styles.linhaCaderno} />
+
             {nomeProtetor && (
-              <InfoItem icon="user" text={`Protetor: ${nomeProtetor}`} />
+              <>
+                <InfoItem icon="user" text={`Protetor: ${nomeProtetor}`} />
+                <View style={styles.linhaCaderno} />
+              </>
             )}
+
           </View>
         )}
         {abaAtiva === 'Sobre Mim' && (
@@ -255,8 +279,11 @@ export default function PerfilPet() {
           <Text style={styles.buttonTxt}>Contatar Protetor</Text>
         </TouchableOpacity>
       )}
+      <View style={{ height: height * 0.03 }} />  {/* espaço final */}
     </ScrollView>
+    
   );
+
 }
 
 function InfoItem({ icon, text, lib = 'FontAwesome' }) {
@@ -305,16 +332,28 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: height * 0.04,
     left: width * 0.04,
-    backgroundColor: 'white',
     padding: width * 0.02,
     borderRadius: 999,
     elevation: 5,
+    backgroundColor: 'rgba(255, 255, 255, 0.7)'
+  },
+  topRightIconsContainer: {
+    position: 'absolute',
+    top: height * 0.04,
+    right: width * 0.04,
+    flexDirection: 'row',
+    gap: width * 0.03, // espaçamento entre os ícones
+  },
+  iconButton: {
+    padding: width * 0.02,
+    borderRadius: 999,
+    elevation: 5,
+    backgroundColor: 'rgba(255, 255, 255, 0.7)' // branco com 30% de opacidade
   },
   topRightIcon: {
     position: 'absolute',
     top: height * 0.04,
     right: width * 0.04,
-    backgroundColor: 'white',
     padding: width * 0.02,
     borderRadius: 999,
     elevation: 5,
@@ -338,40 +377,64 @@ const styles = StyleSheet.create({
     color: 'white',
   },
   tabs: {
+    marginTop: height * 0.01, // ⬅️ ESTE VALOR CONTROLA A DISTÂNCIA\
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginTop: height * 0.02,
+    justifyContent: 'space-between',
+    alignSelf: 'center',
+    width: width * 0.9, // ou 0.85 se quiser ainda mais estreito
   },
-  tab: {
-    fontSize: width * 0.045,
-    color: '#888',
-    paddingBottom: height * 0.002,
+  tabContainer: {
+    minWidth: width * 0.19,
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: height * 0.009,
+    paddingHorizontal: width * 0.04,
+    borderTopLeftRadius: height * 0.015,
+    borderTopRightRadius: height * 0.015,
+    backgroundColor: '#FFF',
+    borderWidth: 1,
+    borderColor: '#FFF',
+    maxHeight: height * 0.04, // ⬅️ Limite máximo de altura
   },
+  
   activeTab: {
-    color: '#000',
-    borderBottomWidth: height * 0.002,
-    borderBottomColor: '#000',
-    marginBottom: height * 0.005,
-
+    backgroundColor: '#F8F8F8',
+    borderColor: '#DEDEDE',
+    borderBottomWidth: 0,
+    fontWeight: '500',
   },
   infoCard: {
-    margin: width * 0.02,
+    marginHorizontal: width * 0.02, // <-- USE ESTE
+    marginTop: 0, // <-- AJUSTE
     padding: width * 0.02,
-    borderRadius: height * 0.02,
+    borderWidth: 1,
+    borderRadius: height * 0.015,
     backgroundColor: '#F8F8F8',
     elevation: 2,
     marginBottom: height * 0.02,
-
-
+    borderColor: '#DEDEDE',
+  },
+  tab: {
+    fontSize: width * 0.04,
+    color: '#888',
   },
   infoItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: height * 0.015,
+    marginBottom: height * 0,
   },
   infoText: {
     marginLeft: width * 0.025,
     fontSize: width * 0.045,
+  },
+  linhaCaderno: {
+    height: height * 0.0015,
+    backgroundColor: '#D0D0D0',
+    marginTop: height * 0.008,
+    marginBottom: height * 0.01,
+    marginHorizontal: 0,
+    opacity: 0.6,
   },
   adotarBtn: {
     backgroundColor: '#7FCAD2',
@@ -380,6 +443,13 @@ const styles = StyleSheet.create({
     paddingVertical: height * 0.02,
     alignItems: 'center',
     marginBottom: height * 0.015,
+  
+    // Sombras
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
   },
   adotarBtnAtivo: {
     backgroundColor: '#FF6B6B',
@@ -396,6 +466,13 @@ const styles = StyleSheet.create({
     paddingVertical: height * 0.02,
     alignItems: 'center',
     marginBottom: height * 0.015,
+  
+    // Sombras
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
   },
   excluirBtn: {
     backgroundColor: '#FF5C5C',
@@ -404,6 +481,13 @@ const styles = StyleSheet.create({
     paddingVertical: height * 0.02,
     alignItems: 'center',
     marginBottom: height * 0.015,
+  
+    // Sombras
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
   },
   contentContainer: {
     marginTop: 0,
@@ -411,17 +495,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     justifyContent: 'center',
   },
-  topRightIconsContainer: {
-    position: 'absolute',
-    top: height * 0.04,
-    right: width * 0.04,
-    flexDirection: 'row',
-    gap: width * 0.03, // espaçamento entre os ícones
-  },
-  iconButton: {
-    backgroundColor: 'white',
-    padding: width * 0.02,
-    borderRadius: 999,
-    elevation: 5,
-  },
+  
+
 });

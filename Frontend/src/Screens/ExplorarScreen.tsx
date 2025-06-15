@@ -30,7 +30,7 @@ const PetCard = ({ id, nome, sexo, especie, idade, raca, onPressFavorito, favori
       <View style={styles.petDescription}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <Text style={styles.name}>{nome}</Text>
-          <FontAwesome name={sexo === 'M' ? 'mars' : 'venus'} size={24} color="white" style={{ marginLeft: 8 }} />
+          <FontAwesome name={sexo === 'M' ? 'mars' : 'venus'} size={height * 0.03} color="white" style={{ marginLeft: width*0.01 }} />
         </View>
         <Text style={styles.info}>{idade} anos, {raca[0].toUpperCase() + raca.slice(1).toLowerCase()}</Text>
       </View>
