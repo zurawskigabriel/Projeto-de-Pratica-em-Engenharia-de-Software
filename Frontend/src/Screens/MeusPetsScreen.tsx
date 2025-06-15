@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
 
   iconeAdicionar: {
     position: 'absolute',
-    right: 0,
+    right: width * 0.05,
     borderRadius: width * 0.08,
     width: width * 0.1,
     height: width * 0.1,

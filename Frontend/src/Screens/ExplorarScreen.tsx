@@ -64,6 +64,7 @@ export default function FavoritoScreen() {
   const [selectedFilter, setSelectedFilter] = useState('todos');
   const [loading, setLoading] = useState(false);
   const [showFilter, setShowFilter] = useState(false);
+  const [ordenadoPorIdade, setOrdenadoPorIdade] = useState(false);
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -133,24 +134,34 @@ export default function FavoritoScreen() {
     );
   };
 
-  const filtered = data.filter(p => {
-    const termo = searchTerm.toLowerCase();
-    return (
-      (p.nome.toLowerCase().includes(termo) ||
-        p.raca.toLowerCase().includes(termo) ||
-        p.idade.toString().includes(termo)) &&
-      (selectedFilter === 'todos' || p.sexo === selectedFilter)
-    );
-  });
+  const filtered = data
+    .filter(p => {
+      const termo = searchTerm.toLowerCase();
+      return (
+        (p.nome.toLowerCase().includes(termo) ||
+          p.raca.toLowerCase().includes(termo) ||
+          p.idade.toString().includes(termo)) &&
+        (selectedFilter === 'todos' || p.sexo === selectedFilter)
+      );
+    });
+
+  if (ordenadoPorIdade) {
+    filtered.sort((a, b) => a.idade - b.idade);
+  }
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Explorar</Text>
-        <TouchableOpacity style={styles.formIcon}
-          onLongPress={() => navigation.navigate('FormularioDeMatch')}
+        <TouchableOpacity
+          style={styles.formIcon}
+          onPress={() => setOrdenadoPorIdade(prev => !prev)}
         >
-          <Ionicons name="document-text-outline" size={height * 0.04} color="black" />
+          <Ionicons
+            name="document-text-outline"
+            size={height * 0.04}
+            color={ordenadoPorIdade ? 'black' : 'gray'}
+          />
         </TouchableOpacity>
       </View>
 
@@ -209,7 +220,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     position: 'relative',
     marginBottom: height * 0.01,
-    height: height * 0.05, // altura fixa para posicionar bem o botão
+    height: height * 0.05,
   },
   title: {
     fontSize: height * 0.035,
@@ -223,7 +234,6 @@ const styles = StyleSheet.create({
     bottom: 0,
     justifyContent: 'center',
   },
-
   searchBox: {
     backgroundColor: '#eee',
     borderRadius: 25,

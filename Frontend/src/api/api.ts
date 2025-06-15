@@ -10,6 +10,11 @@ async function getAuthHeaders() {
   };
 }
 
+export function gerarLinkPet(id: number): string {
+  return `${BASE_URL}/pets/${id}`;
+}
+
+
 // ---------------- USUÁRIO ----------------
 
 export async function criarUsuario(dadosUsuario) {

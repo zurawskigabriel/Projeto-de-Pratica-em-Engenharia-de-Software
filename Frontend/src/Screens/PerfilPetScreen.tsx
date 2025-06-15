@@ -20,7 +20,15 @@ import {
 } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { buscarPet, buscarUsuarioPorId, deletarPet, favoritarPet, listarFavoritosDoUsuario, desfavoritarPet } from '../api/api';
+import {
+  buscarPet,
+  buscarUsuarioPorId,
+  deletarPet,
+  favoritarPet,
+  listarFavoritosDoUsuario,
+  desfavoritarPet,
+  gerarLinkPet
+} from '../api/api';
 
 const { width, height } = Dimensions.get('window');
 
@@ -43,26 +51,34 @@ export default function PerfilPet() {
 
         if (!id) return;
         const dados = await buscarPet(parseInt(id));
-        console.log('🐾 Dados do pet carregado:', dados);
-        setPet(dados);
 
-        if (dados.idUsuario) {
-          const dono = await buscarUsuarioPorId(dados.idUsuario);
-          setNomeProtetor(dono.nome);
+        const petNormalizado = {
+          ...dados,
+          nome: typeof dados.nome === 'string' ? dados.nome : 'Sem nome',
+          idade: typeof dados.idade === 'number' ? dados.idade : 0,
+          bio: typeof dados.bio === 'string' ? dados.bio : '',
+          raca: typeof dados.raca === 'string' ? dados.raca : '',
+          porte: typeof dados.porte === 'string' ? dados.porte : '',
+          sexo: ['M', 'F'].includes(dados.sexo) ? dados.sexo : 'M',
+          especie: typeof dados.especie === 'string' ? dados.especie : '',
+          historicoMedico: Array.isArray(dados.historicoMedico) ? dados.historicoMedico : [],
+          idUsuario: dados.idUsuario ?? null,
+        };
+
+        setPet(petNormalizado);
+
+        if (petNormalizado.idUsuario) {
+          const dono = await buscarUsuarioPorId(petNormalizado.idUsuario);
+          setNomeProtetor(dono?.nome ?? '');
         }
 
-        if (idUsuarioAtual && dados?.id) {
+        if (idUsuarioAtual && petNormalizado?.id) {
           const favoritos = await listarFavoritosDoUsuario(idUsuarioAtual);
           const idsFavoritados = favoritos.map(f => f.idPet);
-          console.log('ID Usuario: ', idUsuarioAtual);
-          console.log('ID Pet: ', dados.id);
-          console.log('⭐ IDs favoritos:', idsFavoritados);
-
-          if (idsFavoritados.includes(dados.id)) {
+          if (idsFavoritados.includes(petNormalizado.id)) {
             setFavorito(true);
           }
         }
-
       } catch (erro) {
         console.error('Erro ao buscar pet ou protetor:', erro);
       }
@@ -71,11 +87,40 @@ export default function PerfilPet() {
     carregarPet();
   }, [id]);
 
-
   if (!pet) {
     return (
       <View style={styles.container}>
         <Text style={{ padding: 20 }}>Carregando pet...</Text>
+      </View>
+    );
+  }
+
+  function formatarRaca(raca: string): string {
+    if (!raca || typeof raca !== 'string' || !raca.trim()) return 'Raça desconhecida';
+    if (raca.trim().toUpperCase() === 'SRD') return 'SRD';
+    return raca
+      .toLowerCase()
+      .split(' ')
+      .map(palavra => palavra.charAt(0).toUpperCase() + palavra.slice(1))
+      .join(' ');
+  }
+
+  function InfoItem({ icon, text, lib = 'FontAwesome' }) {
+    const IconComponent =
+      lib === 'FontAwesome'
+        ? FontAwesome
+        : lib === 'Feather'
+          ? Feather
+          : lib === 'Entypo'
+            ? Entypo
+            : lib === 'MaterialCommunityIcons'
+              ? MaterialCommunityIcons
+              : FontAwesome;
+
+    return (
+      <View style={styles.infoItem}>
+        <IconComponent name={icon} size={16} color="#000" />
+        <Text style={styles.infoText}>{String(text ?? 'Não informado')}</Text>
       </View>
     );
   }
@@ -96,24 +141,19 @@ export default function PerfilPet() {
           colors={['transparent', 'rgba(0,0,0,0.5)', 'rgba(0,0,0,0.6)']}
           style={styles.imageShadow}
         />
-        <TouchableOpacity
-          style={styles.topLeftIcon}
-          onPress={() => router.back()}
-        >
+        <TouchableOpacity style={styles.topLeftIcon} onPress={() => router.back()}>
           <Entypo name="chevron-left" size={height * 0.03} color="black" />
         </TouchableOpacity>
         <View style={styles.topRightIconsContainer}>
           <TouchableOpacity
             onPress={async () => {
               if (!meuUsuarioId || !pet?.id) return;
-
               try {
                 if (favorito) {
                   await desfavoritarPet(meuUsuarioId, pet.id);
                   setFavorito(false);
-                  Alert.alert('💔 Pet removido dos favritos!');
+                  Alert.alert('💔 Pet removido dos favoritos!');
                 } else {
-                  console.log('❤️ Enviando favoritos: ', { idUsuario: meuUsuarioId, idPet: pet.id });
                   await favoritarPet(meuUsuarioId, pet.id);
                   setFavorito(true);
                   Alert.alert('❤️ Pet adicionado aos favoritos!');
@@ -123,34 +163,32 @@ export default function PerfilPet() {
                 Alert.alert('Erro', 'Não foi possível atualizar os favoritos.');
               }
             }}
-
             style={styles.iconButton}
           >
             <FontAwesome
-              name={favorito === true ? 'heart' : 'heart-o'}
+              name={favorito ? 'heart' : 'heart-o'}
               size={height * 0.03}
-              color={favorito === true ? 'red' : 'black'}
+              color={favorito ? 'red' : 'black'}
             />
-
           </TouchableOpacity>
-
 
           <TouchableOpacity
             onPress={async () => {
               try {
+                const link = gerarLinkPet(pet.id)
                 await Share.share({
-                  message: `Adote o ${pet.nome}! Veja mais detalhes no nosso app.`,
+                  message: `Adote o ${pet.nome}! Veja mais detalhes: ${link}`,
+                  url: link, // (opcional, melhora compatibilidade em iOS)
                 });
               } catch (error) {
                 console.error('Erro ao compartilhar:', error);
               }
             }}
+            
             style={styles.iconButton}
           >
             <Entypo name="share" size={height * 0.03} color="black" />
           </TouchableOpacity>
-
-
         </View>
 
         <View style={styles.imageFooter}>
@@ -165,103 +203,104 @@ export default function PerfilPet() {
               />
             </View>
             <Text style={styles.petDesc}>
-              {pet.idade} anos, {pet.raca ? pet.raca.charAt(0).toUpperCase() + pet.raca.slice(1).toLowerCase() : ''}
+              {`${pet.idade ?? 0} anos, ${formatarRaca(pet.raca)}`}
             </Text>
           </View>
         </View>
       </View>
 
       <View style={styles.tabs}>
-        {['Resumo', 'Sobre Mim', 'Saúde', 'Histórico'].map((aba) => {
+        {['Resumo', 'Sobre Mim', 'Saúde', 'Histórico'].map(aba => {
           const isAtiva = abaAtiva === aba;
           return (
             <TouchableOpacity
               key={aba}
               onPress={() => setAbaAtiva(aba)}
-              style={[
-                styles.tabContainer,
-                isAtiva && styles.activeTab,
-              ]}
+              style={[styles.tabContainer, isAtiva && styles.activeTab]}
             >
-              <Text style={[styles.tab, isAtiva && { color: '#000' }]}>
-                {aba}
-              </Text>
+              <Text style={[styles.tab, isAtiva && { color: '#000' }]}>{aba}</Text>
             </TouchableOpacity>
-
           );
         })}
       </View>
 
-
       <View style={styles.contentContainer}>
         {abaAtiva === 'Resumo' && (
           <View style={styles.infoCard}>
-            <InfoItem icon="calendar" text={`${pet.idade} meses/anos`} />
+            <InfoItem icon="calendar" text={`${pet.idade ?? 0} anos`} />
             <View style={styles.linhaCaderno} />
-
-            <InfoItem icon="dna" text={pet.raca} lib="MaterialCommunityIcons" />
+            <InfoItem icon="dna" text={formatarRaca(pet.raca)} lib="MaterialCommunityIcons" />
             <View style={styles.linhaCaderno} />
-
-            <InfoItem icon="ruler" text={pet.porte} lib="Entypo" />
+            <InfoItem icon="ruler" text={formatarRaca(pet.porte)} lib="Entypo" />
             <View style={styles.linhaCaderno} />
-
             <InfoItem icon="mars" text={pet.sexo === 'M' ? 'Macho' : 'Fêmea'} />
             <View style={styles.linhaCaderno} />
-
-            {nomeProtetor && (
+            {nomeProtetor ? (
               <>
                 <InfoItem icon="user" text={`Protetor: ${nomeProtetor}`} />
                 <View style={styles.linhaCaderno} />
               </>
-            )}
-
+            ) : null}
           </View>
         )}
+
         {abaAtiva === 'Sobre Mim' && (
           <View style={styles.infoCard}>
-            <Text style={styles.infoText}>{pet.bio}</Text>
+            <Text style={styles.infoText}>{pet.bio || 'Sem biografia disponível.'}</Text>
           </View>
         )}
+
         {abaAtiva === 'Saúde' && (
           <View style={styles.infoCard}>
-            {pet.historicoMedico
-              ?.filter(item =>
-                ['ALIMENTACAO', 'TRATAMENTO', 'VACINA'].includes(item.tipo) && item.descricao
-              )
-              .map((item, index) => (
-                <Text key={index} style={styles.infoText}>
-                  • {item.descricao}
-                </Text>
-              ))}
+            {(() => {
+              const saude = pet.historicoMedico.filter(
+                item =>
+                  ['ALIMENTACAO', 'TRATAMENTO', 'VACINA'].includes(item.tipo) &&
+                  item.descricao?.trim()
+              );
 
+              return saude.length > 0 ? (
+                saude.map((item, index) => (
+                  <Text key={index} style={styles.infoText}>
+                    • {item.descricao}
+                  </Text>
+                ))
+              ) : (
+                <Text style={styles.infoText}>Sem informações de saúde.</Text>
+              );
+            })()}
           </View>
         )}
 
 
         {abaAtiva === 'Histórico' && (
           <View style={styles.infoCard}>
-            {pet.historicoMedico
-              ?.filter(item =>
-                ['COMPORTAMENTO', 'RESTRICAO_MOBILIDADE'].includes(item.tipo) && item.descricao
-              )
-              .map((item, index) => (
-                <Text key={index} style={styles.infoText}>
-                  • {item.descricao}
-                </Text>
-              ))}
+            {(() => {
+              const historico = pet.historicoMedico.filter(
+                item =>
+                  ['COMPORTAMENTO', 'RESTRICAO_MOBILIDADE'].includes(item.tipo) &&
+                  item.descricao?.trim()
+              );
 
+              return historico.length > 0 ? (
+                historico.map((item, index) => (
+                  <Text key={index} style={styles.infoText}>
+                    • {item.descricao}
+                  </Text>
+                ))
+              ) : (
+                <Text style={styles.infoText}>Sem histórico registrado.</Text>
+              );
+            })()}
           </View>
         )}
 
       </View>
 
-      {meuUsuarioId !== pet.idUsuario && (
+      {meuUsuarioId !== pet.idUsuario ? (
         <>
           {adotando && (
-            <TouchableOpacity
-              style={styles.adotarBtn}
-              onPress={() => alert('Abrir acompanhamento')}
-            >
+            <TouchableOpacity style={styles.adotarBtn} onPress={() => alert('Abrir acompanhamento')}>
               <Text style={styles.buttonTxt}>Acompanhar</Text>
             </TouchableOpacity>
           )}
@@ -281,10 +320,20 @@ export default function PerfilPet() {
               {adotando ? 'Cancelar Adoção' : 'Adotar'}
             </Text>
           </TouchableOpacity>
-        </>
-      )}
 
-      {meuUsuarioId === pet.idUsuario ? (
+          <TouchableOpacity
+            style={styles.contatarBtn}
+            onPress={() => {
+              const numeroWhatsApp = '5555996168060';
+              const mensagem = 'Olá! Tenho interesse no pet para adoção.';
+              const url = `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensagem)}`;
+              Linking.openURL(url);
+            }}
+          >
+            <Text style={styles.buttonTxt}>Contatar Protetor</Text>
+          </TouchableOpacity>
+        </>
+      ) : (
         <>
           <TouchableOpacity
             style={[styles.contatarBtn, { backgroundColor: '#9A9A9A' }]}
@@ -321,24 +370,11 @@ export default function PerfilPet() {
             <Text style={styles.buttonTxt}>Excluir Pet</Text>
           </TouchableOpacity>
         </>
-      ) : (
-        <TouchableOpacity
-          style={styles.contatarBtn}
-          onPress={() => {
-            const numeroWhatsApp = '5555996168060';
-            const mensagem = 'Olá! Tenho interesse no pet para adoção.';
-            const url = `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensagem)}`;
-            Linking.openURL(url);
-          }}
-        >
-          <Text style={styles.buttonTxt}>Contatar Protetor</Text>
-        </TouchableOpacity>
       )}
-      <View style={{ height: height * 0.03 }} />  {/* espaço final */}
+
+      <View style={{ height: height * 0.03 }} />
     </ScrollView>
-
   );
-
 }
 
 function InfoItem({ icon, text, lib = 'FontAwesome' }) {
@@ -371,7 +407,7 @@ const styles = StyleSheet.create({
   },
   image: {
     width: '100%',
-    height: height * 0.6,
+    height: height * 0.5,
     borderBottomLeftRadius: height / 70,
     borderBottomRightRadius: height / 70,
   },
@@ -429,15 +465,15 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   petDesc: {
-    fontSize: width * 0.05,
+    fontSize: width * 0.08,
     color: 'white',
   },
   tabs: {
-    marginTop: height * 0.01, // ⬅️ ESTE VALOR CONTROLA A DISTÂNCIA\
+    marginTop: height * 0.01,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignSelf: 'center',
-    width: width * 0.9, // ou 0.85 se quiser ainda mais estreito
+    width: width * 0.9,
   },
   tabContainer: {
     minWidth: width * 0.19,
