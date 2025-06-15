@@ -1,6 +1,31 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const BASE_URL = "http://192.168.0.197:8080/api";
+const BASE_URL_GPT = "http://192.168.0.197:9000/api";
+
+// Simula busca de pontuação de match para cada pet (score aleatório entre 0 e 100)
+export async function buscarPontuacaoMatch(pets) {
+  return pets.map(pet => ({
+    id: pet.id,
+    score: Math.random() * 100, // score aleatório entre 0 e 100
+  }));
+}
+
+export async function buscarPerfilMatchUsuario(userId) {
+  // Simula perfil preenchido para alguns usuários
+  if (userId === 1) {
+    return {
+      idUsuario: 1,
+      especiePreferida: 'cachorro',
+      faixaEtaria: 'jovem',
+      porte: 'médio',
+    };
+  }
+  // Simula perfil não preenchido
+  return {};
+}
+
+
 
 async function getAuthHeaders() {
   const token = await AsyncStorage.getItem('token');

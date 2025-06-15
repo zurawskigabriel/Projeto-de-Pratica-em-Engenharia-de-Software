@@ -6,7 +6,14 @@ import {
 } from 'react-native';
 import { Ionicons, FontAwesome } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { listarPets, listarFavoritosDoUsuario, favoritarPet, desfavoritarPet } from '../api/api';
+import {
+  listarPets,
+  listarFavoritosDoUsuario,
+  favoritarPet,
+  desfavoritarPet,
+  buscarPontuacaoMatch,
+  buscarPerfilMatchUsuario
+} from '../api/api';
 import { LinearGradient } from 'expo-linear-gradient';
 import Footer from '../components/Footer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -17,30 +24,56 @@ const cardSpacing = width * 0.02;
 const cardWidth = (width - cardSpacing * 3) / 2;
 const cardHeight = height * 0.28;
 
-const PetCard = ({ id, nome, sexo, especie, idade, raca, onPressFavorito, favorito, onPress }) => {
+const PetCard = ({ id, nome, sexo, especie, idade, raca, score, onPressFavorito, favorito, onPress }) => {
   const imageSource = especie?.toLowerCase().includes('cachorro')
-    ? require('../../assets/dog.jpg') : require('../../assets/cat.jpg');
+    ? require('../../assets/dog.jpg')
+    : require('../../assets/cat.jpg');
+
+  // Função para formatar a raça
+  const formatarRaca = (raca) => {
+    if (!raca) return '';
+    if (raca.trim().toUpperCase() === 'SRD') return 'SRD';
+    return raca
+      .toLowerCase()
+      .split(' ')
+      .map(p => p.charAt(0).toUpperCase() + p.slice(1))
+      .join(' ');
+  };
 
   return (
     <TouchableOpacity style={styles.card} onPress={onPress}>
       <Image source={imageSource} style={styles.image} />
-      <LinearGradient
-        colors={['transparent', 'rgba(0,0,0,0.9)']}
-        style={styles.shadow}
-      />
+      {score !== undefined && (
+        <View style={styles.scoreBadge}>
+          <Text style={styles.scoreText}>{score.toFixed(2)}%</Text>
+        </View>
+      )}
+      <LinearGradient colors={['transparent', 'rgba(0,0,0,0.9)']} style={styles.shadow} />
       <View style={styles.petDescription}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <Text style={styles.name}>{nome}</Text>
-          <FontAwesome name={sexo === 'M' ? 'mars' : 'venus'} size={height * 0.03} color="white" style={{ marginLeft: width * 0.01 }} />
+          <FontAwesome
+            name={sexo === 'M' ? 'mars' : 'venus'}
+            size={height * 0.03}
+            color="white"
+            style={{ marginLeft: width * 0.01 }}
+          />
         </View>
-        <Text style={styles.info}>{idade} anos, {raca[0].toUpperCase() + raca.slice(1).toLowerCase()}</Text>
+        <Text style={styles.info}>
+          {idade} anos, {formatarRaca(raca)}
+        </Text>
       </View>
       <TouchableOpacity style={styles.favIcon} onPress={onPressFavorito}>
-        <FontAwesome name={favorito ? 'heart' : 'heart-o'} size={height * 0.02} color={favorito ? 'red' : 'black'} />
+        <FontAwesome
+          name={favorito ? 'heart' : 'heart-o'}
+          size={height * 0.02}
+          color={favorito ? 'red' : 'black'}
+        />
       </TouchableOpacity>
     </TouchableOpacity>
   );
 };
+
 
 const FilterModal = ({ visible, onClose, onSelect }) => (
   <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
@@ -49,7 +82,9 @@ const FilterModal = ({ visible, onClose, onSelect }) => (
         <Text style={styles.modalTitle}>Filtrar por sexo</Text>
         {SEX_FILTERS.map(opt => (
           <Pressable key={opt} style={styles.filterOption} onPress={() => { onSelect(opt); onClose(); }}>
-            <Text style={styles.filterOptionText}>{opt === 'todos' ? 'Todos' : opt === 'M' ? 'Machos' : 'Fêmeas'}</Text>
+            <Text style={styles.filterOptionText}>
+              {opt === 'todos' ? 'Todos' : opt === 'M' ? 'Machos' : 'Fêmeas'}
+            </Text>
           </Pressable>
         ))}
       </View>
@@ -59,45 +94,148 @@ const FilterModal = ({ visible, onClose, onSelect }) => (
 
 export default function FavoritoScreen() {
   const [data, setData] = useState([]);
+  const [listaOriginal, setListaOriginal] = useState([]);
   const [favoritos, setFavoritos] = useState({});
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('todos');
   const [loading, setLoading] = useState(false);
   const [showFilter, setShowFilter] = useState(false);
-  const [ordenadoPorIdade, setOrdenadoPorIdade] = useState(false);
+  const [podeOrdenar, setPodeOrdenar] = useState(false);
+  const [ordenacaoAtiva, setOrdenacaoAtiva] = useState(false);
   const navigation = useNavigation();
 
   useEffect(() => {
-    const carregarFavoritos = async () => {
+    const carregarDados = async () => {
+      setLoading(true);
       const idSalvo = await AsyncStorage.getItem('userId');
       const idUsuario = idSalvo ? parseInt(idSalvo, 10) : null;
       if (!idUsuario) return;
 
       try {
+        const perfilMatch = await buscarPerfilMatchUsuario(1);
+        const perfilPreenchido = perfilMatch && Object.keys(perfilMatch).length > 0;
+        setPodeOrdenar(perfilPreenchido);
+
+        if (!perfilPreenchido) {
+          Alert.alert(
+            'Criar perfil de match',
+            'Você ainda não possui um perfil de match. Deseja criar agora para visualizar a compatibilidade com os pets?',
+            [
+              {
+                text: 'Sim',
+                onPress: () => navigation.navigate('CriarPerfilMatch'),
+              },
+              {
+                text: 'Agora não',
+                style: 'cancel',
+              },
+            ]
+          );
+        }
+
         const favoritosAPI = await listarFavoritosDoUsuario(idUsuario);
         const favMap = {};
         favoritosAPI.forEach(f => { favMap[f.idPet] = true; });
         setFavoritos(favMap);
+
+        const pets = await listarPets();
+        setListaOriginal(pets);
+
+        if (perfilPreenchido) {
+          const pontuacoes = await buscarPontuacaoMatch(pets);
+          const dataComScore = pets.map(pet => {
+            const encontrado = pontuacoes.find(p => p.id === pet.id);
+            return { ...pet, score: encontrado?.score ?? 0 };
+          }).sort((a, b) => b.score - a.score);
+
+          setData(dataComScore);
+          setOrdenacaoAtiva(true);
+        } else {
+          setData(pets);
+        }
+
       } catch (e) {
-        console.error('Erro ao carregar favoritos:', e);
+        console.error('Erro ao carregar dados:', e);
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchPets();
-    carregarFavoritos();
+    carregarDados();
   }, []);
 
-  const fetchPets = async () => {
-    setLoading(true);
-    try {
-      const res = await listarPets();
-      setData(res);
-    } catch (e) {
-      console.error('Erro ao buscar pets:', e);
-    } finally {
-      setLoading(false);
+  const ordenarPorScoreMatch = async () => {
+    if (!podeOrdenar) {
+      Alert.alert(
+        'Indisponível',
+        'Você precisa preencher seu perfil para ver os matches.',
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          {
+            text: 'Criar agora',
+            onPress: () => navigation.navigate('FiltroDeMatch')
+          }
+        ]
+      );
+      return;
     }
+
+    if (ordenacaoAtiva) {
+      Alert.alert(
+        'Match ativo',
+        'Você está vendo os pets ordenados por compatibilidade. O que deseja fazer?',
+        [
+          {
+            text: 'Desativar ordenação',
+            onPress: () => {
+              setData(listaOriginal);
+              setOrdenacaoAtiva(false);
+            }
+          },
+          {
+            text: 'Editar perfil de match',
+            onPress: () => navigation.navigate('EditarPerfilMatch')
+          },
+          { text: 'Cancelar', style: 'cancel' }
+        ]
+      );
+      return;
+    }
+
+    // Se pode ordenar, mas não está ativo: perguntar se ativa ou edita
+    Alert.alert(
+      'Deseja usar o match?',
+      'Você já possui um perfil de match. Deseja ativar a ordenação por compatibilidade ou editar seu perfil?',
+      [
+        {
+          text: 'Ativar ordenação',
+          onPress: async () => {
+            try {
+              const pontuacoes = await buscarPontuacaoMatch(listaOriginal);
+              const dataComScore = listaOriginal.map(pet => {
+                const encontrado = pontuacoes.find(p => p.id === pet.id);
+                return { ...pet, score: encontrado?.score ?? 0 };
+              }).sort((a, b) => b.score - a.score);
+
+              setData(dataComScore);
+              setOrdenacaoAtiva(true);
+            } catch (e) {
+              console.error('Erro ao buscar pontuação de match:', e);
+              Alert.alert('Erro', 'Não foi possível ordenar por match.');
+            }
+          }
+        },
+        {
+          text: 'Editar perfil',
+          onPress: () => navigation.navigate('EditarPerfilMatch')
+        },
+        { text: 'Cancelar', style: 'cancel' }
+      ]
+    );
   };
+
+
+
 
   const toggleFavorito = async (id) => {
     const idSalvo = await AsyncStorage.getItem('userId');
@@ -134,33 +272,31 @@ export default function FavoritoScreen() {
     );
   };
 
-  const filtered = data
-    .filter(p => {
-      const termo = searchTerm.toLowerCase();
-      return (
-        (p.nome.toLowerCase().includes(termo) ||
-          p.raca.toLowerCase().includes(termo) ||
-          p.idade.toString().includes(termo)) &&
-        (selectedFilter === 'todos' || p.sexo === selectedFilter)
-      );
-    });
+  const filtered = data.filter(p => {
+    const termo = searchTerm.toLowerCase();
+    const matchTermo = (
+      p.nome.toLowerCase().includes(termo) ||
+      p.raca.toLowerCase().includes(termo) ||
+      p.idade.toString().includes(termo)
+    );
+    const matchSexo = selectedFilter === 'todos' || p.sexo === selectedFilter;
+    const scoreValido = p.score === undefined || p.score > 0;
 
-  if (ordenadoPorIdade) {
-    filtered.sort((a, b) => a.idade - b.idade);
-  }
+    return matchTermo && matchSexo && scoreValido;
+  });
+
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Explorar</Text>
-        <TouchableOpacity
-          style={styles.formIcon}
-          onPress={() => setOrdenadoPorIdade(prev => !prev)}
-        >
+        <TouchableOpacity style={styles.formIcon} onPress={ordenarPorScoreMatch}>
           <Ionicons
             name="document-text-outline"
             size={height * 0.04}
-            color={ordenadoPorIdade ? 'black' : 'gray'}
+            color={
+              !podeOrdenar ? 'gray' : ordenacaoAtiva ? 'black' : 'gray'
+            }
           />
         </TouchableOpacity>
       </View>
@@ -186,9 +322,7 @@ export default function FavoritoScreen() {
           data={filtered}
           numColumns={2}
           keyExtractor={item => item.id.toString()}
-          contentContainerStyle={{
-            paddingBottom: height * 0.085,
-          }}
+          contentContainerStyle={{ paddingBottom: height * 0.085 }}
           columnWrapperStyle={{ justifyContent: 'space-between' }}
           renderItem={({ item }) => (
             <PetCard
@@ -316,5 +450,20 @@ const styles = StyleSheet.create({
   },
   filterOptionText: {
     fontSize: 16,
+  },
+  scoreBadge: {
+    position: 'absolute',
+    top: cardHeight * 0.03,
+    left: cardWidth * 0.03,
+    backgroundColor: 'white',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 20,
+    zIndex: 10,
+  },
+  scoreText: {
+    color: 'black',
+    fontSize: height * 0.018,
+    fontWeight: 'regular',
   },
 });

@@ -155,7 +155,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
   },
-
   iconeAdicionar: {
     position: 'absolute',
     right: width * 0.05,
