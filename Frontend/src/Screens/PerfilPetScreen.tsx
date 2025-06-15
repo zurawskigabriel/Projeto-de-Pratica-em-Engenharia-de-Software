@@ -20,7 +20,7 @@ import {
 } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { buscarPet, buscarUsuarioPorId, deletarPet } from '../api/api';
+import { buscarPet, buscarUsuarioPorId, deletarPet, favoritarPet, listarFavoritosDoUsuario, desfavoritarPet } from '../api/api';
 
 const { width, height } = Dimensions.get('window');
 
@@ -38,16 +38,31 @@ export default function PerfilPet() {
     const carregarPet = async () => {
       try {
         const idSalvo = await AsyncStorage.getItem('userId');
-        setMeuUsuarioId(idSalvo ? parseInt(idSalvo, 10) : null);
+        const idUsuarioAtual = idSalvo ? parseInt(idSalvo, 10) : null;
+        setMeuUsuarioId(idUsuarioAtual);
 
         if (!id) return;
         const dados = await buscarPet(parseInt(id));
+        console.log('🐾 Dados do pet carregado:', dados);
         setPet(dados);
 
         if (dados.idUsuario) {
           const dono = await buscarUsuarioPorId(dados.idUsuario);
           setNomeProtetor(dono.nome);
         }
+
+        if (idUsuarioAtual && dados?.id) {
+          const favoritos = await listarFavoritosDoUsuario(idUsuarioAtual);
+          const idsFavoritados = favoritos.map(f => f.idPet);
+          console.log('ID Usuario: ', idUsuarioAtual);
+          console.log('ID Pet: ', dados.id);
+          console.log('⭐ IDs favoritos:', idsFavoritados);
+
+          if (idsFavoritados.includes(dados.id)) {
+            setFavorito(true);
+          }
+        }
+
       } catch (erro) {
         console.error('Erro ao buscar pet ou protetor:', erro);
       }
@@ -55,6 +70,7 @@ export default function PerfilPet() {
 
     carregarPet();
   }, [id]);
+
 
   if (!pet) {
     return (
@@ -88,15 +104,37 @@ export default function PerfilPet() {
         </TouchableOpacity>
         <View style={styles.topRightIconsContainer}>
           <TouchableOpacity
-            onPress={() => setFavorito(!favorito)}
+            onPress={async () => {
+              if (!meuUsuarioId || !pet?.id) return;
+
+              try {
+                if (favorito) {
+                  await desfavoritarPet(meuUsuarioId, pet.id);
+                  setFavorito(false);
+                  Alert.alert('💔 Pet removido dos favritos!');
+                } else {
+                  console.log('❤️ Enviando favoritos: ', { idUsuario: meuUsuarioId, idPet: pet.id });
+                  await favoritarPet(meuUsuarioId, pet.id);
+                  setFavorito(true);
+                  Alert.alert('❤️ Pet adicionado aos favoritos!');
+                }
+              } catch (error) {
+                console.error('Erro ao (des)favoritar:', error);
+                Alert.alert('Erro', 'Não foi possível atualizar os favoritos.');
+              }
+            }}
+
             style={styles.iconButton}
           >
             <FontAwesome
-              name={favorito ? 'heart' : 'heart-o'}
+              name={favorito === true ? 'heart' : 'heart-o'}
               size={height * 0.03}
-              color={favorito ? 'red' : 'black'}
+              color={favorito === true ? 'red' : 'black'}
             />
+
           </TouchableOpacity>
+
+
           <TouchableOpacity
             onPress={async () => {
               try {
@@ -127,7 +165,7 @@ export default function PerfilPet() {
               />
             </View>
             <Text style={styles.petDesc}>
-              {pet.idade} anos, {pet.raca.charAt(0).toUpperCase() + pet.raca.slice(1).toLowerCase()}
+              {pet.idade} anos, {pet.raca ? pet.raca.charAt(0).toUpperCase() + pet.raca.slice(1).toLowerCase() : ''}
             </Text>
           </View>
         </View>
@@ -186,18 +224,35 @@ export default function PerfilPet() {
         )}
         {abaAtiva === 'Saúde' && (
           <View style={styles.infoCard}>
-            <Text style={styles.infoText}>
-              Estou com a vacinação em dia, vermifugado e saudável.
-            </Text>
+            {pet.historicoMedico
+              ?.filter(item =>
+                ['ALIMENTACAO', 'TRATAMENTO', 'VACINA'].includes(item.tipo) && item.descricao
+              )
+              .map((item, index) => (
+                <Text key={index} style={styles.infoText}>
+                  • {item.descricao}
+                </Text>
+              ))}
+
           </View>
         )}
+
+
         {abaAtiva === 'Histórico' && (
           <View style={styles.infoCard}>
-            <Text style={styles.infoText}>
-              Fui resgatado em março de 2024. Desde então, estou sendo bem cuidado.
-            </Text>
+            {pet.historicoMedico
+              ?.filter(item =>
+                ['COMPORTAMENTO', 'RESTRICAO_MOBILIDADE'].includes(item.tipo) && item.descricao
+              )
+              .map((item, index) => (
+                <Text key={index} style={styles.infoText}>
+                  • {item.descricao}
+                </Text>
+              ))}
+
           </View>
         )}
+
       </View>
 
       {meuUsuarioId !== pet.idUsuario && (
@@ -281,7 +336,7 @@ export default function PerfilPet() {
       )}
       <View style={{ height: height * 0.03 }} />  {/* espaço final */}
     </ScrollView>
-    
+
   );
 
 }
@@ -301,10 +356,11 @@ function InfoItem({ icon, text, lib = 'FontAwesome' }) {
   return (
     <View style={styles.infoItem}>
       <IconComponent name={icon} size={16} color="#000" />
-      <Text style={styles.infoText}>{text}</Text>
+      <Text style={styles.infoText}>{String(text ?? '')}</Text>
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {
@@ -397,7 +453,7 @@ const styles = StyleSheet.create({
     borderColor: '#FFF',
     maxHeight: height * 0.04, // ⬅️ Limite máximo de altura
   },
-  
+
   activeTab: {
     backgroundColor: '#F8F8F8',
     borderColor: '#DEDEDE',
@@ -443,7 +499,7 @@ const styles = StyleSheet.create({
     paddingVertical: height * 0.02,
     alignItems: 'center',
     marginBottom: height * 0.015,
-  
+
     // Sombras
     elevation: 4,
     shadowColor: '#000',
@@ -466,7 +522,7 @@ const styles = StyleSheet.create({
     paddingVertical: height * 0.02,
     alignItems: 'center',
     marginBottom: height * 0.015,
-  
+
     // Sombras
     elevation: 4,
     shadowColor: '#000',
@@ -481,7 +537,7 @@ const styles = StyleSheet.create({
     paddingVertical: height * 0.02,
     alignItems: 'center',
     marginBottom: height * 0.015,
-  
+
     // Sombras
     elevation: 4,
     shadowColor: '#000',
@@ -495,6 +551,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     justifyContent: 'center',
   },
-  
+
 
 });

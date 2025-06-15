@@ -1,20 +1,21 @@
 import React, { useState, useEffect } from 'react';
+import { Alert } from 'react-native';
 import {
   View, Text, TextInput, FlatList, Image,
   TouchableOpacity, ActivityIndicator, Dimensions, Modal, Pressable, StyleSheet
 } from 'react-native';
 import { Ionicons, FontAwesome } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { listarPets } from '../api/api';
+import { listarPets, listarFavoritosDoUsuario, favoritarPet, desfavoritarPet } from '../api/api';
 import { LinearGradient } from 'expo-linear-gradient';
 import Footer from '../components/Footer';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width, height } = Dimensions.get('window');
 const SEX_FILTERS = ['todos', 'M', 'F'];
 const cardSpacing = width * 0.02;
 const cardWidth = (width - cardSpacing * 3) / 2;
 const cardHeight = height * 0.28;
-
 
 const PetCard = ({ id, nome, sexo, especie, idade, raca, onPressFavorito, favorito, onPress }) => {
   const imageSource = especie?.toLowerCase().includes('cachorro')
@@ -23,14 +24,14 @@ const PetCard = ({ id, nome, sexo, especie, idade, raca, onPressFavorito, favori
   return (
     <TouchableOpacity style={styles.card} onPress={onPress}>
       <Image source={imageSource} style={styles.image} />
-      <LinearGradient 
-      colors={['transparent', 'rgba(0,0,0,0.9)']} 
-      style={styles.shadow} 
+      <LinearGradient
+        colors={['transparent', 'rgba(0,0,0,0.9)']}
+        style={styles.shadow}
       />
       <View style={styles.petDescription}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <Text style={styles.name}>{nome}</Text>
-          <FontAwesome name={sexo === 'M' ? 'mars' : 'venus'} size={height * 0.03} color="white" style={{ marginLeft: width*0.01 }} />
+          <FontAwesome name={sexo === 'M' ? 'mars' : 'venus'} size={height * 0.03} color="white" style={{ marginLeft: width * 0.01 }} />
         </View>
         <Text style={styles.info}>{idade} anos, {raca[0].toUpperCase() + raca.slice(1).toLowerCase()}</Text>
       </View>
@@ -65,7 +66,25 @@ export default function FavoritoScreen() {
   const [showFilter, setShowFilter] = useState(false);
   const navigation = useNavigation();
 
-  useEffect(() => { fetchPets(); }, []);
+  useEffect(() => {
+    const carregarFavoritos = async () => {
+      const idSalvo = await AsyncStorage.getItem('userId');
+      const idUsuario = idSalvo ? parseInt(idSalvo, 10) : null;
+      if (!idUsuario) return;
+
+      try {
+        const favoritosAPI = await listarFavoritosDoUsuario(idUsuario);
+        const favMap = {};
+        favoritosAPI.forEach(f => { favMap[f.idPet] = true; });
+        setFavoritos(favMap);
+      } catch (e) {
+        console.error('Erro ao carregar favoritos:', e);
+      }
+    };
+
+    fetchPets();
+    carregarFavoritos();
+  }, []);
 
   const fetchPets = async () => {
     setLoading(true);
@@ -79,8 +98,39 @@ export default function FavoritoScreen() {
     }
   };
 
-  const toggleFavorito = (id) => {
-    setFavoritos(prev => ({ ...prev, [id]: !prev[id] }));
+  const toggleFavorito = async (id) => {
+    const idSalvo = await AsyncStorage.getItem('userId');
+    const idUsuario = idSalvo ? parseInt(idSalvo, 10) : null;
+    if (!idUsuario) return;
+
+    const isFavorito = favoritos[id];
+
+    Alert.alert(
+      isFavorito ? 'Remover dos favoritos?' : 'Adicionar aos favoritos?',
+      isFavorito
+        ? 'Tem certeza que deseja remover este pet dos favoritos?'
+        : 'Deseja adicionar este pet aos seus favoritos?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: isFavorito ? 'Remover' : 'Adicionar',
+          onPress: async () => {
+            try {
+              if (isFavorito) {
+                await desfavoritarPet(idUsuario, id);
+                setFavoritos(prev => ({ ...prev, [id]: false }));
+              } else {
+                await favoritarPet(idUsuario, id);
+                setFavoritos(prev => ({ ...prev, [id]: true }));
+              }
+            } catch (e) {
+              console.error('Erro ao alternar favorito:', e);
+              Alert.alert('Erro', 'Não foi possível atualizar os favoritos.');
+            }
+          },
+        },
+      ]
+    );
   };
 
   const filtered = data.filter(p => {
@@ -97,6 +147,11 @@ export default function FavoritoScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Explorar</Text>
+        <TouchableOpacity style={styles.formIcon}
+          onLongPress={() => navigation.navigate('FormularioDeMatch')}
+        >
+          <Ionicons name="document-text-outline" size={height * 0.04} color="black" />
+        </TouchableOpacity>
       </View>
 
       <View style={styles.searchBox}>
@@ -122,7 +177,6 @@ export default function FavoritoScreen() {
           keyExtractor={item => item.id.toString()}
           contentContainerStyle={{
             paddingBottom: height * 0.085,
-
           }}
           columnWrapperStyle={{ justifyContent: 'space-between' }}
           renderItem={({ item }) => (
@@ -134,7 +188,6 @@ export default function FavoritoScreen() {
             />
           )}
         />
-
       ) : (
         <Text style={styles.noResults}>Nenhum pet encontrado.</Text>
       )}
@@ -153,14 +206,24 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
+    justifyContent: 'center',
     position: 'relative',
+    marginBottom: height * 0.01,
+    height: height * 0.05, // altura fixa para posicionar bem o botão
   },
   title: {
     fontSize: height * 0.035,
     fontWeight: 'bold',
     textAlign: 'center',
-    marginBottom: height * 0.01,
   },
+  formIcon: {
+    position: 'absolute',
+    right: width * 0.02,
+    top: 0,
+    bottom: 0,
+    justifyContent: 'center',
+  },
+
   searchBox: {
     backgroundColor: '#eee',
     borderRadius: 25,
@@ -173,9 +236,7 @@ const styles = StyleSheet.create({
     height: height * 0.05,
     flex: 1,
   },
-  filterButton: {
-    
-  },
+  filterButton: {},
   noResults: {
     textAlign: 'center',
     marginTop: 20,
@@ -208,12 +269,12 @@ const styles = StyleSheet.create({
   },
   name: {
     color: 'white',
-    fontSize: height*0.03,
+    fontSize: height * 0.03,
     fontWeight: 'bold',
   },
   info: {
     color: 'white',
-    fontSize: height*0.02,
+    fontSize: height * 0.02,
   },
   favIcon: {
     position: 'absolute',

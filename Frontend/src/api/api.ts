@@ -198,3 +198,54 @@ export async function atualizarPet(id: number, dadosPet) {
 
   return await response.json(); // retorna os dados atualizados do pet
 }
+
+export async function favoritarPet(idUsuario: number, idPet: number) {
+  const headers = await getAuthHeaders();
+
+  const response = await fetch(`${BASE_URL}/pets-favoritos`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ idUsuario, idPet }),
+  });
+
+  if (!response.ok) {
+    const erro = await response.text();
+    throw new Error(`Erro ao favoritar pet: ${erro}`);
+  }
+
+  return true;
+}
+
+export async function listarFavoritosDoUsuario(idUsuario: number) {
+  const headers = await getAuthHeaders();
+
+  const response = await fetch(`${BASE_URL}/pets-favoritos/${idUsuario}`, {
+    method: 'GET',
+    headers,
+  });
+
+  if (!response.ok) {
+    const erro = await response.text();
+    throw new Error(`Erro ao buscar favoritos: ${erro}`);
+  }
+
+  return await response.json(); // espera-se uma lista de objetos com idPet
+}
+
+export async function desfavoritarPet(idUsuario: number, idPet: number) {
+  const token = await AsyncStorage.getItem('token'); // ou como você guarda
+
+  const resposta = await fetch(`${BASE_URL}/pets-favoritos/${idUsuario}/${idPet}`, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+
+  if (!resposta.ok) {
+    throw new Error(`Erro ao desfavoritar o pet (status: ${resposta.status})`);
+  }
+
+  return true;
+}
+

@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
+import { Alert } from 'react-native';
 import {
   View, Text, TextInput, FlatList, Image,
   TouchableOpacity, ActivityIndicator, Dimensions, Modal, Pressable, StyleSheet
 } from 'react-native';
 import { Ionicons, FontAwesome } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { listarPets } from '../api/api';
+import { desfavoritarPet , listarFavoritosDoUsuario} from '../api/api';
 import { LinearGradient } from 'expo-linear-gradient';
 import Footer from '../components/Footer';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 const { width, height } = Dimensions.get('window');
 const SEX_FILTERS = ['todos', 'M', 'F'];
@@ -70,18 +73,54 @@ export default function FavoritoScreen() {
   const fetchPets = async () => {
     setLoading(true);
     try {
-      const res = await listarPets();
-      setData(res);
+      const idUsuario = await AsyncStorage.getItem('userId');
+      if (!idUsuario) return;
+  
+      const favoritos = await listarFavoritosDoUsuario(Number(idUsuario));
+      const petsFavoritos = favoritos.map(fav => fav.pet); // pega apenas os objetos pet
+      setData(petsFavoritos);
+  
+      // marca visualmente como favoritos
+      const favoritosMap = {};
+      favoritos.forEach(fav => { favoritosMap[fav.pet.id] = true; });
+      setFavoritos(favoritosMap);
+  
     } catch (e) {
-      console.error('Erro ao buscar pets:', e);
+      console.error('Erro ao buscar favoritos:', e);
     } finally {
       setLoading(false);
     }
   };
+  
 
-  const toggleFavorito = (id) => {
-    setFavoritos(prev => ({ ...prev, [id]: !prev[id] }));
+  const toggleFavorito = async (idPet) => {
+    Alert.alert(
+      'Remover dos favoritos',
+      'Tem certeza que deseja desfavoritar este pet?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Sim', style: 'destructive', onPress: async () => {
+            try {
+              const idUsuario = await AsyncStorage.getItem('userId');
+              if (!idUsuario) return;
+  
+              await desfavoritarPet(Number(idUsuario), idPet);
+              setData(prev => prev.filter(p => p.id !== idPet));
+              const novos = { ...favoritos };
+              delete novos[idPet];
+              setFavoritos(novos);
+            } catch (e) {
+              console.error('Erro ao desfavoritar:', e);
+            }
+          }
+        }
+      ]
+    );
   };
+  
+  
+  
 
   const filtered = data.filter(p => {
     const termo = searchTerm.toLowerCase();
