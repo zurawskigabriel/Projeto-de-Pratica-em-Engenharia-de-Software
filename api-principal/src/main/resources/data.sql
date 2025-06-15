@@ -100,6 +100,12 @@ INSERT INTO historico_medico_pet (Id_pet, Tipo, Descricao, Data, Documento) VALU
 (1, 'COMPORTAMENTO', 'Agressivo com homens desconhecidos. Precisa de aproximação lenta.', NULL, NULL),
 (1, 'RESTRICAO_MOBILIDADE', 'Problema na pata traseira esquerda. Limitação ao caminhar.', '2024-04-05', NULL);
 
+INSERT INTO solicitacao_adocao (Id_pet, Id_protetor, Id_adotante, Situacao) VALUES
+(1, 1, 2, 'Pendente'),
+(2, 1, 2, 'Pendente'),
+(3, 1, 2, 'Recusada'),
+(4, 2, 3, 'Aceita');
+
 INSERT INTO adocao (Id_pet, Id_adotante, Status) VALUES
 (1, 1, 'Disponivel'),
 (2, 2, 'Disponivel'),

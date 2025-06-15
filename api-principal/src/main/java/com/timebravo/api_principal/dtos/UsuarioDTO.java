@@ -5,7 +5,8 @@ import com.timebravo.api_principal.entities.Usuario.TipoUsuario;
 import jakarta.validation.constraints.*;
 
 public class UsuarioDTO {
-    
+    private Long id;
+
     @NotBlank(message = "O nome é obrigatório")
     @Size(max = 100, message = "O nome deve ter no máximo 100 caracteres")
     private String nome;
@@ -26,6 +27,14 @@ public class UsuarioDTO {
 
     @NotNull(message = "O perfil de usuário é obrigatório")
     private PerfilUsuario perfilUsuario;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     public String getNome() {
         return nome;

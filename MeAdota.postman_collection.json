@@ -160,42 +160,6 @@
 			]
 		},
 		{
-		"name": "Matches",
-		"item": [
-			{
-			"name": "Calcular Matches",
-			"request": {
-				"method": "POST",
-				"header": [
-				{
-					"key": "Content-Type",
-					"value": "application/json"
-				}
-				],
-				"body": {
-				"mode": "raw",
-				"raw": "{\n  \"usuario\": {\n    \"id\": 42,\n    \"nome\": \"Maria\",\n    \"email\": \"maria@exemplo.com\",\n    \"telefone\": \"555-1234\",\n    \"senhaHash\": \"hash-segura\",\n    \"dataCadastro\": \"2025-06-01T10:00:00\",\n    \"tipo\": \"PESSOA\",\n    \"perfilUsuario\": \"ADOTANTE\"\n  },\n  \"pets\": [\n    {\n      \"id\": 1,\n      \"nome\": \"Rex\",\n      \"especie\": \"Cão\",\n      \"raca\": \"Labrador\",\n      \"idade\": 3,\n      \"porte\": \"MEDIO\"\n    },\n    {\n      \"id\": 2,\n      \"nome\": \"Mimi\",\n      \"especie\": \"Gato\",\n      \"raca\": \"Siamês\",\n      \"idade\": 2,\n      \"porte\": \"PEQUENO\"\n    }\n  ]\n}",
-				"options": {
-					"raw": {
-					"language": "json"
-					}
-				}
-				},
-				"url": {
-				"raw": "{{url}}/matches",
-				"host": [
-					"{{url}}"
-				],
-				"path": [
-					"matches"
-				]
-				}
-			},
-			"response": []
-			}
-		]
-		},
-		{
 			"name": "Pets",
 			"item": [
 				{
@@ -276,6 +240,54 @@
 								{
 									"key": "id",
 									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Filtros do Pet",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/pets/petsPorFiltro?especie=cachorro&raca=Viralata&idadeMinima=1&idadeMaxima=10&porte=pequeno&sexo=M&temHistoricoMedico=true",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"pets",
+								"petsPorFiltro"
+							],
+							"query": [
+								{
+									"key": "especie",
+									"value": "cachorro"
+								},
+								{
+									"key": "raca",
+									"value": "Viralata"
+								},
+								{
+									"key": "idadeMinima",
+									"value": "1"
+								},
+								{
+									"key": "idadeMaxima",
+									"value": "10"
+								},
+								{
+									"key": "porte",
+									"value": "pequeno"
+								},
+								{
+									"key": "sexo",
+									"value": "M"
+								},
+								{
+									"key": "temHistoricoMedico",
+									"value": "true"
 								}
 							]
 						}
@@ -579,6 +591,158 @@
 					"response": []
 				}
 			]
+		},
+		{
+			"name": "Solicitação de Adoção",
+			"item": [
+				{
+					"name": "(ADOTANTE) Listar Solicitação de Adoção do Usuário",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/solicitacoes-adocao/protetor/:id",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"solicitacoes-adocao",
+								"protetor",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "2"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "(ADOTANTE) Solicitar Adoção de Pet",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"idPet\": 1,\r\n    \"idAdotante\": 2\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/solicitacoes-adocao/adotante",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"solicitacoes-adocao",
+								"adotante"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Atualizar Solicitação de Adoção",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"situacao\": \"Aceita\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/solicitacoes-adocao/:idSolicitacao/situacao",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"solicitacoes-adocao",
+								":idSolicitacao",
+								"situacao"
+							],
+							"variable": [
+								{
+									"key": "idSolicitacao",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "(PROTETOR) Listar Solicitação de Adoção do Usuário",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/solicitacoes-adocao/adotante/:id",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"solicitacoes-adocao",
+								"adotante",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "2"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Matches",
+			"item": [
+				{
+					"name": "Calcular Matches",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"usuario\": {\n    \"id\": 42,\n    \"nome\": \"Maria\",\n    \"email\": \"maria@exemplo.com\",\n    \"telefone\": \"555-1234\",\n    \"senhaHash\": \"hash-segura\",\n    \"dataCadastro\": \"2025-06-01T10:00:00\",\n    \"tipo\": \"PESSOA\",\n    \"perfilUsuario\": \"ADOTANTE\"\n  },\n  \"pets\": [\n    {\n      \"id\": 1,\n      \"nome\": \"Rex\",\n      \"especie\": \"Cão\",\n      \"raca\": \"Labrador\",\n      \"idade\": 3,\n      \"porte\": \"MEDIO\"\n    },\n    {\n      \"id\": 2,\n      \"nome\": \"Mimi\",\n      \"especie\": \"Gato\",\n      \"raca\": \"Siamês\",\n      \"idade\": 2,\n      \"porte\": \"PEQUENO\"\n    }\n  ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/matches",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"matches"
+							]
+						}
+					},
+					"response": []
+				}
+			]
 		}
 	],
 	"auth": {
@@ -586,7 +750,7 @@
 		"bearer": [
 			{
 				"key": "token",
-				"value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqb2FvMkBlbWFpbC5jb20iLCJ1c2VySWQiOjQsImlhdCI6MTc0OTU4OTczMSwiZXhwIjoxNzQ5NTkzMzMxfQ.r1d0HXQz203P87sy7-cV9JznAvHvzXD98vEYndjUg_U",
+				"value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqb2FvMkBlbWFpbC5jb20iLCJ1c2VySWQiOjQsImlhdCI6MTc0OTk0NDEzNCwiZXhwIjoxNzQ5OTQ3NzM0fQ._qsQTCvlSOOqTE_Ag9qIfUMH4hsCBeA7Ncz1EGn787A",
 				"type": "string"
 			}
 		]
