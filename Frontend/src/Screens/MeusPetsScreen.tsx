@@ -13,7 +13,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import Footer from '../components/Footer';
-import { listarPets } from '../api/api';
+import { listarPets, buscarStatusPet} from '../api/api';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { FontAwesome } from '@expo/vector-icons';
 
@@ -37,9 +37,22 @@ export default function MeusPetsScreen() {
 
         const resposta = await listarPets();
         const meusPets = resposta.filter((pet) => pet.idUsuario === userId);
-        setPets(meusPets);
-        console.log('Pets carregados:', meusPets);
 
+        // Buscar status individualmente
+        const petsComStatus = await Promise.all(
+          meusPets.map(async (pet) => {
+            try {
+              const situacao = await buscarStatusPet(2);
+              console.log('SITUACAO: ', situacao)
+              return { ...pet, situacao };
+            } catch (e) {
+              return { ...pet, situacao: 'Erro ao buscar status' };
+            }
+          })
+        );
+
+        setPets(petsComStatus);
+        console.log('Pets carregados:', petsComStatus);
       } catch (error) {
         console.error('Erro ao carregar pets:', error);
       } finally {
@@ -49,6 +62,7 @@ export default function MeusPetsScreen() {
 
     carregarPets();
   }, []);
+
 
   const getPetImage = (especie) => {
     if (especie.toLowerCase() === 'gato') {
@@ -135,8 +149,9 @@ export default function MeusPetsScreen() {
                   </Text>
 
                   <Text style={styles.evento} numberOfLines={2} ellipsizeMode="tail">
-                    Último evento: {pet.ultimoEvento || 'Sem eventos registrados'}
+                    Situação: {pet.situacao}
                   </Text>
+
                 </View>
               </TouchableOpacity>
             </View>

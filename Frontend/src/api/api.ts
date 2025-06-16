@@ -10,7 +10,6 @@ export async function buscarPontuacaoMatch(pets) {
     score: Math.random() * 100, // score aleatório entre 0 e 100
   }));
 }
-
 export async function buscarPerfilMatchUsuario(userId) {
   // Simula perfil preenchido para alguns usuários
   if (userId === 1) {
@@ -126,6 +125,37 @@ export async function atualizarUsuario(id, dados) {
 
 
 // ---------------- PETS ----------------
+
+export async function buscarStatusPet(idDoPet: number) {
+  const headers = await getAuthHeaders();
+
+  try {
+    const url = `${BASE_URL}/solicitacoes-adocao/pet/${idDoPet}/situacao`;
+    console.log(`📡 Fazendo requisição para: ${url}`);
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers,
+    });
+
+    const textoErro = await response.text();
+
+    if (!response.ok) {
+      console.error(`❌ Erro HTTP ao buscar status do pet ${idDoPet}:`, response.status, textoErro);
+      throw new Error(`Erro ${response.status}: ${textoErro}`);
+    }
+
+    const dados = JSON.parse(textoErro); // já pegou texto antes
+    console.log(`✅ Resposta da API para pet ${idDoPet}:`, dados);
+
+    return dados.length > 0 ? dados[dados.length - 1].situacao : 'Sem solicitação';
+
+  } catch (err) {
+    console.error(`⚠️ Erro de rede ou código em buscarStatusPet(${idDoPet}):`, err.message);
+    throw err;
+  }
+}
+
 
 export async function criarPet(dadosPet) {
   const token = await AsyncStorage.getItem('token');

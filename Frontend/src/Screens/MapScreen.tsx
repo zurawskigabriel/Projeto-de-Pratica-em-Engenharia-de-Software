@@ -70,6 +70,12 @@ export default function MenuScreen() {
             >
                 <Text style={styles.botaoTexto}>PerfilMatch</Text>
             </TouchableOpacity>
+            <TouchableOpacity
+                style={styles.botao}
+                onPress={() => router.push('/Acompanhamento')}
+            >
+                <Text style={styles.botaoTexto}>Acompanhamento</Text>
+            </TouchableOpacity>
         </SafeAreaView>
     );
 }

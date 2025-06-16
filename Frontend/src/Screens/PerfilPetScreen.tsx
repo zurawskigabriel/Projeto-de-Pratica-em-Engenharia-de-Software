@@ -312,10 +312,15 @@ export default function PerfilPet() {
       {meuUsuarioId !== pet.idUsuario ? (
         <>
           {adotando && (
-            <TouchableOpacity style={styles.adotarBtn} onPress={() => alert('Abrir acompanhamento')}>
+            <TouchableOpacity
+              style={styles.adotarBtn}
+              onPress={() => router.push({ pathname: '/Acompanhamento', params: { id: pet.id } })}
+            >
               <Text style={styles.buttonTxt}>Acompanhar</Text>
             </TouchableOpacity>
+
           )}
+
           <TouchableOpacity
             style={[styles.adotarBtn, adotando && styles.adotarBtnAtivo]}
             onPress={() => {

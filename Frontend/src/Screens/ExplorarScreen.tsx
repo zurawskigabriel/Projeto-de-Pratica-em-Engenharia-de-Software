@@ -151,8 +151,23 @@ export default function FavoritoScreen() {
         favoritosAPI.forEach(f => { favMap[f.idPet] = true; });
         setFavoritos(favMap);
 
-        const pets = await listarPets();
+        const todosPets = await listarPets();
+        const pets = todosPets.filter(pet => pet.idUsuario !== idUsuario);
         setListaOriginal(pets);
+
+        if (perfilPreenchido) {
+          const pontuacoes = await buscarPontuacaoMatch(pets);
+          const dataComScore = pets.map(pet => {
+            const encontrado = pontuacoes.find(p => p.id === pet.id);
+            return { ...pet, score: encontrado?.score ?? 0 };
+          }).sort((a, b) => b.score - a.score);
+
+          setData(dataComScore);
+          setOrdenacaoAtiva(true);
+        } else {
+          setData(pets);
+        }
+
 
         if (perfilPreenchido) {
           const pontuacoes = await buscarPontuacaoMatch(pets);
