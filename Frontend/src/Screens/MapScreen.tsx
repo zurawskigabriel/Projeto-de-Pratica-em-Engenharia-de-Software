@@ -64,6 +64,12 @@ export default function MenuScreen() {
             >
                 <Text style={styles.botaoTexto}>PerfilPet</Text>
             </TouchableOpacity>
+            <TouchableOpacity
+                style={styles.botao}
+                onPress={() => router.push('/PerfilMatch')}
+            >
+                <Text style={styles.botaoTexto}>PerfilMatch</Text>
+            </TouchableOpacity>
         </SafeAreaView>
     );
 }

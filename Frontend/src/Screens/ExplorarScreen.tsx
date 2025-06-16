@@ -123,7 +123,7 @@ export default function FavoritoScreen() {
             [
               {
                 text: 'Sim',
-                onPress: () => navigation.navigate('CriarPerfilMatch'),
+                onPress: () => navigation.navigate('PerfilMatch'),
               },
               {
                 text: 'Agora não',
@@ -194,7 +194,7 @@ export default function FavoritoScreen() {
           },
           {
             text: 'Editar perfil de match',
-            onPress: () => navigation.navigate('EditarPerfilMatch')
+            onPress: () => navigation.navigate('PerfilMatch')
           },
           { text: 'Cancelar', style: 'cancel' }
         ]
@@ -226,8 +226,8 @@ export default function FavoritoScreen() {
           }
         },
         {
-          text: 'Editar perfil',
-          onPress: () => navigation.navigate('EditarPerfilMatch')
+          text: 'Editar perfil de Match',
+          onPress: () => navigation.navigate('PerfilMatch')
         },
         { text: 'Cancelar', style: 'cancel' }
       ]
