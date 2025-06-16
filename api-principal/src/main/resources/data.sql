@@ -20,71 +20,70 @@ INSERT INTO tags (Nome, Id_categoria) VALUES
 ('Castrado', 2),
 ('Banho', 3);
 
-INSERT INTO pet (Id_usuario, Nome, Especie, Raca, Idade, Porte, Peso, Sexo, Bio) VALUES 
-(1, 'Rex', 'Cachorro', 'POODLE', 3, 'MEDIO', 12.5, 'M', 'Cachorro muito brincalhao e amoroso'),             --1
-(2, 'Luna', 'Gato', 'PUG', 2, 'PEQUENO', 4.2, 'F', 'Gatinha tranquila que adora carinho'),                  --2
-(3, 'Max', 'Cachorro', 'BULLDOG', 5, 'GRANDE', 25.0, 'M', 'Cachorro protetor e leal'),                      --3
-(1, 'Mia', 'Gato', 'SIAMESE', 1, 'PEQUENO', 3.0, 'F', 'Gatinha curiosa e brincalhona'),                     --4
-(2, 'Bobby', 'Cachorro', 'VIRALATA', 13, 'MEDIO', 15.0, 'M', 'Cachorro amigavel e sociavel'),               --5
-(3, 'Nina', 'Gato', 'VIRALATA', 3, 'PEQUENO', 3.5, 'F', 'Gata independente e carinhosa'),                   --6   
-(1, 'Toby', 'Cachorro', 'BEAGLE', 6, 'PEQUENO', 10.0, 'M', 'Cachorro curioso e ativo'),                     --7
-(2, 'Lily', 'Gato', 'PERSA', 9, 'PEQUENO', 5.0, 'F', 'Gata tranquila e afetuosa'),                          --8
-(3, 'Charlie', 'Cachorro', 'LABRADOR', 4, 'GRANDE', 30.0, 'M', 'Cachorro amigavel e brincalhao'),           --9
-(1, 'Bella', 'Gato', 'SIBERIANO', 2, 'PEQUENO', 4.5, 'F', 'Gata carinhosa e brincalhona'),                  --10
-(2, 'Rocky', 'Cachorro', 'GERMAN SHEPHERD', 7, 'GRANDE', 35.0, 'M', 'Cachorro protetor e inteligente'),     --11
-(3, 'Sophie', 'Gato', 'BRITISH SHORTHAIR', 5, 'PEQUENO', 4.0, 'F', 'Gata tranquila e afetuosa'),            --12    
-(1, 'Oscar', 'Cachorro', 'DACHSHUND', 8, 'PEQUENO', 9.0, 'M', 'Cachorro curioso e brincalhao'),             --13
-(2, 'Chloe', 'Gato', 'RAGDOLL', 3, 'PEQUENO', 6.0, 'F', 'Gata carinhosa e tranquila'),                      --14
-(3, 'Ziggy', 'Cachorro', 'LABRADOR', 4, 'GRANDE', 29.0, 'M', 'Muito brincalhao e carinhoso'),               --15
-(1, 'Luna', 'Gato', 'SIAMES', 2, 'PEQUENO', 3.6, 'F', 'Gata vocal e esperta'),                              --16
-(2, 'Apollo', 'Passaro', 'CALOPSITA', 1, 'PEQUENO', 0.09, 'M', 'Canta e adora carinho na cabeca'),          --17
-(3, 'Mel', 'Hamster', 'SIRIO', 1, 'PEQUENO', 0.12, 'F', 'Rodeia a rodinha a noite toda'),                   --18
-(1, 'Toby', 'Cachorro', 'BEAGLE', 3, 'MEDIO', 12.5, 'M', 'Adora cavar buracos e correr'),                   --19
-(2, 'Kiara', 'Coelho', 'MINI LION', 2, 'PEQUENO', 1.8, 'F', 'Fofa e adora cenoura'),                        --20
-(3, 'Rocky', 'Cachorro', 'BOXER', 6, 'GRANDE', 33.0, 'M', 'Protetor e brincalhao'),
-(1, 'Nina', 'Gato', 'PERSA', 5, 'PEQUENO', 4.3, 'F', 'Tranquila e carente'),
-(2, 'Leo', 'Cachorro', 'POODLE', 7, 'PEQUENO', 6.7, 'M', 'Muito esperto e docil'),
-(3, 'Jade', 'Passaro', 'PERIQUITO', 1, 'PEQUENO', 0.05, 'F', 'Colorida e curiosa'),
-(1, 'Thor', 'Cachorro', 'HUSKY SIBERIANO', 4, 'GRANDE', 28.9, 'M', 'Ama correr na grama'),
-(2, 'Lili', 'Gato', 'ANGORA', 3, 'PEQUENO', 3.5, 'F', 'Sociavel e ronrona muito'),
-(3, 'Bento', 'Coelho', 'ORELHUDO', 1, 'PEQUENO', 2.1, 'M', 'Adora brincar com rolinho de papel'),
-(1, 'Sasha', 'Gato', 'VIRALATA', 6, 'PEQUENO', 3.9, 'F', 'Muito esperta e cacadora'),
-(2, 'Spike', 'Cachorro', 'ROTTWEILER', 5, 'GRANDE', 39.0, 'M', 'Forte, leal e protetor'),
-(3, 'Tina', 'Tartaruga', 'TIGRE DA AGUA', 8, 'PEQUENO', 0.7, 'F', 'Calma e tranquila'),
-(1, 'Fred', 'Hamster', 'ANAO RUSSO', 1, 'PEQUENO', 0.1, 'M', 'Pequenino e veloz'),
-(2, 'Lola', 'Gato', 'MAINE COON', 4, 'MEDIO', 6.5, 'F', 'Grande, fofa e docil'),
-(3, 'Ozzy', 'Passaro', 'CANARIO', 2, 'PEQUENO', 0.08, 'M', 'Canta todas as manhas'),
-(1, 'Maya', 'Cachorro', 'GOLDEN RETRIEVER', 3, 'GRANDE', 27.0, 'F', 'Muito amigavel e ativa'),
-(2, 'Pingo', 'Cachorro', 'PINSCHER', 5, 'PEQUENO', 4.2, 'M', 'Pequeno, mas valente'),
-(3, 'Nina', 'Gato', 'RAGDOLL', 2, 'PEQUENO', 4.0, 'F', 'Docinha e adora colo'),
-(1, 'Bob', 'Cachorro', 'VIRALATA', 6, 'MEDIO', 17.3, 'M', 'Muito esperto e fiel'),
-(2, 'Cacau', 'Coelho', 'MINI REX', 3, 'PEQUENO', 1.6, 'F', 'Pelagem super macia'),
-(3, 'Romeu', 'Cachorro', 'COCKER SPANIEL', 4, 'MEDIO', 13.2, 'M', 'Carinhoso e brincalhao'),
-(1, 'Luna', 'Tartaruga', 'TIGRE DA AGUA', 10, 'PEQUENO', 1.0, 'F', 'Lenta e muito observadora'),
-(2, 'Theo', 'Gato', 'BRITISH SHORTHAIR', 3, 'PEQUENO', 4.8, 'M', 'Gosta de dormir o dia todo'),
-(3, 'Mimi', 'Hamster', 'CHINES', 1, 'PEQUENO', 0.11, 'F', 'Muito agil e curiosa'),
-(1, 'Marley', 'Cachorro', 'DALMATA', 5, 'GRANDE', 30.0, 'M', 'Cheio de energia e lealdade'),
-(2, 'Bella', 'Gato', 'BENGAL', 2, 'PEQUENO', 3.9, 'F', 'Cheia de energia e pulos altos'),
-(3, 'Zara', 'Cachorro', 'SHIH TZU', 3, 'PEQUENO', 5.5, 'F', 'Muito fofa e adora brincar'),
-(1, 'Leo', 'Gato', 'SPHYNX', 4, 'PEQUENO', 3.0, 'M', 'Adora calor e carinho constante'),
-(2, 'Mel', 'Cachorro', 'POODLE', 5, 'PEQUENO', 8.0, 'F', 'Muito esperta e adora colo'),
-(3, 'Simba', 'Gato', 'MAINE COON', 2, 'MEDIO', 6.5, 'M', 'Gato peludo e sociavel'),
-(1, 'Fred', 'Gato', 'PERSA', 6, 'PEQUENO', 5.0, 'M', 'Calmo e gosta de lugares altos'),
-(2, 'Amora', 'Cachorro', 'BEAGLE', 3, 'PEQUENO', 10.0, 'F', 'Exploradora e ativa'),
-(3, 'Tigrinho', 'Gato', 'VIRALATA', 1, 'PEQUENO', 2.5, 'M', 'Filhote curioso'),
-(1, 'Cacau', 'Cachorro', 'SHIH TZU', 4, 'PEQUENO', 7.0, 'F', 'Adora colo e criancas'),
-(2, 'Sasha', 'Cachorro', 'COCKER SPANIEL', 4, 'MEDIO', 12.0, 'F', 'Orelhuda e brincalhona'),
-(3, 'Belinha', 'Cachorro', 'POODLE', 10, 'PEQUENO', 6.2, 'F', 'Muito docil e ja tranquila'),
-(1, 'Tobias', 'Cachorro', 'VIRALATA', 12, 'MEDIO', 18.0, 'M', 'Idoso calmo e amoroso'),
-(2, 'Mimi', 'Gato', 'PERSA', 9, 'PEQUENO', 4.5, 'F', 'Gosta de dormir no sol'),
-(3, 'Chico', 'Gato', 'SIAMES', 11, 'PEQUENO', 5.1, 'M', 'Gato de colo, muito manso'),
-(1, 'Zezinho', 'Passaro', 'CALOPSITA', 8, 'PEQUENO', 0.1, 'M', 'Ja viveu bastante e canta baixinho'),
-(2, 'Dona Flor', 'Cachorro', 'SHIH TZU', 13, 'PEQUENO', 7.5, 'F', 'Precisa de cuidados especiais'),
-(3, 'Tina', 'Gato', 'ANGORA', 10, 'PEQUENO', 3.9, 'F', 'Muito calma e afetuosa'),
-(1, 'Guga', 'Cachorro', 'BASSET', 14, 'MEDIO', 20.0, 'M', 'Idoso simpatico e adora companhia'),
-(2, 'Lola', 'Coelho', 'MINI LOP', 9, 'PEQUENO', 1.9, 'F', 'Alegre, mesmo com a idade'),
-(3, 'Teco', 'Hamster', 'SIRIO', 2, 'PEQUENO', 0.18, 'M', 'Idoso para a especie, mas ativo');    
-
+INSERT INTO pet (Id_usuario, Nome, Especie, Raca, Idade_ano, Idade_mes, Porte, Peso, Sexo, Bio) VALUES 
+(1, 'Rex', 'Cachorro', 'POODLE', 3, 0, 'MEDIO', 12.5, 'M', 'Cachorro muito brincalhao e amoroso'),
+(2, 'Luna', 'Gato', 'PUG', 2, 0, 'PEQUENO', 4.2, 'F', 'Gatinha tranquila que adora carinho'),
+(3, 'Max', 'Cachorro', 'BULLDOG', 5, 0, 'GRANDE', 25.0, 'M', 'Cachorro protetor e leal'),
+(1, 'Mia', 'Gato', 'SIAMESE', 1, 0, 'PEQUENO', 3.0, 'F', 'Gatinha curiosa e brincalhona'),
+(2, 'Bobby', 'Cachorro', 'VIRALATA', 13, 0, 'MEDIO', 15.0, 'M', 'Cachorro amigavel e sociavel'),
+(3, 'Nina', 'Gato', 'VIRALATA', 3, 0, 'PEQUENO', 3.5, 'F', 'Gata independente e carinhosa'),
+(1, 'Toby', 'Cachorro', 'BEAGLE', 6, 0, 'PEQUENO', 10.0, 'M', 'Cachorro curioso e ativo'),
+(2, 'Lily', 'Gato', 'PERSA', 9, 0, 'PEQUENO', 5.0, 'F', 'Gata tranquila e afetuosa'),
+(3, 'Charlie', 'Cachorro', 'LABRADOR', 4, 0, 'GRANDE', 30.0, 'M', 'Cachorro amigavel e brincalhao'),
+(1, 'Bella', 'Gato', 'SIBERIANO', 2, 0, 'PEQUENO', 4.5, 'F', 'Gata carinhosa e brincalhona'),
+(2, 'Rocky', 'Cachorro', 'GERMAN SHEPHERD', 7, 0, 'GRANDE', 35.0, 'M', 'Cachorro protetor e inteligente'),
+(3, 'Sophie', 'Gato', 'BRITISH SHORTHAIR', 5, 0, 'PEQUENO', 4.0, 'F', 'Gata tranquila e afetuosa'),
+(1, 'Oscar', 'Cachorro', 'DACHSHUND', 8, 0, 'PEQUENO', 9.0, 'M', 'Cachorro curioso e brincalhao'),
+(2, 'Chloe', 'Gato', 'RAGDOLL', 3, 0, 'PEQUENO', 6.0, 'F', 'Gata carinhosa e tranquila'),
+(3, 'Ziggy', 'Cachorro', 'LABRADOR', 4, 0, 'GRANDE', 29.0, 'M', 'Muito brincalhao e carinhoso'),
+(1, 'Luna', 'Gato', 'SIAMES', 2, 0, 'PEQUENO', 3.6, 'F', 'Gata vocal e esperta'),
+(2, 'Apollo', 'Passaro', 'CALOPSITA', 1, 0, 'PEQUENO', 0.09, 'M', 'Canta e adora carinho na cabeca'),
+(3, 'Mel', 'Hamster', 'SIRIO', 1, 0, 'PEQUENO', 0.12, 'F', 'Rodeia a rodinha a noite toda'),
+(1, 'Toby', 'Cachorro', 'BEAGLE', 3, 0, 'MEDIO', 12.5, 'M', 'Adora cavar buracos e correr'),
+(2, 'Kiara', 'Coelho', 'MINI LION', 2, 0, 'PEQUENO', 1.8, 'F', 'Fofa e adora cenoura'),
+(3, 'Rocky', 'Cachorro', 'BOXER', 6, 0, 'GRANDE', 33.0, 'M', 'Protetor e brincalhao'),
+(1, 'Nina', 'Gato', 'PERSA', 5, 0, 'PEQUENO', 4.3, 'F', 'Tranquila e carente'),
+(2, 'Leo', 'Cachorro', 'POODLE', 7, 0, 'PEQUENO', 6.7, 'M', 'Muito esperto e docil'),
+(3, 'Jade', 'Passaro', 'PERIQUITO', 1, 0, 'PEQUENO', 0.05, 'F', 'Colorida e curiosa'),
+(1, 'Thor', 'Cachorro', 'HUSKY SIBERIANO', 4, 0, 'GRANDE', 28.9, 'M', 'Ama correr na grama'),
+(2, 'Lili', 'Gato', 'ANGORA', 3, 0, 'PEQUENO', 3.5, 'F', 'Sociavel e ronrona muito'),
+(3, 'Bento', 'Coelho', 'ORELHUDO', 1, 0, 'PEQUENO', 2.1, 'M', 'Adora brincar com rolinho de papel'),
+(1, 'Sasha', 'Gato', 'VIRALATA', 6, 0, 'PEQUENO', 3.9, 'F', 'Muito esperta e cacadora'),
+(2, 'Spike', 'Cachorro', 'ROTTWEILER', 5, 0, 'GRANDE', 39.0, 'M', 'Forte, leal e protetor'),
+(3, 'Tina', 'Tartaruga', 'TIGRE DA AGUA', 8, 0, 'PEQUENO', 0.7, 'F', 'Calma e tranquila'),
+(1, 'Fred', 'Hamster', 'ANAO RUSSO', 1, 0, 'PEQUENO', 0.1, 'M', 'Pequenino e veloz'),
+(2, 'Lola', 'Gato', 'MAINE COON', 4, 0, 'MEDIO', 6.5, 'F', 'Grande, fofa e docil'),
+(3, 'Ozzy', 'Passaro', 'CANARIO', 2, 0, 'PEQUENO', 0.08, 'M', 'Canta todas as manhas'),
+(1, 'Maya', 'Cachorro', 'GOLDEN RETRIEVER', 3, 0, 'GRANDE', 27.0, 'F', 'Muito amigavel e ativa'),
+(2, 'Pingo', 'Cachorro', 'PINSCHER', 5, 0, 'PEQUENO', 4.2, 'M', 'Pequeno, mas valente'),
+(3, 'Nina', 'Gato', 'RAGDOLL', 2, 0, 'PEQUENO', 4.0, 'F', 'Docinha e adora colo'),
+(1, 'Bob', 'Cachorro', 'VIRALATA', 6, 0, 'MEDIO', 17.3, 'M', 'Muito esperto e fiel'),
+(2, 'Cacau', 'Coelho', 'MINI REX', 3, 0, 'PEQUENO', 1.6, 'F', 'Pelagem super macia'),
+(3, 'Romeu', 'Cachorro', 'COCKER SPANIEL', 4, 0, 'MEDIO', 13.2, 'M', 'Carinhoso e brincalhao'),
+(1, 'Luna', 'Tartaruga', 'TIGRE DA AGUA', 10, 0, 'PEQUENO', 1.0, 'F', 'Lenta e muito observadora'),
+(2, 'Theo', 'Gato', 'BRITISH SHORTHAIR', 3, 0, 'PEQUENO', 4.8, 'M', 'Gosta de dormir o dia todo'),
+(3, 'Mimi', 'Hamster', 'CHINES', 1, 0, 'PEQUENO', 0.11, 'F', 'Muito agil e curiosa'),
+(1, 'Marley', 'Cachorro', 'DALMATA', 5, 0, 'GRANDE', 30.0, 'M', 'Cheio de energia e lealdade'),
+(2, 'Bella', 'Gato', 'BENGAL', 2, 0, 'PEQUENO', 3.9, 'F', 'Cheia de energia e pulos altos'),
+(3, 'Zara', 'Cachorro', 'SHIH TZU', 3, 0, 'PEQUENO', 5.5, 'F', 'Muito fofa e adora brincar'),
+(1, 'Leo', 'Gato', 'SPHYNX', 4, 0, 'PEQUENO', 3.0, 'M', 'Adora calor e carinho constante'),
+(2, 'Mel', 'Cachorro', 'POODLE', 5, 0, 'PEQUENO', 8.0, 'F', 'Muito esperta e adora colo'),
+(3, 'Simba', 'Gato', 'MAINE COON', 2, 0, 'MEDIO', 6.5, 'M', 'Gato peludo e sociavel'),
+(1, 'Fred', 'Gato', 'PERSA', 6, 0, 'PEQUENO', 5.0, 'M', 'Calmo e gosta de lugares altos'),
+(2, 'Amora', 'Cachorro', 'BEAGLE', 3, 0, 'PEQUENO', 10.0, 'F', 'Exploradora e ativa'),
+(3, 'Tigrinho', 'Gato', 'VIRALATA', 1, 0, 'PEQUENO', 2.5, 'M', 'Filhote curioso'),
+(1, 'Cacau', 'Cachorro', 'SHIH TZU', 4, 0, 'PEQUENO', 7.0, 'F', 'Adora colo e criancas'),
+(2, 'Sasha', 'Cachorro', 'COCKER SPANIEL', 4, 0, 'MEDIO', 12.0, 'F', 'Orelhuda e brincalhona'),
+(3, 'Belinha', 'Cachorro', 'POODLE', 10, 0, 'PEQUENO', 6.2, 'F', 'Muito docil e ja tranquila'),
+(1, 'Tobias', 'Cachorro', 'VIRALATA', 12, 0, 'MEDIO', 18.0, 'M', 'Idoso calmo e amoroso'),
+(2, 'Mimi', 'Gato', 'PERSA', 9, 0, 'PEQUENO', 4.5, 'F', 'Gosta de dormir no sol'),
+(3, 'Chico', 'Gato', 'SIAMES', 11, 0, 'PEQUENO', 5.1, 'M', 'Gato de colo, muito manso'),
+(1, 'Zezinho', 'Passaro', 'CALOPSITA', 8, 0, 'PEQUENO', 0.1, 'M', 'Ja viveu bastante e canta baixinho'),
+(2, 'Dona Flor', 'Cachorro', 'SHIH TZU', 13, 0, 'PEQUENO', 7.5, 'F', 'Precisa de cuidados especiais'),
+(3, 'Tina', 'Gato', 'ANGORA', 10, 0, 'PEQUENO', 3.9, 'F', 'Muito calma e afetuosa'),
+(1, 'Guga', 'Cachorro', 'BASSET', 14, 0, 'MEDIO', 20.0, 'M', 'Idoso simpatico e adora companhia'),
+(2, 'Lola', 'Coelho', 'MINI LOP', 9, 0, 'PEQUENO', 1.9, 'F', 'Alegre, mesmo com a idade'),
+(3, 'Teco', 'Hamster', 'SIRIO', 2, 0, 'PEQUENO', 0.18, 'M', 'Idoso para a especie, mas ativo');
 
 INSERT INTO pet_favoritos (Id_usuario, Id_pet) VALUES
 (1, 2),

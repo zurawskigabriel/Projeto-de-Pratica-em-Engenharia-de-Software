@@ -24,12 +24,11 @@ const cardSpacing = width * 0.02;
 const cardWidth = (width - cardSpacing * 3) / 2;
 const cardHeight = height * 0.28;
 
-const PetCard = ({ id, nome, sexo, especie, idade, raca, score, onPressFavorito, favorito, onPress }) => {
+const PetCard = ({ id, nome, sexo, especie, idadeAno, idadeMes, raca, score, onPressFavorito, favorito, onPress }) => {
   const imageSource = especie?.toLowerCase().includes('cachorro')
     ? require('../../assets/dog.jpg')
     : require('../../assets/cat.jpg');
 
-  // Função para formatar a raça
   const formatarRaca = (raca) => {
     if (!raca) return '';
     if (raca.trim().toUpperCase() === 'SRD') return 'SRD';
@@ -38,6 +37,18 @@ const PetCard = ({ id, nome, sexo, especie, idade, raca, score, onPressFavorito,
       .split(' ')
       .map(p => p.charAt(0).toUpperCase() + p.slice(1))
       .join(' ');
+  };
+
+  const formatarIdade = (anos, meses) => {
+    //se + de 1 ano e 0 meses -> 2 anos
+    if (anos > 1 && meses === 0) return `${anos} anos`;
+    //se 1 ano e 0 meses -> 1 ano
+    if (anos === 1 && meses === 0) return `1 ano`;
+    //se mais de 0 anos e mais de 0 meses ->  
+    if (anos > 0 && meses > 0) return `${anos} ano${anos > 1 ? 's' : ''} e ${meses} meses`;
+    //se 0 anos, mas alguns meses, mostra so meses
+    if (anos === 0 && meses > 0) return `${meses} meses`;
+    return `${anos} anos ${meses} meses`;
   };
 
   return (
@@ -60,7 +71,7 @@ const PetCard = ({ id, nome, sexo, especie, idade, raca, score, onPressFavorito,
           />
         </View>
         <Text style={styles.info}>
-          {idade} anos, {formatarRaca(raca)}
+          {formatarIdade(idadeAno, idadeMes)}, {formatarRaca(raca)}
         </Text>
       </View>
       <TouchableOpacity style={styles.favIcon} onPress={onPressFavorito}>
@@ -73,6 +84,8 @@ const PetCard = ({ id, nome, sexo, especie, idade, raca, score, onPressFavorito,
     </TouchableOpacity>
   );
 };
+
+
 
 
 const FilterModal = ({ visible, onClose, onSelect }) => (
@@ -274,11 +287,13 @@ export default function FavoritoScreen() {
 
   const filtered = data.filter(p => {
     const termo = searchTerm.toLowerCase();
+    const idadeTexto = `${p.idadeAno ?? 0}a ${p.idadeMes ?? 0}m`.toLowerCase();
     const matchTermo = (
       p.nome.toLowerCase().includes(termo) ||
       p.raca.toLowerCase().includes(termo) ||
-      p.idade.toString().includes(termo)
+      idadeTexto.includes(termo)
     );
+
     const matchSexo = selectedFilter === 'todos' || p.sexo === selectedFilter;
     const scoreValido = p.score === undefined || p.score > 0;
 

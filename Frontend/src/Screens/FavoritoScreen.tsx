@@ -19,23 +19,43 @@ const cardWidth = (width - cardSpacing * 3) / 2;
 const cardHeight = height * 0.28;
 
 
-const PetCard = ({ id, nome, sexo, especie, idade, raca, onPressFavorito, favorito, onPress }) => {
+const PetCard = ({ id, nome, sexo, especie, idadeAno, idadeMes, raca, onPressFavorito, favorito, onPress }) => {
   const imageSource = especie?.toLowerCase().includes('cachorro')
-    ? require('../../assets/dog.jpg') : require('../../assets/cat.jpg');
+    ? require('../../assets/dog.jpg')
+    : require('../../assets/cat.jpg');
+
+  const formatarIdade = (anos, meses) => {
+    if (anos > 1 && meses === 0) return `${anos} anos`;
+    if (anos === 1 && meses === 0) return `1 ano`;
+    if (anos > 0 && meses > 0) {
+      const anoTexto = `${anos} ano${anos > 1 ? 's' : ''}`;
+      const mesTexto = `${meses} mês${meses > 1 ? 'es' : ''}`;
+      return `${anoTexto} e ${mesTexto}`;
+    }
+    if (anos === 0 && meses > 0) return `${meses} mês${meses > 1 ? 'es' : ''}`;
+    return `${anos} anos ${meses} meses`;
+  };
+
+  const formatarRaca = (raca) => {
+    if (!raca) return '';
+    return raca[0].toUpperCase() + raca.slice(1).toLowerCase();
+  };
 
   return (
     <TouchableOpacity style={styles.card} onPress={onPress}>
       <Image source={imageSource} style={styles.image} />
       <LinearGradient 
-      colors={['transparent', 'rgba(0,0,0,0.9)']} 
-      style={styles.shadow} 
+        colors={['transparent', 'rgba(0,0,0,0.9)']} 
+        style={styles.shadow} 
       />
       <View style={styles.petDescription}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <Text style={styles.name}>{nome}</Text>
           <FontAwesome name={sexo === 'M' ? 'mars' : 'venus'} size={24} color="white" style={{ marginLeft: 8 }} />
         </View>
-        <Text style={styles.info}>{idade} anos, {raca[0].toUpperCase() + raca.slice(1).toLowerCase()}</Text>
+        <Text style={styles.info}>
+          {formatarIdade(idadeAno, idadeMes)}, {formatarRaca(raca)}
+        </Text>
       </View>
       <TouchableOpacity style={styles.favIcon} onPress={onPressFavorito}>
         <FontAwesome name={'heart'} size={height * 0.02} color={'red'} />
@@ -43,6 +63,7 @@ const PetCard = ({ id, nome, sexo, especie, idade, raca, onPressFavorito, favori
     </TouchableOpacity>
   );
 };
+
 
 const FilterModal = ({ visible, onClose, onSelect }) => (
   <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>

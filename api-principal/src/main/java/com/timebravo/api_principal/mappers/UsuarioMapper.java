@@ -9,10 +9,14 @@ public class UsuarioMapper
         if (usuario == null) return null;
 
         UsuarioDTO dto = new UsuarioDTO();
+        dto.setId(usuario.getId());
+        dto.setNome(usuario.getNome());
         dto.setTelefone(usuario.getTelefone());
+        dto.setEmail(usuario.getEmail());
         dto.setTipo(usuario.getTipo());
         dto.setPerfilUsuario(usuario.getPerfilUsuario());
 
         return dto;
     }
 }
+

@@ -14,8 +14,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import Footer from '../components/Footer';
 import { listarPets } from '../api/api';
-import Icon from 'react-native-vector-icons/MaterialIcons'; // Ícone de adicionar
-import { FontAwesome } from '@expo/vector-icons'; // Ícones ♂ e ♀ compatíveis com Expo
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import { FontAwesome } from '@expo/vector-icons';
 
 const { width, height } = Dimensions.get('window');
 
@@ -38,7 +38,6 @@ export default function MeusPetsScreen() {
         const resposta = await listarPets();
         const meusPets = resposta.filter((pet) => pet.idUsuario === userId);
         setPets(meusPets);
-
         console.log('Pets carregados:', meusPets);
 
       } catch (error) {
@@ -57,13 +56,35 @@ export default function MeusPetsScreen() {
     } else if (especie.toLowerCase() === 'cachorro') {
       return require('../../assets/dog.jpg');
     } else {
-      return require('../../assets/cat.jpg'); // fallback
+      return require('../../assets/cat.jpg');
     }
+  };
+
+  const formatarIdade = (anos = 0, meses = 0) => {
+    if (anos > 1 && meses === 0) return `${anos} anos`;
+    if (anos === 1 && meses === 0) return `1 ano`;
+    if (anos > 0 && meses > 0) {
+      const anoTexto = `${anos} ano${anos > 1 ? 's' : ''}`;
+      const mesTexto = `${meses} mês${meses > 1 ? 'es' : ''}`;
+      return `${anoTexto} e ${mesTexto}`;
+    }
+    if (anos === 0 && meses > 0) return `${meses} mês${meses > 1 ? 'es' : ''}`;
+    return `${anos} anos ${meses} meses`;
+  };
+  const formatarRaca = (raca = '') => {
+    if (!raca) return '';
+    const racaTrim = raca.trim();
+    if (racaTrim.toUpperCase() === 'SRD') return 'SRD';
+
+    return racaTrim
+      .toLowerCase()
+      .split(' ')
+      .map(palavra => palavra.charAt(0).toUpperCase() + palavra.slice(1))
+      .join(' ');
   };
 
   return (
     <View style={{ flex: 1 }}>
-      {/* HEADER FIXO */}
       <View style={styles.header}>
         <Text style={styles.title}>Meus Pets</Text>
         <TouchableOpacity
@@ -86,7 +107,6 @@ export default function MeusPetsScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* SCROLL DE PETS */}
       <ScrollView contentContainerStyle={styles.containerScroll}>
         {carregando ? (
           <ActivityIndicator size="large" color="#000" style={{ marginTop: 20 }} />
@@ -104,21 +124,16 @@ export default function MeusPetsScreen() {
                   <View style={styles.nomeContainer}>
                     <Text style={styles.nome}>{pet.nome}</Text>
                     {pet.sexo?.toLowerCase() === 'm' && (
-                      <FontAwesome
-                        name="mars"
-                        size={width * 0.06}
-                        style={styles.iconeSexo}
-                      />
+                      <FontAwesome name="mars" size={width * 0.06} style={styles.iconeSexo} />
                     )}
                     {pet.sexo?.toLowerCase() === 'f' && (
-                      <FontAwesome
-                        name="venus"
-                        size={width * 0.06}
-                        style={styles.iconeSexo}
-                      />
+                      <FontAwesome name="venus" size={width * 0.06} style={styles.iconeSexo} />
                     )}
                   </View>
-                  <Text style={styles.descricao}>{pet.raca}, {pet.idade} anos</Text>
+                  <Text style={styles.descricao}>
+                    {formatarRaca(pet.raca)}, {formatarIdade(pet.idadeAno ?? 0, pet.idadeMes ?? 0)}
+                  </Text>
+
                   <Text style={styles.evento} numberOfLines={2} ellipsizeMode="tail">
                     Último evento: {pet.ultimoEvento || 'Sem eventos registrados'}
                   </Text>
@@ -129,12 +144,11 @@ export default function MeusPetsScreen() {
         )}
       </ScrollView>
 
-      {/* FOOTER FIXO */}
       <Footer />
     </View>
   );
-
 }
+
 const styles = StyleSheet.create({
   containerScroll: {
     backgroundColor: '#fff',
@@ -175,14 +189,13 @@ const styles = StyleSheet.create({
   },
   card: {
     flexDirection: 'row',
-    alignItems: 'center', // centraliza imagem e texto no eixo vertical
+    alignItems: 'center',
     marginBottom: height * 0.01,
     paddingHorizontal: width * 0.03,
     paddingVertical: height * 0.015,
     borderRadius: height * 0.02,
     backgroundColor: '#f2f2f2',
   },
-
   imagem: {
     width: width * 0.20,
     height: width * 0.20,
@@ -190,12 +203,10 @@ const styles = StyleSheet.create({
     marginRight: width * 0.02,
     resizeMode: 'cover',
   },
-
   info: {
     flex: 1,
     justifyContent: 'center',
   },
-
   nomeContainer: {
     flexDirection: 'row',
     alignItems: 'center',

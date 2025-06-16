@@ -11,6 +11,7 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { buscarPet, atualizarPet } from '../api/api';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function EditarPet() {
   const router = useRouter();
@@ -18,7 +19,8 @@ export default function EditarPet() {
   const [userId, setUserId] = useState<number | null>(null);
   const [form, setForm] = useState({
     nome: '',
-    idade: '',
+    idadeAno: 0,
+    idadeMes: 0,
     raca: '',
     porte: '',
     sexo: '',
@@ -37,7 +39,8 @@ export default function EditarPet() {
         const pet = await buscarPet(parseInt(id));
         setForm({
           nome: pet.nome || '',
-          idade: String(pet.idade || ''),
+          idadeAno: pet.idadeAno || 0,
+          idadeMes: pet.idadeMes || 0,
           raca: pet.raca || '',
           porte: pet.porte || '',
           sexo: pet.sexo || '',
@@ -62,14 +65,15 @@ export default function EditarPet() {
       await atualizarPet(parseInt(id), {
         idUsuario: userId,
         nome: form.nome,
-        idade: parseInt(form.idade),
+        idadeAno: form.idadeAno,
+        idadeMes: form.idadeMes,
         raca: form.raca,
         porte: form.porte,
         sexo: form.sexo,
         especie: form.especie,
         peso: parseFloat(form.peso),
         bio: form.bio,
-        fotos: null, // você pode implementar isso depois
+        fotos: null,
       });
 
       Alert.alert('Sucesso', 'Pet atualizado com sucesso!');
@@ -94,27 +98,25 @@ export default function EditarPet() {
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.titulo}>Editar Pet</Text>
 
-      
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>Nome</Text>
+        <TextInput
+          style={styles.input}
+          value={form.nome}
+          onChangeText={(text) => setForm({ ...form, nome: text })}
+          placeholder="Digite o nome"
+        />
+      </View>
 
-      
-
-      
-
-      {[
-        { campo: 'nome', label: 'Nome' },
-        { campo: 'raca', label: 'Raça' },
-      ].map(({ campo, label }) => (
-        <View key={campo} style={styles.inputContainer}>
-          <Text style={styles.label}>{label}</Text>
-          <TextInput
-            style={styles.input}
-            value={form[campo]}
-            onChangeText={(text) => setForm({ ...form, [campo]: text })}
-            placeholder={`Digite o ${label.toLowerCase()}`}
-            keyboardType={['idade', 'peso'].includes(campo) ? 'numeric' : 'default'}
-          />
-        </View>
-      ))}
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>Raça</Text>
+        <TextInput
+          style={styles.input}
+          value={form.raca}
+          onChangeText={(text) => setForm({ ...form, raca: text })}
+          placeholder="Digite a raça"
+        />
+      </View>
 
       <Text style={styles.label}>Espécie</Text>
       <View style={styles.pickerContainer}>
@@ -130,35 +132,36 @@ export default function EditarPet() {
         </TouchableOpacity>
       </View>
 
-      <View style={styles.inputContainer}>
-        <Text style={styles.label}>Idade (em anos)</Text>
-        <TextInput
-          style={styles.input}
-          value={form.idade}
-          onChangeText={(text) => setForm({ ...form, idade: text })}
-          placeholder="Digite a idade"
-          keyboardType="numeric"
-        />
+      <Text style={styles.label}>Idade</Text>
+      <View style={styles.idadeContainer}>
+        <View style={styles.idadeBox}>
+          <Text style={styles.idadeTitulo}>Anos</Text>
+          <View style={styles.controleIdade}>
+            <TouchableOpacity onPress={() => setForm({ ...form, idadeAno: Math.max(0, form.idadeAno - 1) })}>
+              <Ionicons name="remove-circle-outline" size={24} color="black" />
+            </TouchableOpacity>
+            <Text style={styles.idadeValor}>{form.idadeAno}</Text>
+            <TouchableOpacity onPress={() => setForm({ ...form, idadeAno: form.idadeAno + 1 })}>
+              <Ionicons name="add-circle-outline" size={24} color="black" />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View style={styles.idadeBox}>
+          <Text style={styles.idadeTitulo}>Meses</Text>
+          <View style={styles.controleIdade}>
+            <TouchableOpacity onPress={() => setForm({ ...form, idadeMes: Math.max(0, form.idadeMes - 1) })}>
+              <Ionicons name="remove-circle-outline" size={24} color="black" />
+            </TouchableOpacity>
+            <Text style={styles.idadeValor}>{form.idadeMes}</Text>
+            <TouchableOpacity onPress={() => setForm({ ...form, idadeMes: Math.min(11, form.idadeMes + 1) })}>
+              <Ionicons name="add-circle-outline" size={24} color="black" />
+            </TouchableOpacity>
+          </View>
+        </View>
       </View>
 
-      <Text style={styles.label}>Porte</Text>
-      <View style={styles.pickerContainer}>
-        <TouchableOpacity
-          style={[styles.pickerOption, form.porte === 'PEQUENO' && styles.pickerOptionSelected]}
-          onPress={() => setForm({ ...form, porte: 'PEQUENO' })}>
-          <Text style={styles.pickerOptionText}>Pequeno</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.pickerOption, form.porte === 'MÉDIO' && styles.pickerOptionSelected]}
-          onPress={() => setForm({ ...form, porte: 'MEDIO' })}>
-          <Text style={styles.pickerOptionText}>Médio</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.pickerOption, form.porte === 'GRANDE' && styles.pickerOptionSelected]}
-          onPress={() => setForm({ ...form, porte: 'GRANDE' })}>
-          <Text style={styles.pickerOptionText}>Grande</Text>
-        </TouchableOpacity>
-      </View>
+      {/* Demais campos */}
 
       <View style={styles.inputContainer}>
         <Text style={styles.label}>Peso (kg)</Text>
@@ -254,6 +257,37 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 10,
     fontSize: 16,
+  },
+  idadeContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  idadeBox: {
+    flex: 1,
+    alignItems: 'center',
+    marginHorizontal: 4,
+    paddingVertical: 12,
+    backgroundColor: '#F6F6F6',
+    borderRadius: 10,
+    borderColor: 'rgba(0, 0, 0, 0.2)',
+    borderWidth: 1,
+  },
+  idadeTitulo: {
+    fontSize: 14,
+    fontWeight: '500',
+    marginBottom: 4,
+  },
+  controleIdade: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '70%',
+  },
+  idadeValor: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginHorizontal: 10,
   },
   botaoSalvar: {
     backgroundColor: '#7FCAD2',

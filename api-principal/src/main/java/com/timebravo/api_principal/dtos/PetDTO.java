@@ -22,7 +22,8 @@ public class PetDTO {
     @Size(max = 70, message = "A raça deve ter no máximo 70 caracteres")
     private String raca;
 
-    private Integer idade;
+    private Integer idadeAno;
+    private Integer idadeMes;
 
     @Pattern(
         regexp = "^(ANAO|PEQUENO|MEDIO|GRANDE|GIGANTE)?$", 
@@ -80,12 +81,20 @@ public class PetDTO {
         this.especie = especie;
     }
 
-    public Integer getIdade() {
-        return idade;
+    public Integer getIdadeAno() {
+        return idadeAno;
     }
 
-    public void setIdade(Integer idade) {
-        this.idade = idade;
+    public void setIdadeAno(Integer idade) {
+        this.idadeAno = idade;
+    }
+
+    public Integer getIdadeMes() {
+        return idadeMes;
+    }
+
+    public void setIdadeMes(Integer idade) {
+        this.idadeMes = idade;
     }
 
     public String getPorte() {

@@ -104,6 +104,17 @@ export default function PerfilPet() {
       .map(palavra => palavra.charAt(0).toUpperCase() + palavra.slice(1))
       .join(' ');
   }
+  function formatarIdade(anos: number = 0, meses: number = 0): string {
+    if (anos > 1 && meses === 0) return `${anos} anos`;
+    if (anos === 1 && meses === 0) return `1 ano`;
+    if (anos > 0 && meses > 0) {
+      const anoTexto = `${anos} ano${anos > 1 ? 's' : ''}`;
+      const mesTexto = `${meses} mês${meses > 1 ? 'es' : ''}`;
+      return `${anoTexto} e ${mesTexto}`;
+    }
+    if (anos === 0 && meses > 0) return `${meses} mês${meses > 1 ? 'es' : ''}`;
+    return `${anos} anos ${meses} meses`;
+  }
 
   function InfoItem({ icon, text, lib = 'FontAwesome' }) {
     const IconComponent =
@@ -184,7 +195,7 @@ export default function PerfilPet() {
                 console.error('Erro ao compartilhar:', error);
               }
             }}
-            
+
             style={styles.iconButton}
           >
             <Entypo name="share" size={height * 0.03} color="black" />
@@ -203,8 +214,9 @@ export default function PerfilPet() {
               />
             </View>
             <Text style={styles.petDesc}>
-              {`${pet.idade ?? 0} anos, ${formatarRaca(pet.raca)}`}
+              {formatarIdade(pet.idadeAno ?? 0, pet.idadeMes ?? 0)}, {formatarRaca(pet.raca)}
             </Text>
+
           </View>
         </View>
       </View>
@@ -227,7 +239,7 @@ export default function PerfilPet() {
       <View style={styles.contentContainer}>
         {abaAtiva === 'Resumo' && (
           <View style={styles.infoCard}>
-            <InfoItem icon="calendar" text={`${pet.idade ?? 0} anos`} />
+            <InfoItem icon="calendar" text={formatarIdade(pet.idadeAno ?? 0, pet.idadeMes ?? 0)} />
             <View style={styles.linhaCaderno} />
             <InfoItem icon="dna" text={formatarRaca(pet.raca)} lib="MaterialCommunityIcons" />
             <View style={styles.linhaCaderno} />

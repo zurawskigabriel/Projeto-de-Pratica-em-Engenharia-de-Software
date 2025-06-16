@@ -63,7 +63,6 @@ public class SolicitacaoAdocaoService {
         return SolicitacaoAdocaoMapper.toDTO(solicitacao);
     }
 
-
     public List<SolicitacaoAdocaoDTO> buscarPorIdAdotante(Long id) {
         return solicitacaoAdocaoRepository.findByAdotanteId(id)
                 .stream()
@@ -76,5 +75,12 @@ public class SolicitacaoAdocaoService {
                 .stream()
                 .map(SolicitacaoAdocaoMapper::toDTO)
                 .collect(Collectors.toList());
+    }
+
+    public List<SolicitacaoAdocaoDTO> buscarPorIdPet(Long id) {
+        return solicitacaoAdocaoRepository.findByPetId(id)
+            .stream()
+            .map(SolicitacaoAdocaoMapper::toDTO)
+            .collect(Collectors.toList());
     }
 }
