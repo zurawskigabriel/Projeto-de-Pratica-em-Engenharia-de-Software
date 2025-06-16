@@ -12,11 +12,11 @@ import java.util.List;
 public interface PetRepository extends JpaRepository<Pet, Long> {
     List<Pet> findByUsuarioId(Long idUsuario);
     
-    @Query(value = "SELECT p.*, hm.tipo, hm.descricao" + 
-                    "FROM pet p" +
-                    "JOIN adocao a ON p.id_pet = a.id_pet" +
-                    "LEFT JOIN historico_medico_pet hm ON p.id_pet = hm.id_pet" + 
-                    "WHERE a.status = 'Disponivel'", 
+    @Query(value = "SELECT p.*, hm.tipo, hm.descricao " + 
+                    "FROM pet p " +
+                    "JOIN adocao a ON p.id_pet = a.id_pet " +
+                    "LEFT JOIN historico_medico_pet hm ON p.id_pet = hm.id_pet " + 
+                    "WHERE a.status = 'Disponivel' ", 
                     nativeQuery = true)
     List<Pet> findPetsDisponiveis();
 
@@ -25,8 +25,8 @@ public interface PetRepository extends JpaRepository<Pet, Long> {
                 "WHERE a.status = 'Disponivel' " +
                 "AND (:especie IS NULL OR p.especie ILIKE %:especie%) " + // ILIKE para busca case-insensitive (PostgreSQL/H2)
                 "AND (:raca IS NULL OR p.raca ILIKE %:raca%) " +
-                "AND (:idadeMinima IS NULL OR p.idade >= :idadeMinima) " +
-                "AND (:idadeMaxima IS NULL OR p.idade <= :idadeMaxima) " +
+                "AND (:idadeMinima IS NULL OR p.Idade_ano >= :idadeMinima) " +
+                "AND (:idadeMaxima IS NULL OR p.Idade_ano <= :idadeMaxima) " +
                 "AND (:porte IS NULL OR p.porte = UPPER(:porte)) " + 
                 "AND (:sexo IS NULL OR p.sexo = :sexo)" +
                 "AND ((:temHistoricoMedico IS NULL) " +

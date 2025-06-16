@@ -33,8 +33,11 @@ public class Pet {
     @Column(name = "Raca", nullable = false, length = 70)
     private String raca;
 
-    @Column(name = "Idade")
-    private Integer idade;
+    @Column(name = "Idade_ano")
+    private Integer idadeAno;
+
+    @Column(name = "Idade_mes")
+    private Integer idadeMes;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "Porte", length = 20)
@@ -74,6 +77,14 @@ public class Pet {
     )
     private List<TagsPet> tagsPet = new ArrayList<>();
 
+    @OneToMany(
+        mappedBy = "pet",
+        cascade = CascadeType.REMOVE,
+        orphanRemoval = true,
+        fetch = FetchType.LAZY
+    )
+    private List<SolicitacaoAdocao> solicitacoesAdocao = new ArrayList<>();
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -89,8 +100,11 @@ public class Pet {
     public String getRaca() { return raca; }
     public void setRaca(String raca) { this.raca = raca; }
 
-    public Integer getIdade() { return idade; }
-    public void setIdade(Integer idade) { this.idade = idade; }
+    public Integer getIdadeAno() { return idadeAno; }
+    public void setIdadeAno(Integer idade) { this.idadeAno = idade; }
+
+    public Integer getIdadeMes() { return idadeMes; }
+    public void setIdadeMes(Integer idade) { this.idadeMes = idade; }
 
     public PetPorte getPorte() { return porte; }
     public void setPorte(PetPorte porte) { this.porte = porte; }
@@ -115,4 +129,12 @@ public class Pet {
 
     public List<TagsPet> getTagsPet() { return tagsPet; }
     public void setTagsPet(List<TagsPet> tagsPet) { this.tagsPet = tagsPet; }
+
+    public List<SolicitacaoAdocao> getSolicitacoesAdocao() {
+        return solicitacoesAdocao;
+    }
+
+    public void setSolicitacoesAdocao(List<SolicitacaoAdocao> solicitacoesAdocao) {
+        this.solicitacoesAdocao = solicitacoesAdocao;
+    }
 }
