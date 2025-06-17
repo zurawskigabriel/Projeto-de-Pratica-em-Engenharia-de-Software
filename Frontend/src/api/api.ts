@@ -3,6 +3,65 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const BASE_URL = "http://192.168.0.197:8080/api";
 const BASE_URL_GPT = "http://192.168.0.197:9000/api";
 
+export async function buscarSolicitacoesUsuario(idUsuario: number) {
+  const headers = await getAuthHeaders();
+
+  const response = await fetch(`${BASE_URL}/solicitacoes-adocao/adotante/${idUsuario}`, {
+    method: 'GET',
+    headers,
+  });
+
+  const texto = await response.text();
+
+  if (!response.ok) {
+    //throw new Error(`Erro ao buscar solicitações: ${texto}`);
+  }
+  
+  return JSON.parse(texto); // deve retornar uma lista de solicitações
+}
+
+
+export async function buscarSituacaoPet(idPet: number) {
+  const headers = await getAuthHeaders();
+
+  const response = await fetch(`${BASE_URL}/solicitacoes-adocao/pet/${idPet}/situacao`, {
+    method: 'GET',
+    headers,
+  });
+
+  if (response.status === 404) {
+    // Pet sem solicitações
+    return [];
+  }
+
+  const textoErro = await response.text();
+
+  if (!response.ok) {
+    console.error(`❌ Erro ao buscar situação do pet: ${response.status}`, textoErro);
+    //throw new Error(`Erro ${response.status}: ${textoErro}`);
+  }
+
+  return JSON.parse(textoErro);
+}
+
+
+export async function solicitarAdocaoPet(idPet: number, idAdotante: number) {
+  const headers = await getAuthHeaders();
+
+  const response = await fetch(`${BASE_URL}/solicitacoes-adocao/adotante`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ idPet, idAdotante }),
+  });
+
+  if (!response.ok) {
+    const erro = await response.text();
+    throw new Error(`Erro ao solicitar adoção: ${erro}`);
+  }
+
+  return true;
+}
+
 // Simula busca de pontuação de match para cada pet (score aleatório entre 0 e 100)
 export async function buscarPontuacaoMatch(pets) {
   return pets.map(pet => ({
@@ -141,8 +200,8 @@ export async function buscarStatusPet(idDoPet: number) {
     const textoErro = await response.text();
 
     if (!response.ok) {
-      console.error(`❌ Erro HTTP ao buscar status do pet ${idDoPet}:`, response.status, textoErro);
-      throw new Error(`Erro ${response.status}: ${textoErro}`);
+      //console.error(`❌ Erro HTTP ao buscar status do pet ${idDoPet}:`, response.status, textoErro);
+      //throw new Error(`Erro ${response.status}: ${textoErro}`);
     }
 
     const dados = JSON.parse(textoErro); // já pegou texto antes
@@ -151,8 +210,8 @@ export async function buscarStatusPet(idDoPet: number) {
     return dados.length > 0 ? dados[dados.length - 1].situacao : 'Sem solicitação';
 
   } catch (err) {
-    console.error(`⚠️ Erro de rede ou código em buscarStatusPet(${idDoPet}):`, err.message);
-    throw err;
+    //console.error(`⚠️ Erro de rede ou código em buscarStatusPet(${idDoPet}):`, err.message);
+    //throw err;
   }
 }
 

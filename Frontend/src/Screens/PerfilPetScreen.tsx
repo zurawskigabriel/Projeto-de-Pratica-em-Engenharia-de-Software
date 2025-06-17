@@ -27,7 +27,9 @@ import {
   favoritarPet,
   listarFavoritosDoUsuario,
   desfavoritarPet,
-  gerarLinkPet
+  gerarLinkPet,
+  solicitarAdocaoPet,
+  buscarSituacaoPet
 } from '../api/api';
 
 const { width, height } = Dimensions.get('window');
@@ -48,10 +50,10 @@ export default function PerfilPet() {
         const idSalvo = await AsyncStorage.getItem('userId');
         const idUsuarioAtual = idSalvo ? parseInt(idSalvo, 10) : null;
         setMeuUsuarioId(idUsuarioAtual);
-
+  
         if (!id) return;
         const dados = await buscarPet(parseInt(id));
-
+  
         const petNormalizado = {
           ...dados,
           nome: typeof dados.nome === 'string' ? dados.nome : 'Sem nome',
@@ -64,28 +66,45 @@ export default function PerfilPet() {
           historicoMedico: Array.isArray(dados.historicoMedico) ? dados.historicoMedico : [],
           idUsuario: dados.idUsuario ?? null,
         };
-
+  
         setPet(petNormalizado);
-
+  
         if (petNormalizado.idUsuario) {
           const dono = await buscarUsuarioPorId(petNormalizado.idUsuario);
           setNomeProtetor(dono?.nome ?? '');
         }
-
+  
         if (idUsuarioAtual && petNormalizado?.id) {
           const favoritos = await listarFavoritosDoUsuario(idUsuarioAtual);
           const idsFavoritados = favoritos.map(f => f.idPet);
           if (idsFavoritados.includes(petNormalizado.id)) {
             setFavorito(true);
           }
+  
+          try {
+            const situacoes = await buscarSituacaoPet(petNormalizado.id);
+            const jaSolicitou = situacoes.some(
+              (s) => s.adotanteId === idUsuarioAtual
+            );
+            setAdotando(jaSolicitou);
+          } catch (error) {
+            if (error.message.includes('404')) {
+              // Nenhuma solicitação existente — assume que não está adotando
+              setAdotando(false);
+            } else {
+              console.error('Erro ao verificar situação do pet:', error);
+            }
+          }
+          
         }
       } catch (erro) {
-        console.error('Erro ao buscar pet ou protetor:', erro);
+        console.error('Erro ao buscar pet, protetor ou situação:', erro);
       }
     };
-
+  
     carregarPet();
   }, [id]);
+  
 
   if (!pet) {
     return (
@@ -309,85 +328,101 @@ export default function PerfilPet() {
 
       </View>
 
-      {meuUsuarioId !== pet.idUsuario ? (
-        <>
-          {adotando && (
-            <TouchableOpacity
-              style={styles.adotarBtn}
-              onPress={() => router.push({ pathname: '/Acompanhamento', params: { id: pet.id } })}
-            >
-              <Text style={styles.buttonTxt}>Acompanhar</Text>
-            </TouchableOpacity>
+      {meuUsuarioId === pet.idUsuario ? (
+  <>
+    <TouchableOpacity
+      style={styles.adotarBtn}
+      onPress={() => router.push({ pathname: '/Acompanhamento', params: { id: pet.id } })}
+    >
+      <Text style={styles.buttonTxt}>Acompanhar</Text>
+    </TouchableOpacity>
 
-          )}
+    <TouchableOpacity
+      style={[styles.contatarBtn, { backgroundColor: '#9A9A9A' }]}
+      onPress={() => router.push({ pathname: 'EditarPet', params: { id: pet.id } })}
+    >
+      <Text style={[styles.buttonTxt, { color: 'white' }]}>Editar</Text>
+    </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.adotarBtn, adotando && styles.adotarBtnAtivo]}
-            onPress={() => {
-              Alert.alert(
-                adotando ? 'Adoção cancelada! 😔' : 'Adoção iniciada! 😁',
-                adotando
-                  ? `Você saiu do processo de adoção de ${pet.nome}.`
-                  : `${pet.nome} vai ficar muito feliz com isso!`
-              );
-              setAdotando(!adotando);
-            }}
-          >
-            <Text style={styles.buttonTxt}>
-              {adotando ? 'Cancelar Adoção' : 'Adotar'}
-            </Text>
-          </TouchableOpacity>
+    <TouchableOpacity
+      style={styles.excluirBtn}
+      onPress={() => {
+        Alert.alert(
+          'Excluir Pet',
+          `Tem certeza que deseja excluir ${pet.nome}?`,
+          [
+            { text: 'Cancelar', style: 'cancel' },
+            {
+              text: 'Sim, excluir',
+              style: 'destructive',
+              onPress: async () => {
+                try {
+                  await deletarPet(pet.id);
+                  Alert.alert('Pet excluído com sucesso!');
+                  router.replace('/MeusPets');
+                } catch (err) {
+                  Alert.alert('Erro', 'Não foi possível excluir o pet.');
+                }
+              },
+            },
+          ]
+        );
+      }}
+    >
+      <Text style={styles.buttonTxt}>Excluir Pet</Text>
+    </TouchableOpacity>
+  </>
+) : (
+  <>
+    {adotando && (
+      <TouchableOpacity
+        style={styles.adotarBtn}
+        onPress={() => router.push({ pathname: '/Acompanhamento', params: { id: pet.id } })}
+      >
+        <Text style={styles.buttonTxt}>Acompanhar</Text>
+      </TouchableOpacity>
+    )}
 
-          <TouchableOpacity
-            style={styles.contatarBtn}
-            onPress={() => {
-              const numeroWhatsApp = '5555996168060';
-              const mensagem = 'Olá! Tenho interesse no pet para adoção.';
-              const url = `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensagem)}`;
-              Linking.openURL(url);
-            }}
-          >
-            <Text style={styles.buttonTxt}>Contatar Protetor</Text>
-          </TouchableOpacity>
-        </>
-      ) : (
-        <>
-          <TouchableOpacity
-            style={[styles.contatarBtn, { backgroundColor: '#9A9A9A' }]}
-            onPress={() => router.push({ pathname: 'EditarPet', params: { id: pet.id } })}
-          >
-            <Text style={[styles.buttonTxt, { color: 'white' }]}>Editar</Text>
-          </TouchableOpacity>
+    <TouchableOpacity
+      style={[styles.adotarBtn, adotando && styles.adotarBtnAtivo]}
+      onPress={async () => {
+        if (!pet?.id || !meuUsuarioId) return;
 
-          <TouchableOpacity
-            style={styles.excluirBtn}
-            onPress={() => {
-              Alert.alert(
-                'Excluir Pet',
-                `Tem certeza que deseja excluir ${pet.nome}?`,
-                [
-                  { text: 'Cancelar', style: 'cancel' },
-                  {
-                    text: 'Sim, excluir',
-                    style: 'destructive',
-                    onPress: async () => {
-                      try {
-                        await deletarPet(pet.id);
-                        Alert.alert('Pet excluído com sucesso!');
-                        router.replace('/MeusPets');
-                      } catch (err) {
-                        Alert.alert('Erro', 'Não foi possível excluir o pet.');
-                      }
-                    },
-                  },
-                ]
-              );
-            }}
-          >
-            <Text style={styles.buttonTxt}>Excluir Pet</Text>
-          </TouchableOpacity>
-        </>
-      )}
+        if (adotando) {
+          Alert.alert('Adoção cancelada! 😔', `Você saiu do processo de adoção de ${pet.nome}.`);
+          setAdotando(false);
+          return;
+        }
+
+        try {
+          await solicitarAdocaoPet(pet.id, meuUsuarioId);
+          Alert.alert('Adoção iniciada! 😁', `${pet.nome} vai ficar muito feliz com isso!`);
+          setAdotando(true);
+        } catch (error) {
+          console.error(error);
+          Alert.alert('Erro', 'Não foi possível solicitar a adoção.');
+        }
+      }}
+    >
+      <Text style={styles.buttonTxt}>
+        {adotando ? 'Cancelar Adoção' : 'Adotar'}
+      </Text>
+    </TouchableOpacity>
+
+    <TouchableOpacity
+      style={styles.contatarBtn}
+      onPress={() => {
+        const numeroWhatsApp = '5555996168060';
+        const mensagem = `Olá! Tenho interesse no pet ${pet.nome} para adoção.`;
+        const url = `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensagem)}`;
+        Linking.openURL(url);
+      }}
+    >
+      <Text style={styles.buttonTxt}>Contatar Protetor</Text>
+    </TouchableOpacity>
+  </>
+)}
+
 
       <View style={{ height: height * 0.03 }} />
     </ScrollView>

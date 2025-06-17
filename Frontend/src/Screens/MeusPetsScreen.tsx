@@ -13,7 +13,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import Footer from '../components/Footer';
-import { listarPets, buscarStatusPet} from '../api/api';
+import { listarPets, buscarStatusPet, buscarSolicitacoesUsuario } from '../api/api';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { FontAwesome } from '@expo/vector-icons';
 
@@ -23,6 +23,7 @@ export default function MeusPetsScreen() {
   const navigation = useNavigation();
   const [pets, setPets] = useState([]);
   const [carregando, setCarregando] = useState(true);
+  const [adotandoPets, setAdotandoPets] = useState([]);
 
   useEffect(() => {
     const carregarPets = async () => {
@@ -38,23 +39,31 @@ export default function MeusPetsScreen() {
         const resposta = await listarPets();
         const meusPets = resposta.filter((pet) => pet.idUsuario === userId);
 
-        // Buscar status individualmente
         const petsComStatus = await Promise.all(
           meusPets.map(async (pet) => {
             try {
-              const situacao = await buscarStatusPet(2);
-              console.log('SITUACAO: ', situacao)
+              const situacao = await buscarStatusPet(pet.id);
               return { ...pet, situacao };
             } catch (e) {
-              return { ...pet, situacao: 'Erro ao buscar status' };
+              return { ...pet, situacao: undefined };
             }
           })
         );
 
         setPets(petsComStatus);
-        console.log('Pets carregados:', petsComStatus);
+        console.log('Pets com status:', petsComStatus);
+
+        const solicitacoes = await buscarSolicitacoesUsuario(userId);
+        const adotando = solicitacoes.map((s) => ({
+          ...s.pet,
+          situacao: s.situacao,
+        }));
+
+        setAdotandoPets(adotando);
+        console.log('Pets sendo adotados:', adotando);
+
       } catch (error) {
-        console.error('Erro ao carregar pets:', error);
+        //console.error('Erro ao carregar pets ou adoções:', error);
       } finally {
         setCarregando(false);
       }
@@ -62,7 +71,6 @@ export default function MeusPetsScreen() {
 
     carregarPets();
   }, []);
-
 
   const getPetImage = (especie) => {
     if (especie.toLowerCase() === 'gato') {
@@ -85,16 +93,23 @@ export default function MeusPetsScreen() {
     if (anos === 0 && meses > 0) return `${meses} mês${meses > 1 ? 'es' : ''}`;
     return `${anos} anos ${meses} meses`;
   };
+
   const formatarRaca = (raca = '') => {
     if (!raca) return '';
     const racaTrim = raca.trim();
     if (racaTrim.toUpperCase() === 'SRD') return 'SRD';
-
     return racaTrim
       .toLowerCase()
       .split(' ')
       .map(palavra => palavra.charAt(0).toUpperCase() + palavra.slice(1))
       .join(' ');
+  };
+
+  const exibirSituacao = (situacao) => {
+    if (!situacao || String(situacao).trim() === '') {
+      return 'Disponível';
+    }
+    return situacao;
   };
 
   return (
@@ -124,38 +139,71 @@ export default function MeusPetsScreen() {
       <ScrollView contentContainerStyle={styles.containerScroll}>
         {carregando ? (
           <ActivityIndicator size="large" color="#000" style={{ marginTop: 20 }} />
-        ) : pets.length === 0 ? (
-          <Text style={styles.subtitulo}>Você ainda não cadastrou nenhum pet.</Text>
         ) : (
-          pets.map((pet) => (
-            <View key={pet.id} style={styles.card}>
-              <TouchableOpacity
-                style={{ flexDirection: 'row', flex: 1 }}
-                onPress={() => navigation.navigate('PerfilPet', { id: pet.id })}
-              >
-                <Image source={getPetImage(pet.especie)} style={styles.imagem} />
-                <View style={styles.info}>
-                  <View style={styles.nomeContainer}>
-                    <Text style={styles.nome}>{pet.nome}</Text>
-                    {pet.sexo?.toLowerCase() === 'm' && (
-                      <FontAwesome name="mars" size={width * 0.06} style={styles.iconeSexo} />
-                    )}
-                    {pet.sexo?.toLowerCase() === 'f' && (
-                      <FontAwesome name="venus" size={width * 0.06} style={styles.iconeSexo} />
-                    )}
+          <>
+            {adotandoPets.length > 0 && (
+              <>
+                <Text style={styles.subtitulo}>Adotando:</Text>
+                {adotandoPets.map((pet) => (
+                  <View key={`adotando-${pet.id}`} style={[styles.card, { backgroundColor: '#E0F7FA' }]}>
+                    <TouchableOpacity
+                      style={{ flexDirection: 'row', flex: 1 }}
+                      onPress={() => navigation.navigate('PerfilPet', { id: pet.id })}
+                    >
+                      <Image source={getPetImage(pet.especie)} style={styles.imagem} />
+                      <View style={styles.info}>
+                        <View style={styles.nomeContainer}>
+                          <Text style={styles.nome}>{pet.nome}</Text>
+                          {pet.sexo?.toLowerCase() === 'm' && (
+                            <FontAwesome name="mars" size={width * 0.06} style={styles.iconeSexo} />
+                          )}
+                          {pet.sexo?.toLowerCase() === 'f' && (
+                            <FontAwesome name="venus" size={width * 0.06} style={styles.iconeSexo} />
+                          )}
+                        </View>
+                        <Text style={styles.descricao}>
+                          {formatarRaca(pet.raca)}, {formatarIdade(pet.idadeAno ?? 0, pet.idadeMes ?? 0)}
+                        </Text>
+                        <Text style={styles.evento}>Situação: {exibirSituacao(pet.situacao)}</Text>
+                      </View>
+                    </TouchableOpacity>
                   </View>
-                  <Text style={styles.descricao}>
-                    {formatarRaca(pet.raca)}, {formatarIdade(pet.idadeAno ?? 0, pet.idadeMes ?? 0)}
-                  </Text>
+                ))}
+              </>
+            )}
 
-                  <Text style={styles.evento} numberOfLines={2} ellipsizeMode="tail">
-                    Situação: {pet.situacao}
-                  </Text>
+            <Text style={styles.subtitulo}>Seus Pets:</Text>
 
+            {pets.length === 0 ? (
+              <Text style={styles.subtitulo}>Você ainda não cadastrou nenhum pet.</Text>
+            ) : (
+              pets.map((pet) => (
+                <View key={pet.id} style={styles.card}>
+                  <TouchableOpacity
+                    style={{ flexDirection: 'row', flex: 1 }}
+                    onPress={() => navigation.navigate('PerfilPet', { id: pet.id })}
+                  >
+                    <Image source={getPetImage(pet.especie)} style={styles.imagem} />
+                    <View style={styles.info}>
+                      <View style={styles.nomeContainer}>
+                        <Text style={styles.nome}>{pet.nome}</Text>
+                        {pet.sexo?.toLowerCase() === 'm' && (
+                          <FontAwesome name="mars" size={width * 0.06} style={styles.iconeSexo} />
+                        )}
+                        {pet.sexo?.toLowerCase() === 'f' && (
+                          <FontAwesome name="venus" size={width * 0.06} style={styles.iconeSexo} />
+                        )}
+                      </View>
+                      <Text style={styles.descricao}>
+                        {formatarRaca(pet.raca)}, {formatarIdade(pet.idadeAno ?? 0, pet.idadeMes ?? 0)}
+                      </Text>
+                      <Text style={styles.evento}>Situação: {exibirSituacao(pet.situacao)}</Text>
+                    </View>
+                  </TouchableOpacity>
                 </View>
-              </TouchableOpacity>
-            </View>
-          ))
+              ))
+            )}
+          </>
         )}
       </ScrollView>
 
@@ -167,7 +215,7 @@ export default function MeusPetsScreen() {
 const styles = StyleSheet.create({
   containerScroll: {
     backgroundColor: '#fff',
-    paddingTop: height * 0.03,
+    paddingTop: height * 0.01,
     paddingHorizontal: width * 0.02,
     paddingBottom: height * 0.1,
   },
@@ -175,9 +223,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
-    marginTop: height * 0.03,
+    marginTop: height * 0.02,
     paddingHorizontal: width * 0.02,
-    marginBottom: height * 0.01,
+    marginBottom: height * 0.005,
   },
   title: {
     fontSize: height * 0.035,
@@ -192,15 +240,13 @@ const styles = StyleSheet.create({
     height: width * 0.1,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 0,
-    borderColor: '#000',
     backgroundColor: 'transparent',
   },
   subtitulo: {
-    fontSize: width * 0.045,
-    color: '#666',
+    fontSize: width * 0.06,
+    color: '#000',
     textAlign: 'center',
-    marginBottom: height * 0.02,
+    marginBottom: height * 0.01,
   },
   card: {
     flexDirection: 'row',
