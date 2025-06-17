@@ -11,7 +11,7 @@ public class ChatGptClient {
     // Endpoint da OpenAI
     private static final String API_URL = "https://api.openai.com/v1/chat/completions";
 
-    private final String apiKey = "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";
+    private final String apiKey = "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";
     private final OkHttpClient httpClient = new OkHttpClient();
     private final ObjectMapper mapper = new ObjectMapper();
 

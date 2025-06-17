@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
+import { Alert } from 'react-native';
 import {
   View, Text, TextInput, FlatList, Image,
   TouchableOpacity, ActivityIndicator, Dimensions, Modal, Pressable, StyleSheet
 } from 'react-native';
 import { Ionicons, FontAwesome } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { listarPets } from '../api/api';
+import { desfavoritarPet , listarFavoritosDoUsuario} from '../api/api';
 import { LinearGradient } from 'expo-linear-gradient';
 import Footer from '../components/Footer';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 const { width, height } = Dimensions.get('window');
 const SEX_FILTERS = ['todos', 'M', 'F'];
@@ -16,23 +19,43 @@ const cardWidth = (width - cardSpacing * 3) / 2;
 const cardHeight = height * 0.28;
 
 
-const PetCard = ({ id, nome, sexo, especie, idade, raca, onPressFavorito, favorito, onPress }) => {
+const PetCard = ({ id, nome, sexo, especie, idadeAno, idadeMes, raca, onPressFavorito, favorito, onPress }) => {
   const imageSource = especie?.toLowerCase().includes('cachorro')
-    ? require('../../assets/dog.jpg') : require('../../assets/cat.jpg');
+    ? require('../../assets/dog.jpg')
+    : require('../../assets/cat.jpg');
+
+  const formatarIdade = (anos, meses) => {
+    if (anos > 1 && meses === 0) return `${anos} anos`;
+    if (anos === 1 && meses === 0) return `1 ano`;
+    if (anos > 0 && meses > 0) {
+      const anoTexto = `${anos} ano${anos > 1 ? 's' : ''}`;
+      const mesTexto = `${meses} mês${meses > 1 ? 'es' : ''}`;
+      return `${anoTexto} e ${mesTexto}`;
+    }
+    if (anos === 0 && meses > 0) return `${meses} mês${meses > 1 ? 'es' : ''}`;
+    return `${anos} anos ${meses} meses`;
+  };
+
+  const formatarRaca = (raca) => {
+    if (!raca) return '';
+    return raca[0].toUpperCase() + raca.slice(1).toLowerCase();
+  };
 
   return (
     <TouchableOpacity style={styles.card} onPress={onPress}>
       <Image source={imageSource} style={styles.image} />
       <LinearGradient 
-      colors={['transparent', 'rgba(0,0,0,0.9)']} 
-      style={styles.shadow} 
+        colors={['transparent', 'rgba(0,0,0,0.9)']} 
+        style={styles.shadow} 
       />
       <View style={styles.petDescription}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <Text style={styles.name}>{nome}</Text>
           <FontAwesome name={sexo === 'M' ? 'mars' : 'venus'} size={24} color="white" style={{ marginLeft: 8 }} />
         </View>
-        <Text style={styles.info}>{idade} anos, {raca[0].toUpperCase() + raca.slice(1).toLowerCase()}</Text>
+        <Text style={styles.info}>
+          {formatarIdade(idadeAno, idadeMes)}, {formatarRaca(raca)}
+        </Text>
       </View>
       <TouchableOpacity style={styles.favIcon} onPress={onPressFavorito}>
         <FontAwesome name={'heart'} size={height * 0.02} color={'red'} />
@@ -40,6 +63,7 @@ const PetCard = ({ id, nome, sexo, especie, idade, raca, onPressFavorito, favori
     </TouchableOpacity>
   );
 };
+
 
 const FilterModal = ({ visible, onClose, onSelect }) => (
   <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
@@ -70,18 +94,54 @@ export default function FavoritoScreen() {
   const fetchPets = async () => {
     setLoading(true);
     try {
-      const res = await listarPets();
-      setData(res);
+      const idUsuario = await AsyncStorage.getItem('userId');
+      if (!idUsuario) return;
+  
+      const favoritos = await listarFavoritosDoUsuario(Number(idUsuario));
+      const petsFavoritos = favoritos.map(fav => fav.pet); // pega apenas os objetos pet
+      setData(petsFavoritos);
+  
+      // marca visualmente como favoritos
+      const favoritosMap = {};
+      favoritos.forEach(fav => { favoritosMap[fav.pet.id] = true; });
+      setFavoritos(favoritosMap);
+  
     } catch (e) {
-      console.error('Erro ao buscar pets:', e);
+      console.error('Erro ao buscar favoritos:', e);
     } finally {
       setLoading(false);
     }
   };
+  
 
-  const toggleFavorito = (id) => {
-    setFavoritos(prev => ({ ...prev, [id]: !prev[id] }));
+  const toggleFavorito = async (idPet) => {
+    Alert.alert(
+      'Remover dos favoritos',
+      'Tem certeza que deseja desfavoritar este pet?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Sim', style: 'destructive', onPress: async () => {
+            try {
+              const idUsuario = await AsyncStorage.getItem('userId');
+              if (!idUsuario) return;
+  
+              await desfavoritarPet(Number(idUsuario), idPet);
+              setData(prev => prev.filter(p => p.id !== idPet));
+              const novos = { ...favoritos };
+              delete novos[idPet];
+              setFavoritos(novos);
+            } catch (e) {
+              console.error('Erro ao desfavoritar:', e);
+            }
+          }
+        }
+      ]
+    );
   };
+  
+  
+  
 
   const filtered = data.filter(p => {
     const termo = searchTerm.toLowerCase();
