@@ -11,6 +11,40 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { buscarPet } from '../api/api';
+import RNHTMLtoPDF from 'react-native-html-to-pdf';
+import * as Sharing from 'expo-sharing';
+import * as Print from 'expo-print';
+
+const gerarPDF = async () => {
+  try {
+    const dataAtual = new Date().toLocaleDateString('pt-BR');
+    const registrosFiltrados = registros
+      .filter((item) => filtroAtivo === 'Todos' || item.titulo === filtroAtivo)
+      .map((item) => `
+        <div style="margin-bottom: 12px;">
+          <strong>${item.titulo}</strong> (${item.data})<br/>
+          <span>${item.descricao}</span>
+        </div>
+      `).join('');
+
+    const htmlContent = `
+      <div style="font-family: Arial, sans-serif; padding: 24px;">
+        <h1 style="text-align:center;">Relatório de Acompanhamento</h1>
+        <h2>${nomePet}</h2>
+        <p><strong>Data de emissão:</strong> ${dataAtual}</p>
+        <hr/>
+        <div>${registrosFiltrados}</div>
+      </div>
+    `;
+
+    const { uri } = await Print.printToFileAsync({ html: htmlContent });
+    await Sharing.shareAsync(uri);
+  } catch (err) {
+    console.error('❌ Erro ao gerar PDF:', err);
+    Alert.alert('Erro ao gerar PDF', err.message || 'Erro desconhecido');
+  }
+};
+
 
 const { width, height } = Dimensions.get('window');
 
@@ -35,11 +69,6 @@ export default function Acompanhamento() {
             { titulo: "Visita", data: "05/12/2024", cor: "#EA4CC0", descricao: "Pet estava animado e brincando bastante." },
             { titulo: "Saúde", data: "01/12/2024", cor: "#3AD27E", descricao: "Consulta de rotina feita, sem anormalidades." },
             { titulo: "Visita", data: "28/11/2024", cor: "#EA4CC0", descricao: "Pet um pouco tímido, mas saudável." },
-            { titulo: "Visita", data: "28/11/2024", cor: "#EA4CC0", descricao: "Pet um pouco tímido, mas saudável." },
-            { titulo: "Visita", data: "28/11/2024", cor: "#EA4CC0", descricao: "Pet um pouco tímido, mas saudável." },
-
-            { titulo: "Visita", data: "28/11/2024", cor: "#EA4CC0", descricao: "Pet um pouco tímido, mas saudável." },
-
           ]);
         }
       } catch (error) {
@@ -51,17 +80,45 @@ export default function Acompanhamento() {
     carregar();
   }, [id]);
 
+  const gerarPDF = async () => {
+    try {
+      const dataAtual = new Date().toLocaleDateString('pt-BR');
+      const registrosFiltrados = registros
+        .filter((item) => filtroAtivo === 'Todos' || item.titulo === filtroAtivo)
+        .map((item) => `
+          <div style="margin-bottom: 12px;">
+            <strong>${item.titulo}</strong> (${item.data})<br/>
+            <span>${item.descricao}</span>
+          </div>
+        `).join('');
+  
+      const htmlContent = `
+        <div style="font-family: Arial, sans-serif; padding: 24px;">
+          <h1 style="text-align:center;">Relatório de Acompanhamento</h1>
+          <h2>${nomePet}</h2>
+          <p><strong>Data de emissão:</strong> ${dataAtual}</p>
+          <hr/>
+          <div>${registrosFiltrados}</div>
+        </div>
+      `;
+  
+      const { uri } = await Print.printToFileAsync({ html: htmlContent });
+      await Sharing.shareAsync(uri);
+    } catch (err) {
+      console.error('❌ Erro ao gerar PDF:', err);
+      Alert.alert('Erro ao gerar PDF', err.message || 'Erro desconhecido');
+    }
+  };
+
   return (
     <View style={styles.container}>
-      {/* Cabeçalho */}
       <View style={styles.headerContainer}>
         <TouchableOpacity style={styles.voltar} onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
-        <Text style={styles.title}>Acompanhamento{'\n'}{nomePet}</Text>
+        <Text style={styles.title}>Acompanhamefnto{'\n'}{nomePet}</Text>
       </View>
 
-      {/* Subtítulo e filtro */}
       <View style={styles.filtroContainer}>
         <Text style={styles.subtitulo}>Eventos Registrados:</Text>
         <View style={styles.filtroBotoes}>
@@ -86,7 +143,6 @@ export default function Acompanhamento() {
         </View>
       </View>
 
-      {/* Card com registros */}
       <View style={styles.card}>
         <ScrollView
           style={styles.cardScroll}
@@ -111,7 +167,6 @@ export default function Acompanhamento() {
         </ScrollView>
       </View>
 
-      {/* Botões inferiores */}
       <TouchableOpacity
         style={styles.botao}
         onPress={() => Alert.alert('Ir para Visitas', 'Você será redirecionado para a tela de visitas.')}
@@ -121,7 +176,7 @@ export default function Acompanhamento() {
 
       <TouchableOpacity
         style={styles.botaoCinza}
-        onPress={() => Alert.alert('Emitir Relatório', 'Você será redirecionado para a tela de emissão de relatório.')}
+        onPress={gerarPDF}
       >
         <Text style={styles.botaoTextoBranco}>Emitir relatório</Text>
       </TouchableOpacity>
@@ -168,7 +223,7 @@ const styles = StyleSheet.create({
     fontSize: width * 0.065,
     fontWeight: 'bold',
     textAlign: 'center',
-    maxWidth: width * 0.7, // limita a largura para evitar overflow
+    maxWidth: width * 0.7,
     lineHeight: width * 0.07,
     flexWrap: 'wrap',
   },
@@ -202,7 +257,6 @@ const styles = StyleSheet.create({
     color: '#333',
     fontWeight: 'bold',
   },
-  
   card: {
     backgroundColor: '#F8F8F8',
     borderRadius: height * 0.015,
@@ -245,7 +299,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: width * 0.04,
     flex: 1,
-    marginLeft:height * 0.00,
+    marginLeft: height * 0.00,
   },
   itemData: {
     fontSize: width * 0.03,
