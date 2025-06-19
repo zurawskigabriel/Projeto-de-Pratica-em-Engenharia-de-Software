@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
+import {
+  View, Text, TextInput, StyleSheet, ScrollView,
+  TouchableOpacity, Image, Alert
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
@@ -22,183 +25,144 @@ export default function CadastrarPetScreen() {
   const router = useRouter();
 
   const selecionarImagem = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
+    const res = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
-      quality: 1,
+      quality: 0.8,
     });
-
-    if (!result.canceled) {
-      setImagem(result.assets[0].uri);
-    }
+    if (!res.canceled) setImagem(res.assets[0].uri);
   };
 
   const handleFinalizar = async () => {
-    if (!nome || !raca || !especie || !porte || !peso || !sexo || !bio) {
-      Alert.alert('Erro', 'Preencha todos os campos obrigatórios.');
-      return;
+    if (!nome||!raca||!especie||!porte||!peso||!sexo||!bio) {
+      return Alert.alert('Erro','Preencha todos os campos obrigatórios');
     }
-
     try {
       const userIdStr = await AsyncStorage.getItem('userId');
-      const userId = userIdStr ? parseInt(userIdStr, 10) : null;
+      const userId = userIdStr ? parseInt(userIdStr,10) : null;
+      if (!userId) return Alert.alert('Erro','Usuário não identificado');
 
-      if (!userId) {
-        Alert.alert('Erro', 'Não foi possível identificar o usuário logado.');
-        return;
-      }
-
-      const base64 = imagem
-        ? await FileSystem.readAsStringAsync(imagem, { encoding: FileSystem.EncodingType.Base64 })
+      const fotos = imagem
+        ? await FileSystem.readAsStringAsync(imagem,{ encoding: FileSystem.EncodingType.Base64 })
         : null;
 
-      const petDTO = {
-        idUsuario: userId,
-        nome,
-        especie,
-        raca,
-        idadeAno,
-        idadeMes,
-        porte,
-        peso: parseFloat(peso),
-        sexo,
-        bio,
-        fotos: base64,
-      };
+      const petDTO = { idUsuario:userId,nome,especie,raca,idadeAno,idadeMes,porte,peso:parseFloat(peso),sexo,bio,fotos };
+      await criarPet(petDTO);
 
-      const resposta = await criarPet(petDTO);
-      console.log("Pet criado:", resposta);
-      Alert.alert('Sucesso', 'Pet cadastrado com sucesso!', [
-        { text: 'OK', onPress: () => router.replace('/MeusPets') },
+      Alert.alert('Sucesso','Pet cadastrado!',[
+        { text:'OK', onPress:()=>router.replace('/MeusPets') }
       ]);
-    } catch (e: any) {
-      Alert.alert('Erro ao cadastrar pet', e.message || 'Erro desconhecido.');
+    } catch(e:any) {
+      Alert.alert('Erro','Erro ao cadastrar pet');
     }
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.scrollContent}>
+    <ScrollView style={styles.scroll} contentContainerStyle={{paddingBottom:60}}>
       <View style={styles.container}>
-        <View style={styles.headerContainer}>
-          <TouchableOpacity style={styles.voltar} onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color="black" />
-          </TouchableOpacity>
-          <Text style={styles.title}>Cadastro de novo Pet</Text>
-        </View>
 
-        <Text style={styles.label}>Nome</Text>
-        <TextInput style={styles.input} value={nome} onChangeText={setNome} placeholderTextColor="#aaa" />
+        {/* Dados básicos */}
+        <View style={styles.sectionCard}>
 
-        <Text style={styles.label}>Raça</Text>
-        <TextInput style={styles.input} value={raca} onChangeText={setRaca} placeholderTextColor="#aaa" />
+          {/* Header */}
+          <View style={styles.header}>
+            <TouchableOpacity onPress={()=>router.back()} style={styles.backBtn} activeOpacity={0.7}>
+              <Ionicons name="arrow-back" size={24} color="#333"/>
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>Cadastro de Pet</Text>
+          </View>
+          <Text style={styles.label}>Nome</Text>
+          <TextInput style={styles.input} value={nome} onChangeText={setNome} placeholder="Nome" placeholderTextColor="#aaa"/>
 
-        <Text style={styles.label}>Espécie</Text>
-        <View style={styles.pickerContainer}>
-          <TouchableOpacity
-            style={[styles.pickerOption, especie === 'Gato' && styles.pickerOptionSelected]}
-            onPress={() => setEspecie('Gato')}
-          >
-            <Text style={styles.pickerOptionText}>Gato</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.pickerOption, especie === 'Cachorro' && styles.pickerOptionSelected]}
-            onPress={() => setEspecie('Cachorro')}
-          >
-            <Text style={styles.pickerOptionText}>Cachorro</Text>
-          </TouchableOpacity>
-        </View>
+          <Text style={styles.label}>Raça</Text>
+          <TextInput style={styles.input} value={raca} onChangeText={setRaca} placeholder="Raça" placeholderTextColor="#aaa"/>
 
-        <Text style={styles.label}>Idade</Text>
-        <View style={styles.idadeContainer}>
-          <View style={styles.idadeBox}>
-            <Text style={styles.idadeTitulo}>Anos</Text>
-            <View style={styles.controleIdade}>
-              <TouchableOpacity onPress={() => setIdadeAno(Math.max(0, idadeAno - 1))}>
-                <Ionicons name="remove-circle-outline" size={24} color="black" />
+          <Text style={styles.label}>Peso (kg)</Text>
+          <TextInput style={styles.input} value={peso} onChangeText={setPeso} placeholder="Peso" keyboardType="decimal-pad" placeholderTextColor="#aaa"/>
+
+          <Text style={styles.label}>Espécie</Text>
+          <View style={styles.row}>
+            {['Gato','Cachorro'].map(o=>(
+              <TouchableOpacity
+                key={o}
+                style={[styles.pickerOption, especie===o && styles.pickerOptionSelected]}
+                onPress={()=>setEspecie(o)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.pickerText}>{o}</Text>
               </TouchableOpacity>
-              <Text style={styles.idadeValor}>{idadeAno}</Text>
-              <TouchableOpacity onPress={() => setIdadeAno(idadeAno + 1)}>
-                <Ionicons name="add-circle-outline" size={24} color="black" />
-              </TouchableOpacity>
-            </View>
+            ))}
           </View>
 
-          <View style={styles.idadeBox}>
-            <Text style={styles.idadeTitulo}>Meses</Text>
-            <View style={styles.controleIdade}>
-              <TouchableOpacity onPress={() => setIdadeMes(Math.max(0, idadeMes - 1))}>
-                <Ionicons name="remove-circle-outline" size={24} color="black" />
+          <Text style={styles.label}>Sexo</Text>
+          <View style={styles.row}>
+            {['M','F'].map(s=>(
+              <TouchableOpacity
+                key={s}
+                style={[styles.pickerOption, sexo===s && styles.pickerOptionSelected]}
+                onPress={()=>setSexo(s)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.pickerText}>{s==='M'?'Macho':'Fêmea'}</Text>
               </TouchableOpacity>
-              <Text style={styles.idadeValor}>{idadeMes}</Text>
-              <TouchableOpacity onPress={() => setIdadeMes(Math.min(11, idadeMes + 1))}>
-                <Ionicons name="add-circle-outline" size={24} color="black" />
-              </TouchableOpacity>
-            </View>
+            ))}
           </View>
         </View>
 
-        <Text style={styles.label}>Porte</Text>
-        <View style={styles.pickerContainer}>
-          <TouchableOpacity
-            style={[styles.pickerOption, porte === 'PEQUENO' && styles.pickerOptionSelected]}
-            onPress={() => setPorte('PEQUENO')}
-          >
-            <Text style={styles.pickerOptionText}>Pequeno</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.pickerOption, porte === 'MÉDIO' && styles.pickerOptionSelected]}
-            onPress={() => setPorte('MÉDIO')}
-          >
-            <Text style={styles.pickerOptionText}>Médio</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.pickerOption, porte === 'GRANDE' && styles.pickerOptionSelected]}
-            onPress={() => setPorte('GRANDE')}
-          >
-            <Text style={styles.pickerOptionText}>Grande</Text>
-          </TouchableOpacity>
+        {/* Idade */}
+        <View style={styles.sectionCard}>
+          <Text style={styles.label}>Idade</Text>
+          <View style={styles.row}>
+            {['Anos','Meses'].map((lbl,i)=>{
+              const val = i===0?idadeAno:idadeMes;
+              const setVal = i===0?setIdadeAno:setIdadeMes;
+              const max = i===1?11:999;
+              return (
+                <View key={lbl} style={styles.ageBox}>
+                  <Text style={styles.ageLabel}>{lbl}</Text>
+                  <View style={styles.ageControl}>
+                    <TouchableOpacity onPress={()=>setVal(Math.max(0,val-1))} activeOpacity={0.7}>
+                      <Ionicons name="remove-circle-outline" size={28} color="#2AA5FF"/>
+                    </TouchableOpacity>
+                    <TextInput
+                      style={styles.ageInput}
+                      value={val.toString()}
+                      keyboardType="numeric"
+                      onChangeText={text=>{
+                        const num = parseInt(text.replace(/\D/g,''),10);
+                        setVal(isNaN(num)?0:Math.min(num,max));
+                      }}
+                    />
+                    <TouchableOpacity onPress={()=>setVal(Math.min(max,val+1))} activeOpacity={0.7}>
+                      <Ionicons name="add-circle-outline" size={28} color="#2AA5FF"/>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              );
+            })}
+          </View>
         </View>
 
-        <Text style={styles.label}>Peso (kg)</Text>
-        <TextInput style={styles.input} value={peso} onChangeText={setPeso} keyboardType="decimal-pad" placeholderTextColor="#aaa" />
-
-        <Text style={styles.label}>Sexo</Text>
-        <View style={styles.pickerContainer}>
-          <TouchableOpacity
-            style={[styles.pickerOption, sexo === 'M' && styles.pickerOptionSelected]}
-            onPress={() => setSexo('M')}
-          >
-            <Text style={styles.pickerOptionText}>Macho</Text>
+        {/* Bio + Foto */}
+        <View style={styles.sectionCard}>
+          <Text style={styles.label}>Bio / Informações</Text>
+          <TextInput
+            style={[styles.input, styles.bioInput]}
+            value={bio}
+            onChangeText={setBio}
+            placeholder="Conte um pouco sobre o pet..."
+            placeholderTextColor="#aaa"
+            multiline
+          />
+          <TouchableOpacity style={styles.imageBtn} onPress={selecionarImagem} activeOpacity={0.7}>
+            <Text style={styles.imageBtnText}>{imagem ? 'Trocar foto' : 'Adicionar foto'}</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.pickerOption, sexo === 'F' && styles.pickerOptionSelected]}
-            onPress={() => setSexo('F')}
-          >
-            <Text style={styles.pickerOptionText}>Fêmea</Text>
-          </TouchableOpacity>
+          {imagem && <Image source={{uri:imagem}} style={styles.preview}/>}
         </View>
 
-        <Text style={styles.label}>Bio / Informações adicionais</Text>
-        <TextInput
-          style={[styles.input, styles.inputBio]}
-          value={bio}
-          onChangeText={setBio}
-          multiline
-          placeholderTextColor="#aaa"
-        />
-
-        <TouchableOpacity style={styles.botaoImagem} onPress={selecionarImagem}>
-          <Text style={styles.botaoTexto}>
-            {imagem ? 'Trocar imagem' : 'Adicionar Foto'}
-          </Text>
-        </TouchableOpacity>
-
-        {imagem && (
-          <Image source={{ uri: imagem }} style={styles.preview} />
-        )}
-
-        <TouchableOpacity style={styles.botaoFinalizar} onPress={handleFinalizar}>
-          <Text style={styles.botaoTextoBranco}>Finalizar</Text>
+        {/* Botão finalizar */}
+        <TouchableOpacity style={styles.saveBtn} onPress={handleFinalizar} activeOpacity={0.8}>
+          <Text style={styles.saveBtnText}>Finalizar</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -206,136 +170,97 @@ export default function CadastrarPetScreen() {
 }
 
 const styles = StyleSheet.create({
-  scrollContent: {
-    paddingBottom: 60,
+  scroll: { backgroundColor:'#F9F9F9' },
+  container: { padding:16, paddingTop:48 },
+  header: { flexDirection:'row', alignItems:'center', justifyContent:'center', marginBottom:24 },
+  backBtn: { position:'absolute', left:0 },
+  headerTitle: { fontSize:24, fontWeight:'bold', color:'#333' },
+
+  sectionCard: {
+    backgroundColor:'#fff',
+    marginVertical:8,
+    padding:16,
+    borderRadius:12,
+    shadowColor:'#000',
+    shadowOffset:{width:0,height:2},
+    shadowOpacity:0.05,
+    shadowRadius:4,
+    elevation:2
   },
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-    padding: 24,
-    paddingTop: 60,
-  },
-  headerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 24,
-  },
-  voltar: {
-    position: 'absolute',
-    left: 0,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '500',
-    marginBottom: 4,
-    marginTop: 8,
-    color: '#333',
-  },
+  label: { fontSize:14, fontWeight:'600', color:'#333', marginBottom:4 },
   input: {
-    width: '100%',
-    backgroundColor: '#F6F6F6',
-    borderRadius: 10,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    marginBottom: 12,
-    fontSize: 16,
-    borderColor: 'rgba(0, 0, 0, 0.2)',
-    borderWidth: 1,
+    backgroundColor:'#F6F6F6',
+    borderRadius:8,
+    borderWidth:1,
+    borderColor:'#DDD',
+    padding:12,
+    fontSize:16,
+    marginBottom:12
   },
-  inputBio: {
-    height: 100,
-    textAlignVertical: 'top',
-  },
-  pickerContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 12,
-  },
+  row: { flexDirection:'row', gap:8, marginBottom:12 },
+
   pickerOption: {
-    flex: 1,
-    backgroundColor: '#F6F6F6',
-    paddingVertical: 14,
-    marginHorizontal: 4,
-    borderRadius: 10,
-    alignItems: 'center',
-    borderColor: 'rgba(0, 0, 0, 0.2)',
-    borderWidth: 1,
+    flex:1,
+    padding:12,
+    borderRadius:8,
+    borderWidth:1,
+    borderColor:'#DDD',
+    backgroundColor:'#F6F6F6',
+    alignItems:'center'
   },
   pickerOptionSelected: {
-    backgroundColor: '#D0E8FF',
-    borderColor: '#007AFF',
+    backgroundColor:'#B6E1FA',
+    borderColor:'#2AA5FF'
   },
-  pickerOptionText: {
-    fontSize: 16,
+  pickerText: { fontSize:16, fontWeight:'500', color:'#333' },
+
+  ageBox: {
+    flex:1,
+    alignItems:'center',
+    padding:12,
+    borderRadius:8,
+    backgroundColor:'#F6F6F6',
+    borderWidth:1,
+    borderColor:'#DDD'
   },
-  idadeContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 12,
+  ageLabel: { fontSize:14, fontWeight:'600', color:'#333', marginBottom:4 },
+  ageControl: { flexDirection:'row', alignItems:'center' },
+  ageInput: {
+    width:48,
+    textAlign:'center',
+    fontSize:16,
+    marginHorizontal:8,
+    borderBottomWidth:1,
+    borderColor:'#CCC',
+    paddingVertical:0,
+    color:'#333'
   },
-  idadeBox: {
-    flex: 1,
-    alignItems: 'center',
-    marginHorizontal: 4,
-    paddingVertical: 12,
-    backgroundColor: '#F6F6F6',
-    borderRadius: 10,
-    borderColor: 'rgba(0, 0, 0, 0.2)',
-    borderWidth: 1,
+
+  bioInput: { height:100, textAlignVertical:'top' },
+  imageBtn: {
+    backgroundColor:'#E5F3FF',
+    borderWidth:1,
+    borderColor:'#ADD8E6',
+    borderRadius:8,
+    paddingVertical:12,
+    alignItems:'center',
+    marginTop:8,
+    marginBottom:8
   },
-  idadeTitulo: {
-    fontSize: 14,
-    fontWeight: '500',
-    marginBottom: 4,
+  imageBtnText: { fontSize:16, fontWeight:'600', color:'#333' },
+  preview: { width:'100%', height:180, borderRadius:12, marginTop:8 },
+
+  saveBtn: {
+    backgroundColor:'#2AA5FF',
+    paddingVertical:16,
+    borderRadius:50,
+    alignItems:'center',
+    marginTop:16,
+    shadowColor:'#2AA5FF',
+    shadowOffset:{width:0,height:4},
+    shadowOpacity:0.2,
+    shadowRadius:6,
+    elevation:4
   },
-  controleIdade: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    width: '70%',
-  },
-  idadeValor: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginHorizontal: 10,
-  },
-  botaoImagem: {
-    backgroundColor: '#EAEAEA',
-    paddingVertical: 12,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginBottom: 16,
-    borderColor: 'rgba(0, 0, 0, 0.2)',
-    borderWidth: 1,
-  },
-  botaoFinalizar: {
-    backgroundColor: '#7FCAD2',
-    paddingVertical: 16,
-    borderRadius: 50,
-    alignItems: 'center',
-    marginTop: 8,
-    borderColor: 'rgba(0, 0, 0, 0.2)',
-    borderWidth: 1,
-  },
-  botaoTexto: {
-    fontSize: 16,
-    fontWeight: 'bold'
-  },
-  botaoTextoBranco: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#FFF'
-  },
-  preview: {
-    width: '100%',
-    height: 180,
-    borderRadius: 10,
-    marginBottom: 16,
-  },
+  saveBtnText: { color:'#FFF', fontSize:16, fontWeight:'600' },
 });
