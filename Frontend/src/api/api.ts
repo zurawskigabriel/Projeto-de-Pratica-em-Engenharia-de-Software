@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const BASE_URL = "http://192.168.0.197:8080/api";
+//const BASE_URL = "http://192.168.0.197:8080/api";
+const BASE_URL = "http://192.168.0.48:8080/api";
 const BASE_URL_GPT = "http://192.168.0.197:9000/api";
 
 export async function buscarSolicitacoesUsuario(idUsuario: number) {
@@ -19,7 +20,6 @@ export async function buscarSolicitacoesUsuario(idUsuario: number) {
   
   return JSON.parse(texto); // deve retornar uma lista de solicitações
 }
-
 
 export async function buscarSituacaoPet(idPet: number) {
   const headers = await getAuthHeaders();
@@ -69,6 +69,7 @@ export async function buscarPontuacaoMatch(pets) {
     score: Math.random() * 100, // score aleatório entre 0 e 100
   }));
 }
+
 export async function buscarPerfilMatchUsuario(userId) {
   // Simula perfil preenchido para alguns usuários
   if (userId === 1) {
@@ -367,4 +368,71 @@ export async function desfavoritarPet(idUsuario: number, idPet: number) {
 
   return true;
 }
+
+// ---------------- PERFIL DE MATCH ----------------
+
+/**
+ * Busca o perfil de match de um usuário.
+ * Retorna o perfil ou null se não existir.
+ */
+export async function buscarPerfilMatch(idUsuario: number) {
+  const headers = await getAuthHeaders();
+  const response = await fetch(`${BASE_URL}/perfil-match/usuario/${idUsuario}`, {
+    method: 'GET',
+    headers,
+  });
+
+  if (response.status === 404) {
+    return null; // Perfil não encontrado, o que é um estado válido
+  }
+
+  if (!response.ok) {
+    const erro = await response.text();
+    throw new Error(`Erro ao buscar perfil de match: ${erro}`);
+  }
+
+  return await response.json();
+}
+
+/**
+ * Salva ou atualiza o perfil de match de um usuário.
+ */
+export async function salvarPerfilMatch(idUsuario: number, dadosPerfil: any) {
+  const headers = await getAuthHeaders();
+  const response = await fetch(`${BASE_URL}/perfil-match/usuario/${idUsuario}`, {
+    method: 'PUT',
+    headers,
+    body: JSON.stringify(dadosPerfil),
+  });
+
+  if (!response.ok) {
+    const erro = await response.text();
+    throw new Error(`Erro ao salvar o perfil de match: ${erro}`);
+  }
+
+  return await response.json();
+}
+
+/**
+ * Exclui o perfil de match de um usuário.
+ */
+export async function excluirPerfilMatch(idUsuario: number) {
+  const headers = await getAuthHeaders();
+  const response = await fetch(`${BASE_URL}/perfil-match/usuario/${idUsuario}`, {
+    method: 'DELETE',
+    headers,
+  });
+
+  if (!response.ok && response.status !== 404) {
+    const erro = await response.text();
+    throw new Error(`Erro ao excluir o perfil de match: ${erro}`);
+  }
+
+  return true; // Sucesso na exclusão ou perfil já não existia
+}
+
+
+
+
+// ... (resto do arquivo)
 

@@ -12,7 +12,7 @@ import {
   favoritarPet,
   desfavoritarPet,
   buscarPontuacaoMatch,
-  buscarPerfilMatchUsuario
+  buscarPerfilMatch, // Corrigido: usando a API real
 } from '../api/api';
 import { LinearGradient } from 'expo-linear-gradient';
 import Footer from '../components/Footer';
@@ -24,6 +24,7 @@ const cardSpacing = width * 0.02;
 const cardWidth = (width - cardSpacing * 3) / 2;
 const cardHeight = height * 0.28;
 
+// Componente PetCard (sem alterações)
 const PetCard = ({ id, nome, sexo, especie, idadeAno, idadeMes, raca, score, onPressFavorito, favorito, onPress }) => {
   const imageSource = especie?.toLowerCase().includes('cachorro')
     ? require('../../assets/dog.jpg')
@@ -40,13 +41,9 @@ const PetCard = ({ id, nome, sexo, especie, idadeAno, idadeMes, raca, score, onP
   };
 
   const formatarIdade = (anos, meses) => {
-    //se + de 1 ano e 0 meses -> 2 anos
     if (anos > 1 && meses === 0) return `${anos} anos`;
-    //se 1 ano e 0 meses -> 1 ano
     if (anos === 1 && meses === 0) return `1 ano`;
-    //se mais de 0 anos e mais de 0 meses ->  
     if (anos > 0 && meses > 0) return `${anos} ano${anos > 1 ? 's' : ''} e ${meses} meses`;
-    //se 0 anos, mas alguns meses, mostra so meses
     if (anos === 0 && meses > 0) return `${meses} meses`;
     return `${anos} anos ${meses} meses`;
   };
@@ -86,8 +83,7 @@ const PetCard = ({ id, nome, sexo, especie, idadeAno, idadeMes, raca, score, onP
 };
 
 
-
-
+// Componente FilterModal (sem alterações)
 const FilterModal = ({ visible, onClose, onSelect }) => (
   <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
     <View style={styles.modalOverlay}>
@@ -122,11 +118,24 @@ export default function FavoritoScreen() {
       setLoading(true);
       const idSalvo = await AsyncStorage.getItem('userId');
       const idUsuario = idSalvo ? parseInt(idSalvo, 10) : null;
-      if (!idUsuario) return;
+      if (!idUsuario) {
+        setLoading(false);
+        return;
+      }
 
       try {
-        const perfilMatch = await buscarPerfilMatchUsuario(1);
-        const perfilPreenchido = perfilMatch && Object.keys(perfilMatch).length > 0;
+        let perfilPreenchido = false;
+        try {
+          const perfilMatch = await buscarPerfilMatch(idUsuario); // CORREÇÃO: Usando a API real com o ID do usuário
+          perfilPreenchido = !!perfilMatch; // Se retornar um objeto, está preenchido
+        } catch (error) {
+          // Se o erro for 404 (Não encontrado), significa que não há perfil, o que é um estado normal
+          if (!error.message.includes("404")) {
+            console.warn("Aviso ao buscar perfil de match:", error.message);
+          }
+          perfilPreenchido = false;
+        }
+
         setPodeOrdenar(perfilPreenchido);
 
         if (!perfilPreenchido) {
@@ -134,41 +143,25 @@ export default function FavoritoScreen() {
             'Criar perfil de match',
             'Você ainda não possui um perfil de match. Deseja criar agora para visualizar a compatibilidade com os pets?',
             [
-              {
-                text: 'Sim',
-                onPress: () => navigation.navigate('PerfilMatch'),
-              },
-              {
-                text: 'Agora não',
-                style: 'cancel',
-              },
+              { text: 'Sim', onPress: () => navigation.navigate('PerfilMatch') },
+              { text: 'Agora não', style: 'cancel' }
             ]
           );
         }
 
-        const favoritosAPI = await listarFavoritosDoUsuario(idUsuario);
+        const [favoritosAPI, todosPets] = await Promise.all([
+          listarFavoritosDoUsuario(idUsuario),
+          listarPets()
+        ]);
+        
         const favMap = {};
         favoritosAPI.forEach(f => { favMap[f.idPet] = true; });
         setFavoritos(favMap);
 
-        const todosPets = await listarPets();
         const pets = todosPets.filter(pet => pet.idUsuario !== idUsuario);
         setListaOriginal(pets);
 
-        if (perfilPreenchido) {
-          const pontuacoes = await buscarPontuacaoMatch(pets);
-          const dataComScore = pets.map(pet => {
-            const encontrado = pontuacoes.find(p => p.id === pet.id);
-            return { ...pet, score: encontrado?.score ?? 0 };
-          }).sort((a, b) => b.score - a.score);
-
-          setData(dataComScore);
-          setOrdenacaoAtiva(true);
-        } else {
-          setData(pets);
-        }
-
-
+        // CORREÇÃO: Bloco de código que estava duplicado foi removido
         if (perfilPreenchido) {
           const pontuacoes = await buscarPontuacaoMatch(pets);
           const dataComScore = pets.map(pet => {
@@ -184,13 +177,16 @@ export default function FavoritoScreen() {
 
       } catch (e) {
         console.error('Erro ao carregar dados:', e);
+        Alert.alert('Erro', 'Não foi possível carregar os dados da página.');
       } finally {
         setLoading(false);
       }
     };
 
-    carregarDados();
-  }, []);
+    const unsubscribe = navigation.addListener('focus', carregarDados);
+    return unsubscribe;
+    
+  }, [navigation]);
 
   const ordenarPorScoreMatch = async () => {
     if (!podeOrdenar) {
@@ -201,7 +197,7 @@ export default function FavoritoScreen() {
           { text: 'Cancelar', style: 'cancel' },
           {
             text: 'Criar agora',
-            onPress: () => navigation.navigate('FiltroDeMatch')
+            onPress: () => navigation.navigate('PerfilMatch') // CORREÇÃO: Nome correto da rota
           }
         ]
       );
@@ -213,24 +209,14 @@ export default function FavoritoScreen() {
         'Match ativo',
         'Você está vendo os pets ordenados por compatibilidade. O que deseja fazer?',
         [
-          {
-            text: 'Desativar ordenação',
-            onPress: () => {
-              setData(listaOriginal);
-              setOrdenacaoAtiva(false);
-            }
-          },
-          {
-            text: 'Editar perfil de match',
-            onPress: () => navigation.navigate('PerfilMatch')
-          },
+          { text: 'Desativar ordenação', onPress: () => { setData(listaOriginal); setOrdenacaoAtiva(false); } },
+          { text: 'Editar perfil de match', onPress: () => navigation.navigate('PerfilMatch') },
           { text: 'Cancelar', style: 'cancel' }
         ]
       );
       return;
     }
 
-    // Se pode ordenar, mas não está ativo: perguntar se ativa ou edita
     Alert.alert(
       'Deseja usar o match?',
       'Você já possui um perfil de match. Deseja ativar a ordenação por compatibilidade ou editar seu perfil?',
@@ -253,17 +239,11 @@ export default function FavoritoScreen() {
             }
           }
         },
-        {
-          text: 'Editar perfil de Match',
-          onPress: () => navigation.navigate('PerfilMatch')
-        },
+        { text: 'Editar perfil de Match', onPress: () => navigation.navigate('PerfilMatch') },
         { text: 'Cancelar', style: 'cancel' }
       ]
     );
   };
-
-
-
 
   const toggleFavorito = async (id) => {
     const idSalvo = await AsyncStorage.getItem('userId');
@@ -324,9 +304,7 @@ export default function FavoritoScreen() {
           <Ionicons
             name="document-text-outline"
             size={height * 0.04}
-            color={
-              !podeOrdenar ? 'gray' : ordenacaoAtiva ? 'black' : 'gray'
-            }
+            color={!podeOrdenar ? '#ccc' : ordenacaoAtiva ? '#7FCAD2' : '#555'}
           />
         </TouchableOpacity>
       </View>
@@ -346,7 +324,7 @@ export default function FavoritoScreen() {
       <FilterModal visible={showFilter} onClose={() => setShowFilter(false)} onSelect={setSelectedFilter} />
 
       {loading ? (
-        <ActivityIndicator style={{ marginTop: 20 }} size="large" color="#999" />
+        <ActivityIndicator style={{ marginTop: 20 }} size="large" color="#7FCAD2" />
       ) : filtered.length > 0 ? (
         <FlatList
           data={filtered}
