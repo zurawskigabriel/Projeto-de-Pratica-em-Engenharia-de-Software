@@ -31,9 +31,9 @@ public class SolicitacaoAdocaoController {
         return ResponseEntity.status(HttpStatus.OK).build(); 
     }
 
-    @GetMapping("/pet/{id}/situacao")
-    public ResponseEntity<List<SolicitacaoAdocaoDTO>> buscarPorIdPet(@PathVariable Long id) {
-        List<SolicitacaoAdocaoDTO> listaSolicitacoes = solicitacaoAdocaoService.buscarPorIdPet(id);
+    @GetMapping("/pet/{idPet}/situacao")
+    public ResponseEntity<List<SolicitacaoAdocaoDTO>> buscarPorIdPet(@PathVariable Long idPet) {
+        List<SolicitacaoAdocaoDTO> listaSolicitacoes = solicitacaoAdocaoService.buscarPorIdPet(idPet);
         if (listaSolicitacoes.size() == 0) {
             return ResponseEntity.notFound().build();
         }
@@ -43,12 +43,12 @@ public class SolicitacaoAdocaoController {
 
     @GetMapping("/adotante/{id}")
     public ResponseEntity<List<SolicitacaoAdocaoDTO>> buscarPorIdAdotante(@PathVariable Long id) {
-        List<SolicitacaoAdocaoDTO> listaSolicitacoes = solicitacaoAdocaoService.buscarPorIdAdotante(id);
-        if (listaSolicitacoes.size() == 0) {
+        List<SolicitacaoAdocaoDTO> lista = solicitacaoAdocaoService.buscarPorIdAdotante(id);
+        if (lista.size() == 0) {
             return ResponseEntity.notFound().build();
         }
 
-        return ResponseEntity.ok(listaSolicitacoes);
+        return ResponseEntity.ok(lista);
     }
 
     @GetMapping("/protetor/{id}")

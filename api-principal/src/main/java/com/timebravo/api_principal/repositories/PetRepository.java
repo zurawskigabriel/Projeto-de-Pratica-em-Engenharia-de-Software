@@ -16,13 +16,13 @@ public interface PetRepository extends JpaRepository<Pet, Long> {
                     "FROM pet p " +
                     "JOIN adocao a ON p.id_pet = a.id_pet " +
                     "LEFT JOIN historico_medico_pet hm ON p.id_pet = hm.id_pet " + 
-                    "WHERE a.status = 'Disponivel' ", 
+                    "WHERE a.status = 'Disponivel' or a.status = 'Disponível' ", 
                     nativeQuery = true)
     List<Pet> findPetsDisponiveis();
 
     @Query(value = "SELECT p.* FROM pet p " +
                 "JOIN adocao a ON p.id_pet = a.id_pet " +
-                "WHERE a.status = 'Disponivel' " +
+                "WHERE a.status = 'Disponivel' or a.status = 'Disponível' " +
                 "AND (:especie IS NULL OR p.especie ILIKE %:especie%) " + // ILIKE para busca case-insensitive (PostgreSQL/H2)
                 "AND (:raca IS NULL OR p.raca ILIKE %:raca%) " +
                 "AND (:idadeMinima IS NULL OR p.Idade_ano >= :idadeMinima) " +

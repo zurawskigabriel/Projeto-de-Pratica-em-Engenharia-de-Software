@@ -1,11 +1,45 @@
 {
 	"info": {
-		"_postman_id": "38107479-cbcb-4946-956a-4962a5707561",
+		"_postman_id": "0a0b1176-37cf-4fe1-a9d3-e191783c78a4",
 		"name": "MeAdota",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "26511245"
 	},
 	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"joao2@email.com\",\r\n    \"password\": \"senhaSegura123\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/login",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
 		{
 			"name": "Usuários",
 			"item": [
@@ -403,24 +437,15 @@
 			]
 		},
 		{
-			"name": "Adoções",
+			"name": "Perfil de Match",
 			"item": [
 				{
-					"name": "(PROTETOR) Atualizar Status Adoção do Pet",
+					"name": "Retornar Perfil de Match do Usuario",
 					"request": {
-						"method": "PATCH",
+						"method": "GET",
 						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"idAdotante\": 2,\r\n    \"status\": \"Adotado\" // Adotado, Falecido, Disponivel, Perdido \r\n}\r\n",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
 						"url": {
-							"raw": "http://localhost:8080/api/adocoes/:id_pet/status",
+							"raw": "http://localhost:8080/api/perfil-match/usuario/3",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -428,33 +453,22 @@
 							"port": "8080",
 							"path": [
 								"api",
-								"adocoes",
-								":id_pet",
-								"status"
-							],
-							"variable": [
-								{
-									"key": "id_pet",
-									"value": "1"
-								}
+								"perfil-match",
+								"usuario",
+								"3"
 							]
 						}
 					},
 					"response": []
-				}
-			]
-		},
-		{
-			"name": "Auth",
-			"item": [
+				},
 				{
-					"name": "Login",
+					"name": "Criar ou Atualizar Perfil De Match do Usuario",
 					"request": {
-						"method": "POST",
+						"method": "PUT",
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"username\": \"joao2@email.com\",\r\n    \"password\": \"senhaSegura123\"\r\n}",
+							"raw": "{\r\n    \"gato\": true,\r\n    \"cachorro\": true,\r\n    \"macho\": false,\r\n    \"femea\": true,\r\n    \"pequeno\": false,\r\n    \"medio\": true,\r\n    \"grande\": true,\r\n    \"conviveBem\": true,\r\n    \"necessidadesEspeciais\": false,\r\n    \"raca\": \"Poodle, Viralata\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -462,7 +476,7 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:8080/api/login",
+							"raw": "http://localhost:8080/api/perfil-match/usuario/3",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -470,7 +484,31 @@
 							"port": "8080",
 							"path": [
 								"api",
-								"login"
+								"perfil-match",
+								"usuario",
+								"3"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Deletar Perfil de Match",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/perfil-match/usuario/3",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"perfil-match",
+								"usuario",
+								"3"
 							]
 						}
 					},
@@ -601,23 +639,23 @@
 			"name": "Solicitação de Adoção",
 			"item": [
 				{
-					"name": "(ADOTANTE) Listar Solicitação de Adoção do Usuário",
+					"name": "(ADOTANTE) Listar Solicitação de Adoção do Usuário Adotante",
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{url}}/solicitacoes-adocao/protetor/:id",
+							"raw": "{{url}}/solicitacoes-adocao/adotante/:idAdotante",
 							"host": [
 								"{{url}}"
 							],
 							"path": [
 								"solicitacoes-adocao",
-								"protetor",
-								":id"
+								"adotante",
+								":idAdotante"
 							],
 							"variable": [
 								{
-									"key": "id",
+									"key": "idAdotante",
 									"value": "2"
 								}
 							]
@@ -626,25 +664,25 @@
 					"response": []
 				},
 				{
-					"name": "(PET) Listar Situações da Solicitação de Adoção do Pet",
+					"name": "Listar  Solicitações de Adoção do Pet",
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{url}}/solicitacoes-adocao/pet/:id/situacao",
+							"raw": "{{url}}/solicitacoes-adocao/pet/:idPet/situacao",
 							"host": [
 								"{{url}}"
 							],
 							"path": [
 								"solicitacoes-adocao",
 								"pet",
-								":id",
+								":idPet",
 								"situacao"
 							],
 							"variable": [
 								{
-									"key": "id",
-									"value": "2"
+									"key": "idPet",
+									"value": "1"
 								}
 							]
 						}
@@ -658,7 +696,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"idPet\": 1,\r\n    \"idAdotante\": 2\r\n}\r\n",
+							"raw": "{\r\n    \"idPet\": 1,\r\n    \"idAdotante\": 5\r\n}\r\n",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -679,13 +717,13 @@
 					"response": []
 				},
 				{
-					"name": "Atualizar Solicitação de Adoção",
+					"name": "(PROTETOR) Atualizar Solicitação de Adoção",
 					"request": {
 						"method": "PUT",
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"situacao\": \"Aceita\"\r\n}\r\n",
+							"raw": "{\r\n    \"situacao\": \"Recusada\" // Aceita, Recusada, Pendente\r\n}\r\n",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -713,24 +751,80 @@
 					"response": []
 				},
 				{
-					"name": "(PROTETOR) Listar Solicitação de Adoção do Usuário",
+					"name": "(PROTETOR) Listar Solicitações de Adoção do Protetor",
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{url}}/solicitacoes-adocao/adotante/:id",
+							"raw": "{{url}}/solicitacoes-adocao/protetor/:idProtetor",
 							"host": [
 								"{{url}}"
 							],
 							"path": [
 								"solicitacoes-adocao",
-								"adotante",
-								":id"
+								"protetor",
+								":idProtetor"
 							],
 							"variable": [
 								{
-									"key": "id",
-									"value": "2"
+									"key": "idProtetor",
+									"value": "3"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Adoções",
+			"item": [
+				{
+					"name": "(PROTETOR) Atualizar Status Adoção do Pet",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"idPet\": 1,\r\n    \"idProtetor\": 3,\r\n    \"idAdotante\": 1,\r\n    \"status\": \"Indisponivel\" // Adotado, Disponivel, Indisponivel \r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/adocoes/status",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"adocoes",
+								"status"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Status de Adoção do Pet",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/adocoes/:idPet",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"adocoes",
+								":idPet"
+							],
+							"variable": [
+								{
+									"key": "idPet",
+									"value": "1"
 								}
 							]
 						}
@@ -781,7 +875,7 @@
 		"bearer": [
 			{
 				"key": "token",
-				"value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqb2FvMkBlbWFpbC5jb20iLCJ1c2VySWQiOjQsImlhdCI6MTc1MDAzMjY0NCwiZXhwIjoxNzUwMDM2MjQ0fQ.5FXh16dlliuma2qA7NTSvNuVYp96eSJGzhnnZ67S0yg",
+				"value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqb2FvMkBlbWFpbC5jb20iLCJ1c2VySWQiOjYsImlhdCI6MTc1MDM3OTM3NCwiZXhwIjoxNzUwMzgyOTc0fQ.Edp18vbgrVB55Jzm7dqRs3MxKkCt9DvjIOLovQmtgRY",
 				"type": "string"
 			}
 		]
