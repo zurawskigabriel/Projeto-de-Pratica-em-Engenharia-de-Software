@@ -1,311 +1,304 @@
 import React, { useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  TextInput,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Alert,
+  View, Text, TextInput, StyleSheet, ScrollView,
+  TouchableOpacity, Alert, Image, ActivityIndicator
 } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { buscarPet, atualizarPet } from '../api/api';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system';
+import { buscarPet, atualizarPet } from '../api/api';
 
-export default function EditarPet() {
+export default function EditarPetScreen() {
   const router = useRouter();
-  const { id } = useLocalSearchParams();
-  const [userId, setUserId] = useState<number | null>(null);
+  const { id } = useLocalSearchParams<{ id?: string }>();
+  const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({
-    nome: '',
-    idadeAno: 0,
-    idadeMes: 0,
-    raca: '',
-    porte: '',
-    sexo: '',
-    especie: '',
-    peso: '',
-    bio: '',
+    nome: '', raca: '', especie: '', sexo: '',
+    peso: '', bio: '', idadeAno: 0, idadeMes: 0
   });
-  const [carregando, setCarregando] = useState(true);
+  const [imagem, setImagem] = useState<string | null>(null);
 
   useEffect(() => {
-    const carregarPet = async () => {
+    (async () => {
       try {
-        const idSalvo = await AsyncStorage.getItem('userId');
-        setUserId(idSalvo ? parseInt(idSalvo, 10) : null);
-
-        const pet = await buscarPet(parseInt(id));
+        const pet = await buscarPet(Number(id));
         setForm({
-          nome: pet.nome || '',
-          idadeAno: pet.idadeAno || 0,
-          idadeMes: pet.idadeMes || 0,
-          raca: pet.raca || '',
-          porte: pet.porte || '',
-          sexo: pet.sexo || '',
-          especie: pet.especie || '',
-          peso: String(pet.peso || ''),
-          bio: pet.bio || '',
+          nome: pet.nome,
+          raca: pet.raca,
+          especie: pet.especie,
+          sexo: pet.sexo,
+          peso: String(pet.peso),
+          bio: pet.bio,
+          idadeAno: pet.idadeAno,
+          idadeMes: pet.idadeMes
         });
-      } catch (err) {
-        Alert.alert('Erro', 'Não foi possível carregar os dados do pet.');
+        // opcional: load imagem existente...
+      } catch {
+        Alert.alert('Erro', 'Não foi possível carregar dados do pet.');
+        router.back();
       } finally {
-        setCarregando(false);
+        setLoading(false);
       }
-    };
-
-    carregarPet();
+    })();
   }, [id]);
 
-  const handleSalvar = async () => {
-    try {
-      if (!userId) throw new Error("ID do usuário não encontrado.");
+  const selecionarImagem = async () => {
+    const res = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 0.8,
+    });
+    if (!res.canceled) setImagem(res.assets[0].uri);
+  };
 
-      await atualizarPet(parseInt(id), {
-        idUsuario: userId,
-        nome: form.nome,
+  const handleSalvar = async () => {
+    const { nome, raca, especie, sexo, peso, bio } = form;
+    if (!nome || !raca || !especie || !sexo || !peso || !bio) {
+      return Alert.alert('Erro', 'Preencha todos os campos obrigatórios.');
+    }
+    try {
+      const idUsuario = Number(await AsyncStorage.getItem('userId'));
+      const fotos = imagem
+        ? await FileSystem.readAsStringAsync(imagem, { encoding: FileSystem.EncodingType.Base64 })
+        : null;
+      await atualizarPet(Number(id), {
+        ...form,
+        peso: parseFloat(peso),
         idadeAno: form.idadeAno,
         idadeMes: form.idadeMes,
-        raca: form.raca,
-        porte: form.porte,
-        sexo: form.sexo,
-        especie: form.especie,
-        peso: parseFloat(form.peso),
-        bio: form.bio,
-        fotos: null,
+        idUsuario,
+        fotos
       });
-
       Alert.alert('Sucesso', 'Pet atualizado com sucesso!');
       router.back();
-    } catch (error) {
-      Alert.alert('Erro', error.message || 'Erro ao salvar alterações.');
+    } catch (e: any) {
+      Alert.alert('Erro', e.message || 'Falha ao salvar.');
     }
   };
 
-  const handleCancelar = () => {
-    Alert.alert(
-      'Cancelar alterações?',
-      'Você quer cancelar mesmo?',
-      [
-        { text: 'Não', style: 'cancel' },
-        { text: 'Sim', onPress: () => router.back(), style: 'destructive' },
-      ]
+  if (loading) {
+    return (
+      <View style={styles.loading}>
+        <ActivityIndicator size="large" color="#219CD9" />
+      </View>
     );
-  };
+  }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.titulo}>Editar Pet</Text>
+    <ScrollView style={styles.screen} contentContainerStyle={{ paddingBottom: 32 }}>
+      <View style={styles.card}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+            <Ionicons name="arrow-back" size={24} color="#333" />
+          </TouchableOpacity>
+          <Text style={styles.cardTitle}>Editar Pet</Text>
+        </View>
 
-      <View style={styles.inputContainer}>
         <Text style={styles.label}>Nome</Text>
         <TextInput
           style={styles.input}
           value={form.nome}
-          onChangeText={(text) => setForm({ ...form, nome: text })}
-          placeholder="Digite o nome"
+          onChangeText={text => setForm(f => ({ ...f, nome: text }))}
+          placeholder="Nome"
         />
-      </View>
 
-      <View style={styles.inputContainer}>
         <Text style={styles.label}>Raça</Text>
         <TextInput
           style={styles.input}
           value={form.raca}
-          onChangeText={(text) => setForm({ ...form, raca: text })}
-          placeholder="Digite a raça"
+          onChangeText={text => setForm(f => ({ ...f, raca: text }))}
+          placeholder="Raça"
         />
-      </View>
 
-      <Text style={styles.label}>Espécie</Text>
-      <View style={styles.pickerContainer}>
-        <TouchableOpacity
-          style={[styles.pickerOption, form.especie === 'Gato' && styles.pickerOptionSelected]}
-          onPress={() => setForm({ ...form, especie: 'Gato' })}>
-          <Text style={styles.pickerOptionText}>Gato</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.pickerOption, form.especie === 'Cachorro' && styles.pickerOptionSelected]}
-          onPress={() => setForm({ ...form, especie: 'Cachorro' })}>
-          <Text style={styles.pickerOptionText}>Cachorro</Text>
-        </TouchableOpacity>
-      </View>
-
-      <Text style={styles.label}>Idade</Text>
-      <View style={styles.idadeContainer}>
-        <View style={styles.idadeBox}>
-          <Text style={styles.idadeTitulo}>Anos</Text>
-          <View style={styles.controleIdade}>
-            <TouchableOpacity onPress={() => setForm({ ...form, idadeAno: Math.max(0, form.idadeAno - 1) })}>
-              <Ionicons name="remove-circle-outline" size={24} color="black" />
+        <Text style={styles.label}>Espécie</Text>
+        <View style={styles.row}>
+          {['Gato', 'Cachorro'].map(o => (
+            <TouchableOpacity
+              key={o}
+              style={[styles.pickerOption, form.especie === o && styles.pickerSelected]}
+              onPress={() => setForm(f => ({ ...f, especie: o }))}
+            >
+              <Text style={styles.pickerText}>{o}</Text>
             </TouchableOpacity>
-            <Text style={styles.idadeValor}>{form.idadeAno}</Text>
-            <TouchableOpacity onPress={() => setForm({ ...form, idadeAno: form.idadeAno + 1 })}>
-              <Ionicons name="add-circle-outline" size={24} color="black" />
-            </TouchableOpacity>
-          </View>
+          ))}
         </View>
 
-        <View style={styles.idadeBox}>
-          <Text style={styles.idadeTitulo}>Meses</Text>
-          <View style={styles.controleIdade}>
-            <TouchableOpacity onPress={() => setForm({ ...form, idadeMes: Math.max(0, form.idadeMes - 1) })}>
-              <Ionicons name="remove-circle-outline" size={24} color="black" />
+        <Text style={styles.label}>Sexo</Text>
+        <View style={styles.row}>
+          {['Macho', 'Fêmea'].map(o => (
+            <TouchableOpacity
+              key={o}
+              style={[styles.pickerOption, form.sexo === o.charAt(0) && styles.pickerSelected]}
+              onPress={() => setForm(f => ({ ...f, sexo: o.charAt(0) }))}
+            >
+              <Text style={styles.pickerText}>{o}</Text>
             </TouchableOpacity>
-            <Text style={styles.idadeValor}>{form.idadeMes}</Text>
-            <TouchableOpacity onPress={() => setForm({ ...form, idadeMes: Math.min(11, form.idadeMes + 1) })}>
-              <Ionicons name="add-circle-outline" size={24} color="black" />
-            </TouchableOpacity>
-          </View>
+          ))}
         </View>
-      </View>
 
-      {/* Demais campos */}
-
-      <View style={styles.inputContainer}>
         <Text style={styles.label}>Peso (kg)</Text>
         <TextInput
           style={styles.input}
           value={form.peso}
-          onChangeText={(text) => setForm({ ...form, peso: text })}
-          placeholder="Digite o peso"
+          onChangeText={text => setForm(f => ({ ...f, peso: text }))}
           keyboardType="decimal-pad"
+          placeholder="Peso"
         />
       </View>
 
-      <Text style={styles.label}>Sexo</Text>
-      <View style={styles.pickerContainer}>
-        <TouchableOpacity
-          style={[styles.pickerOption, form.sexo === 'M' && styles.pickerOptionSelected]}
-          onPress={() => setForm({ ...form, sexo: 'M' })}>
-          <Text style={styles.pickerOptionText}>Macho</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.pickerOption, form.sexo === 'F' && styles.pickerOptionSelected]}
-          onPress={() => setForm({ ...form, sexo: 'F' })}>
-          <Text style={styles.pickerOptionText}>Fêmea</Text>
-        </TouchableOpacity>
+      <View style={styles.card}>
+        <Text style={styles.label}>Idade</Text>
+        <View style={styles.row}>
+          {['Anos', 'Meses'].map((lbl, i) => {
+            const val = i === 0 ? form.idadeAno : form.idadeMes;
+            const setVal = i === 0
+              ? (v: number) => setForm(f => ({ ...f, idadeAno: v }))
+              : (v: number) => setForm(f => ({ ...f, idadeMes: v }));
+            const max = i === 0 ? 99 : 11;
+            return (
+              <View key={lbl} style={styles.ageBox}>
+                <Text style={styles.ageLabel}>{lbl}</Text>
+                <View style={styles.ageControl}>
+                  <TouchableOpacity onPress={() => setVal(Math.max(0, val - 1))}>
+                    <Ionicons name="remove-circle-outline" size={28} color="#219CD9" />
+                  </TouchableOpacity>
+                  <TextInput
+                    style={styles.ageInput}
+                    keyboardType="numeric"
+                    value={String(val)}
+                    onChangeText={t => {
+                      const n = parseInt(t.replace(/\D/g, ''), 10);
+                      setVal(isNaN(n) ? 0 : Math.min(n, max));
+                    }}
+                  />
+                  <TouchableOpacity onPress={() => setVal(Math.min(max, val + 1))}>
+                    <Ionicons name="add-circle-outline" size={28} color="#219CD9" />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            );
+          })}
+        </View>
       </View>
 
-      <View style={styles.inputContainer}>
-        <Text style={styles.label}>Bio</Text>
+      <View style={styles.card}>
+        <Text style={styles.label}>Bio / Informações</Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input, styles.bioInput]}
           value={form.bio}
-          onChangeText={(text) => setForm({ ...form, bio: text })}
-          placeholder="Digite a bio"
+          onChangeText={text => setForm(f => ({ ...f, bio: text }))}
+          placeholder="Sobre o pet..."
           multiline
         />
+
+        <TouchableOpacity style={styles.imageBtn} onPress={selecionarImagem}>
+          <Text style={styles.imageBtnText}>{imagem ? 'Trocar foto' : 'Adicionar foto'}</Text>
+        </TouchableOpacity>
+        {imagem && <Image source={{ uri: imagem }} style={styles.preview} />}
       </View>
 
-      <TouchableOpacity style={styles.botaoSalvar} onPress={handleSalvar}>
-        <Text style={styles.botaoTexto}>Salvar Alterações</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.botaoCancelar} onPress={handleCancelar}>
-        <Text style={styles.botaoTexto}>Cancelar</Text>
+      <TouchableOpacity style={styles.saveBtn} onPress={handleSalvar}>
+        <Text style={styles.saveBtnText}>Salvar Alterações</Text>
       </TouchableOpacity>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  pickerContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  screen: { flex: 1, backgroundColor: '#F1F9FA' },
+
+  card: {
+    margin: 12,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 20,
+    // sombra cross-platform
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 4, // Android :contentReference[oaicite:1]{index=1}
+  },
+
+  header: { flexDirection: 'row', justifyContent: 'center', marginBottom: 12 },
+  backBtn: { position: 'absolute', left: 0 },
+  cardTitle: { fontSize: 20, fontWeight: '700', color: '#333' },
+
+  label: { fontSize: 14, fontWeight: '600', color: '#333', marginBottom: 6 },
+  input: {
+    backgroundColor: '#F6F6F6',
+    borderRadius: 8,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#DDD',
     marginBottom: 12,
   },
+
+  row: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
   pickerOption: {
     flex: 1,
+    padding: 12,
     backgroundColor: '#F6F6F6',
-    paddingVertical: 14,
-    marginHorizontal: 4,
-    borderRadius: 10,
+    borderRadius: 8,
     alignItems: 'center',
-    borderColor: 'rgba(0, 0, 0, 0.2)',
     borderWidth: 1,
+    borderColor: '#DDD',
+    marginHorizontal: 4,
   },
-  pickerOptionSelected: {
-    backgroundColor: '#D0E8FF',
-    borderColor: '#007AFF',
+  pickerSelected: {
+    backgroundColor: '#B6E3F2',
+    borderColor: '#219CD9',
   },
-  pickerOptionText: {
-    fontSize: 16,
-  },
-  container: {
-    padding: 20,
-    backgroundColor: '#fff',
-    paddingBottom: 40,
-  },
-  titulo: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginVertical: 20,
-  },
-  inputContainer: {
-    marginBottom: 15,
-  },
-  label: {
-    fontSize: 16,
-    marginBottom: 5,
-    color: '#333',
-  },
-  input: {
-    backgroundColor: '#F0F0F0',
-    borderRadius: 10,
-    padding: 10,
-    fontSize: 16,
-  },
-  idadeContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 12,
-  },
-  idadeBox: {
+  pickerText: { fontSize: 16, fontWeight: '500', color: '#333' },
+
+  ageBox: {
     flex: 1,
     alignItems: 'center',
-    marginHorizontal: 4,
-    paddingVertical: 12,
+    padding: 12,
     backgroundColor: '#F6F6F6',
-    borderRadius: 10,
-    borderColor: 'rgba(0, 0, 0, 0.2)',
+    borderRadius: 8,
     borderWidth: 1,
+    borderColor: '#DDD',
   },
-  idadeTitulo: {
-    fontSize: 14,
-    fontWeight: '500',
-    marginBottom: 4,
+  ageLabel: { fontSize: 14, fontWeight: '600', color: '#333', marginBottom: 4 },
+  ageControl: { flexDirection: 'row', alignItems: 'center' },
+  ageInput: {
+    width: 50,
+    textAlign: 'center',
+    borderBottomWidth: 1,
+    borderColor: '#CCC',
+    fontSize: 16,
+    marginHorizontal: 8,
   },
-  controleIdade: {
-    flexDirection: 'row',
+
+  bioInput: { height: 100 },
+  imageBtn: {
+    backgroundColor: '#E5F3FF',
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ADD8E6',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    width: '70%',
+    marginBottom: 12,
   },
-  idadeValor: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginHorizontal: 10,
-  },
-  botaoSalvar: {
-    backgroundColor: '#7FCAD2',
-    paddingVertical: 14,
-    borderRadius: 10,
+  imageBtnText: { color: '#333', fontWeight: '600' },
+  preview: { width: '100%', height: 180, borderRadius: 12, marginTop: 8 },
+
+  saveBtn: {
+    backgroundColor: '#219CD9',
+    paddingVertical: 16,
+    borderRadius: 50,
     alignItems: 'center',
-    marginTop: 20,
+    margin: 12,
+    shadowColor: '#2AA5FF',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 4,
   },
-  botaoCancelar: {
-    backgroundColor: '#FF6B6B',
-    paddingVertical: 14,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  botaoTexto: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
+  saveBtnText: { color: '#FFF', fontSize: 16, fontWeight: '600' },
+
+  loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
 });

@@ -161,19 +161,35 @@ export default function CadastrarScreen() {
     </View>
   );
 
-  if (!tipoPessoa) {
-    return (
-      <View style={styles.selector}>
-        <Text style={styles.selectorTitle}>Você pretende:</Text>
-        <TouchableOpacity style={styles.selectorBtn} onPress={() => setTipoPessoa('queroAdotar')}>
-          <Text style={styles.selectorText}>Adotar</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.selectorBtn} onPress={() => setTipoPessoa('queroDoar')}>
-          <Text style={styles.selectorText}>Doar</Text>
-        </TouchableOpacity>
+if (!tipoPessoa) {
+  return (
+    <View style={styles.selectorContainer}>
+      <View style={styles.selectorCard}>
+        <Text style={styles.selectorTitle}>Quem você é?</Text>
+        <View style={styles.optionsContainer}>
+          <TouchableOpacity
+            style={[styles.selectorBtn, styles.adotanteBtn]}
+            onPress={() => setTipoPessoa('queroAdotar')}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="heart" size={24} color="#FFF" style={styles.btnIcon} />
+            <Text style={styles.selectorText}>Adotante</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.selectorBtn, styles.doadorBtn]}
+            onPress={() => setTipoPessoa('queroDoar')}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="paw" size={24} color="#FFF" style={styles.btnIcon} />
+            <Text style={styles.selectorText}>Protetor</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-    );
-  }
+    </View>
+  );
+}
+
 
   return (
     <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
@@ -185,41 +201,156 @@ export default function CadastrarScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#F9F9F9' },
-  scroll: { padding: 16, paddingTop: 48 },
-  selector: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F9F9F9', padding: 24 },
-  selectorTitle: { fontSize: 24, fontWeight: '700', color: '#333', marginBottom: 24 },
+  // Tela principal
+  screen: {
+    flex: 1,
+    backgroundColor: '#F1F9FA',
+  },
+  scroll: {
+    padding: 16,
+    paddingTop: 48,
+  },
+
+  // Seletor inicial com relevo/card
+  selectorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  selectorCard: {
+    width: '100%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 24,
+    // Sombra cross‑platform (iOS e Android)
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 6,
+  }, // segue boas práticas de sombras em React Native :contentReference[oaicite:1]{index=1}
+  selectorTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#333',
+    marginBottom: 24,
+    textAlign: 'center',
+  },
+  optionsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
   selectorBtn: {
-    backgroundColor: '#fff', padding: 16, borderRadius: 50, width: '100%', alignItems: 'center',
-    marginVertical: 8, borderColor: '#ddd', borderWidth: 1,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 3, elevation: 2
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 24,
+    paddingHorizontal: 40,
+    borderRadius: 26,
   },
-  selectorText: { fontSize: 18, fontWeight: '600', color: '#333' },
+  adotanteBtn: {
+    backgroundColor: '#219CD9',
+  },
+  doadorBtn: {
+    backgroundColor: '#86B9D1',
+  },
+  btnIcon: {
+    marginRight: 8,
+  },
+  selectorText: {
+    fontSize: 22,
+    fontWeight: '600',
+    color: '#FFF',
+  },
 
+  // Card de formulário
   card: {
-    backgroundColor: '#fff', borderRadius: 12, padding: 24,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 3
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  backBtn: { position: 'absolute', top: 16, left: 16 },
-  title: { fontSize: 28, fontWeight: '700', color: '#333', textAlign: 'center', marginBottom: 24 },
+  backBtn: {
+    position: 'absolute',
+    top: 16,
+    left: 16,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#333',
+    textAlign: 'center',
+    marginBottom: 24,
+  },
 
-  input: { backgroundColor: '#F6F6F6', borderRadius: 8, padding: 12, marginBottom: 16, borderColor: '#DDD', borderWidth: 1, fontSize: 16 },
+  // Inputs e senhas
+  input: {
+    backgroundColor: '#F6F6F6',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+    borderColor: '#DDD',
+    borderWidth: 1,
+    fontSize: 16,
+  },
   inputIcon: {
-    flexDirection: 'row', alignItems: 'center',
-    backgroundColor: '#F6F6F6', borderRadius: 8, borderColor: '#DDD', borderWidth: 1,
-    paddingHorizontal: 12, marginBottom: 16, height: 52
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F6F6F6',
+    borderRadius: 8,
+    borderColor: '#DDD',
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    marginBottom: 16,
+    height: 52,
   },
-  passInput: { flex: 1, fontSize: 16 },
+  passInput: {
+    flex: 1,
+    fontSize: 16,
+  },
 
-  critList: { marginBottom: 16 },
-  matchText: { fontSize: 14, fontWeight: '600', marginBottom: 16 },
+  // Listas de validação
+  critList: {
+    marginBottom: 16,
+  },
+  matchText: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 16,
+  },
 
-  checkboxRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 24 },
-  checkboxLabel: { marginLeft: 10, fontSize: 14, color: '#333', flex: 1 },
+  // Checkbox promocional
+  checkboxRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  checkboxLabel: {
+    marginLeft: 10,
+    fontSize: 14,
+    color: '#333',
+    flex: 1,
+  },
 
+  // Botão de envio
   submitBtn: {
-    backgroundColor: '#2AA5FF', paddingVertical: 16, borderRadius: 50, alignItems: 'center',
-    shadowColor: '#2AA5FF', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 6, elevation: 4
+    backgroundColor: '#219CD9',
+    paddingVertical: 16,
+    borderRadius: 50,
+    alignItems: 'center',
+    shadowColor: '#219CD9',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 4,
   },
-  submitText: { color: '#FFF', fontSize: 18, fontWeight: '600' }
+  submitText: {
+    color: '#FFF',
+    fontSize: 18,
+    fontWeight: '600',
+  },
 });

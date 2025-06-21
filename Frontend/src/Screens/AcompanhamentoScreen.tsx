@@ -1,50 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  StyleSheet,
-  Dimensions,
-  Alert,
+  View, Text, ScrollView, TouchableOpacity,
+  StyleSheet, Dimensions, Alert
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { buscarPet } from '../api/api';
-import RNHTMLtoPDF from 'react-native-html-to-pdf';
-import * as Sharing from 'expo-sharing';
 import * as Print from 'expo-print';
-
-const gerarPDF = async () => {
-  try {
-    const dataAtual = new Date().toLocaleDateString('pt-BR');
-    const registrosFiltrados = registros
-      .filter((item) => filtroAtivo === 'Todos' || item.titulo === filtroAtivo)
-      .map((item) => `
-        <div style="margin-bottom: 12px;">
-          <strong>${item.titulo}</strong> (${item.data})<br/>
-          <span>${item.descricao}</span>
-        </div>
-      `).join('');
-
-    const htmlContent = `
-      <div style="font-family: Arial, sans-serif; padding: 24px;">
-        <h1 style="text-align:center;">Relatório de Acompanhamento</h1>
-        <h2>${nomePet}</h2>
-        <p><strong>Data de emissão:</strong> ${dataAtual}</p>
-        <hr/>
-        <div>${registrosFiltrados}</div>
-      </div>
-    `;
-
-    const { uri } = await Print.printToFileAsync({ html: htmlContent });
-    await Sharing.shareAsync(uri);
-  } catch (err) {
-    console.error('❌ Erro ao gerar PDF:', err);
-    Alert.alert('Erro ao gerar PDF', err.message || 'Erro desconhecido');
-  }
-};
-
+import * as Sharing from 'expo-sharing';
 
 const { width, height } = Dimensions.get('window');
 
@@ -52,124 +15,122 @@ export default function Acompanhamento() {
   const router = useRouter();
   const { id } = useLocalSearchParams();
   const [nomePet, setNomePet] = useState('...');
-  const [registros, setRegistros] = useState([]);
+  const [registros, setRegistros] = useState<any[]>([]);
   const [filtroAtivo, setFiltroAtivo] = useState<'Todos' | 'Saúde' | 'Visita'>('Todos');
 
   useEffect(() => {
-    const carregar = async () => {
-      try {
-        if (id) {
+    (async () => {
+      if (id) {
+        try {
           const pet = await buscarPet(parseInt(id));
-          setNomePet(typeof pet?.nome === 'string' ? pet.nome : 'Sem nome');
-
+          setNomePet(pet?.nome ?? 'Sem nome');
           setRegistros([
-            { titulo: "Saúde", data: "21/12/2024", cor: "#3AD27E", descricao: "Aplicação de antipulgas realizada com sucesso." },
-            { titulo: "Saúde", data: "15/12/2024", cor: "#3AD27E", descricao: "Pet apresentou vômito e foi medicado." },
-            { titulo: "Visita", data: "10/12/2024", cor: "#EA4CC0", descricao: "Visita realizada, tudo normal." },
-            { titulo: "Visita", data: "05/12/2024", cor: "#EA4CC0", descricao: "Pet estava animado e brincando bastante." },
-            { titulo: "Saúde", data: "01/12/2024", cor: "#3AD27E", descricao: "Consulta de rotina feita, sem anormalidades." },
-            { titulo: "Visita", data: "28/11/2024", cor: "#EA4CC0", descricao: "Pet um pouco tímido, mas saudável." },
+            /* simulação de registros */
           ]);
+        } catch {
+          Alert.alert('Erro', 'Não foi possível carregar os dados do pet.');
         }
-      } catch (error) {
-        console.error('Erro ao buscar pet:', error);
-        Alert.alert('Erro', 'Não foi possível carregar os dados do pet.');
       }
-    };
-
-    carregar();
+    })();
   }, [id]);
 
   const gerarPDF = async () => {
     try {
       const dataAtual = new Date().toLocaleDateString('pt-BR');
-      const registrosFiltrados = registros
-        .filter((item) => filtroAtivo === 'Todos' || item.titulo === filtroAtivo)
-        .map((item) => `
-          <div style="margin-bottom: 12px;">
-            <strong>${item.titulo}</strong> (${item.data})<br/>
-            <span>${item.descricao}</span>
-          </div>
-        `).join('');
-  
-      const htmlContent = `
-        <div style="font-family: Arial, sans-serif; padding: 24px;">
+      const filtrados = registros.filter(it =>
+        filtroAtivo === 'Todos' || it.titulo === filtroAtivo
+      );
+      const htmlEntries = filtrados.map(it => `
+        <div style="margin-bottom:12px;">
+           <strong>${it.titulo}</strong> (${it.data})<br/>${it.descricao}
+        </div>`).join('');
+      const html = `
+        <div style="font-family:Arial,sans-serif;padding:24px;">
           <h1 style="text-align:center;">Relatório de Acompanhamento</h1>
           <h2>${nomePet}</h2>
           <p><strong>Data de emissão:</strong> ${dataAtual}</p>
           <hr/>
-          <div>${registrosFiltrados}</div>
-        </div>
-      `;
-  
-      const { uri } = await Print.printToFileAsync({ html: htmlContent });
+          ${htmlEntries || '<p>Sem registros para exibir.</p>'}
+        </div>`;
+      const { uri } = await Print.printToFileAsync({ html });
       await Sharing.shareAsync(uri);
-    } catch (err) {
-      console.error('❌ Erro ao gerar PDF:', err);
-      Alert.alert('Erro ao gerar PDF', err.message || 'Erro desconhecido');
+    } catch (e: any) {
+      Alert.alert('Erro ao gerar PDF', e.message);
     }
   };
+
+  function Item({ titulo, data, cor, descricao }: any) {
+    return (
+      <TouchableOpacity
+        style={styles.itemLinha}
+        onPress={() => Alert.alert('Evento', `${titulo} em ${data}`)}
+        activeOpacity={0.7}
+      >
+        <View style={styles.itemCabecalho}>
+          <View style={[styles.dot, { backgroundColor: cor }]} />
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.itemTitulo, { color: cor }]}>{titulo}</Text>
+            <Text style={styles.itemData}>{data}</Text>
+          </View>
+        </View>
+        <Text style={styles.itemDescricao}>{descricao}</Text>
+      </TouchableOpacity>
+    );
+  }
+
+  const filtrados = registros.filter(it =>
+    filtroAtivo === 'Todos' || it.titulo === filtroAtivo
+  );
 
   return (
     <View style={styles.container}>
       <View style={styles.headerContainer}>
         <TouchableOpacity style={styles.voltar} onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color="black" />
+          <Ionicons name="arrow-back" size={24} color="#333" />
         </TouchableOpacity>
-        <Text style={styles.title}>Acompanhamefnto{'\n'}{nomePet}</Text>
+        <Text style={styles.title}>Acompanhamento{"\n"}{nomePet}</Text>
       </View>
 
       <View style={styles.filtroContainer}>
-        <Text style={styles.subtitulo}>Eventos Registrados:</Text>
+        <Text style={styles.subtitulo}>Eventos Registrados</Text>
         <View style={styles.filtroBotoes}>
-          <TouchableOpacity
-            style={[styles.botaoFiltro, filtroAtivo === 'Todos' && styles.botaoFiltroAtivo]}
-            onPress={() => setFiltroAtivo('Todos')}
-          >
-            <Text style={styles.filtroTexto}>Todos</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.botaoFiltro, filtroAtivo === 'Saúde' && styles.botaoFiltroAtivo]}
-            onPress={() => setFiltroAtivo('Saúde')}
-          >
-            <Text style={styles.filtroTexto}>Saúde</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.botaoFiltro, filtroAtivo === 'Visita' && styles.botaoFiltroAtivo]}
-            onPress={() => setFiltroAtivo('Visita')}
-          >
-            <Text style={styles.filtroTexto}>Visita</Text>
-          </TouchableOpacity>
+          {['Todos', 'Saúde', 'Visita'].map(opt => (
+            <TouchableOpacity
+              key={opt}
+              style={[
+                styles.botaoFiltro,
+                filtroAtivo === opt && styles.botaoFiltroAtivo
+              ]}
+              onPress={() => setFiltroAtivo(opt as any)}
+            >
+              <Text style={[
+                styles.filtroTexto,
+                filtroAtivo === opt && { color: '#FFF' }
+              ]}>{opt}</Text>
+            </TouchableOpacity>
+          ))}
         </View>
       </View>
 
       <View style={styles.card}>
-        <ScrollView
-          style={styles.cardScroll}
-          nestedScrollEnabled={true}
-          showsVerticalScrollIndicator={false}
-        >
-          {registros.length > 0 ? (
-            registros
-              .filter((item) => filtroAtivo === 'Todos' || item.titulo === filtroAtivo)
-              .map((item, index) => (
-                <Item
-                  key={index}
-                  titulo={item.titulo}
-                  data={item.data}
-                  cor={item.cor}
-                  descricao={item.descricao}
-                />
-              ))
-          ) : (
-            <Text style={styles.cardVazio}>Nenhum registro encontrado.</Text>
-          )}
-        </ScrollView>
+        {filtrados.length > 0 ? (
+          <ScrollView style={styles.cardScroll} nestedScrollEnabled>
+            {filtrados.map((it, idx) => <Item key={idx} {...it} />)}
+          </ScrollView>
+        ) : (
+          <View style={styles.emptyContainer}>
+            <Ionicons name="alert-circle-outline" size={64} color="#B6E1FA" />
+            <Text style={styles.emptyTitle}>Nenhum registro encontrado</Text>
+            <Text style={styles.emptySubtitle}>
+              Ainda não há eventos do tipo "{filtroAtivo}" registrados.
+            </Text>
+          </View>
+        )}
       </View>
 
       <TouchableOpacity
         style={styles.botao}
-        onPress={() => Alert.alert('Ir para Visitas', 'Você será redirecionado para a tela de visitas.')}
+        onPress={() => Alert.alert('Adicionar Evento', 'Funcionalidade em breve')}
       >
         <Text style={styles.botaoTextoBranco}>Adicionar Novo Evento</Text>
       </TouchableOpacity>
@@ -182,161 +143,133 @@ export default function Acompanhamento() {
       </TouchableOpacity>
     </View>
   );
-
-  function Item({ titulo, data, descricao, cor }: any) {
-    return (
-      <TouchableOpacity
-        onPress={() => Alert.alert('Evento', `Indo para evento "${titulo}"`)}
-        style={styles.itemLinha}
-        activeOpacity={0.7}
-      >
-        <View style={styles.itemCabecalho}>
-          <View style={[styles.dot, { backgroundColor: cor }]} />
-          <Text style={[styles.itemTitulo, { color: cor }]}>{titulo}</Text>
-          <Text style={styles.itemData}>{data}</Text>
-        </View>
-        <Text style={styles.itemDescricao}>{descricao}</Text>
-      </TouchableOpacity>
-    );
-  }
 }
 
-// Estilos
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F9F9F9',
     paddingHorizontal: width * 0.06,
-    paddingTop: height * 0.04,
+    paddingTop: height * 0.04
   },
   headerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: height * 0.015,
+    marginBottom: height * 0.02,
   },
-  voltar: {
-    position: 'absolute',
-    left: 0,
-  },
+  voltar: { position: 'absolute', left: 0 },
   title: {
     fontSize: width * 0.065,
-    fontWeight: 'bold',
+    fontWeight: '700',
+    color: '#333',
     textAlign: 'center',
-    maxWidth: width * 0.7,
-    lineHeight: width * 0.07,
-    flexWrap: 'wrap',
+    lineHeight: width * 0.075
   },
   subtitulo: {
     fontSize: width * 0.045,
-    fontWeight: 'bold',
-    marginBottom: height * 0.01,
+    fontWeight: '600',
     color: '#333',
+    marginBottom: height * 0.01
   },
-  filtroContainer: {
-    marginBottom: 0,
-  },
+  filtroContainer: { marginBottom: height * 0.02 },
   filtroBotoes: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: height * 0.02,
   },
   botaoFiltro: {
     flex: 1,
-    marginHorizontal: height * 0.003,
+    marginHorizontal: 4,
+    paddingVertical: 10,
     backgroundColor: '#E0E0E0',
-    paddingVertical: height * 0.01,
-    borderRadius: height * 0.01,
+    borderRadius: 20,
     alignItems: 'center',
   },
   botaoFiltroAtivo: {
-    backgroundColor: '#7FCAD2',
+    backgroundColor: '#2AA5FF',
   },
   filtroTexto: {
     fontSize: width * 0.04,
+    fontWeight: '600',
     color: '#333',
-    fontWeight: 'bold',
   },
   card: {
-    backgroundColor: '#F8F8F8',
-    borderRadius: height * 0.015,
-    borderWidth: height * 0.001,
-    borderColor: '#DEDEDE',
-    padding: width * 0.04,
+    flex: 1,
+    backgroundColor: '#FFF',
+    borderRadius: 12,
+    padding: 16,
     marginBottom: height * 0.02,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1, shadowRadius: 4, elevation: 2,
   },
-  cardScroll: {
-    maxHeight: height * 0.45,
+  cardScroll: { maxHeight: height * 0.45 },
+  emptyContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: height * 0.25,
   },
-  cardVazio: {
-    textAlign: 'center',
-    color: '#888',
+  emptyTitle: {
+    fontSize: width * 0.05,
+    fontWeight: '600',
+    color: '#333',
+    marginTop: 12,
+  },
+  emptySubtitle: {
     fontSize: width * 0.04,
-    paddingVertical: height * 0.01,
+    color: '#666',
+    textAlign: 'center',
+    marginTop: 6,
+    paddingHorizontal: 16,
   },
   itemLinha: {
-    borderBottomWidth: height * 0.003,
-    borderBottomColor: '#eee',
-    paddingVertical: height * 0.008,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderColor: '#EEE',
   },
   itemCabecalho: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    alignItems: 'center'
   },
   dot: {
-    width: height * 0.01,
-    height: height * 0.01,
-    borderRadius: height * 0.01,
-    marginRight: height * 0.01,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginRight: 8
   },
   itemTitulo: {
-    fontWeight: 'bold',
-    fontSize: width * 0.04,
-    flex: 1,
-    marginLeft: height * 0.00,
+    fontSize: width * 0.045,
+    fontWeight: '600',
   },
   itemData: {
-    fontSize: width * 0.03,
-    color: '#666',
+    fontSize: width * 0.035,
+    color: '#666'
   },
   itemDescricao: {
-    marginTop: height * 0.005,
+    marginTop: 6,
+    fontSize: width * 0.04,
     color: '#444',
-    fontSize: width * 0.035,
+    lineHeight: 20
   },
   botao: {
-    backgroundColor: '#7FCAD2',
-    paddingVertical: height * 0.02,
-    borderRadius: height * 0.02,
+    backgroundColor: '#2AA5FF',
+    paddingVertical: 14,
+    borderRadius: 25,
     alignItems: 'center',
     marginBottom: height * 0.015,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
+    shadowColor: '#2AA5FF', shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.25, shadowRadius: 4, elevation: 3,
   },
   botaoCinza: {
     backgroundColor: '#9A9A9A',
-    paddingVertical: height * 0.02,
-    borderRadius: height * 0.02,
+    paddingVertical: 14,
+    borderRadius: 25,
     alignItems: 'center',
-    marginBottom: height * 0.015,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2, shadowRadius: 3, elevation: 2,
   },
   botaoTextoBranco: {
-    fontSize: width * 0.045,
-    fontWeight: 'bold',
     color: '#FFF',
+    fontSize: width * 0.045,
+    fontWeight: '600'
   },
 });
