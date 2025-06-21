@@ -1,8 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 //const BASE_URL = "http://192.168.0.197:8080/api";
-const BASE_URL = "http://192.168.0.48:8080/api";
-const BASE_URL_GPT = "http://192.168.0.197:9000/api";
+const BASE_URL = "http://192.168.0.197:8080/api";
+const BASE_URL_GPT = "http://192.168.0.197:8001";
+
 
 export async function buscarSolicitacoesUsuario(idUsuario: number) {
   const headers = await getAuthHeaders();
@@ -62,27 +63,77 @@ export async function solicitarAdocaoPet(idPet: number, idAdotante: number) {
   return true;
 }
 
+
+// FUNCOES DE MATCH
 // Simula busca de pontuação de match para cada pet (score aleatório entre 0 e 100)
-export async function buscarPontuacaoMatch(pets) {
-  return pets.map(pet => ({
-    id: pet.id,
-    score: Math.random() * 100, // score aleatório entre 0 e 100
-  }));
+export async function buscarPontuacaoMatch(pets, perfilMatch) {
+  console.log("Pets Match:", pets);
+  console.log("Perfil Match:", perfilMatch);
+
+  try {
+    const response = await fetch(`${BASE_URL_GPT}/avaliar`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        perfil: perfilMatch,
+        pets: pets,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Erro ao buscar pontuação de match: ${response.status}`);
+    }
+
+    const jsonResponse = await response.json();
+    const resultArray = jsonResponse.result; // Supondo que a API retorne { "result": [ ... ] }
+
+    console.log("Resposta GPT: ", jsonResponse)
+    if (!Array.isArray(resultArray)) {
+      throw new Error('Resposta inválida: result não é um array');
+    }
+
+    // Supondo que a API responda com um array de objetos { id: petId, score: valor }
+    // Associamos os scores aos pets correspondentes
+    const scoresPorId = resultArray.reduce((acc, item) => {
+      acc[item.id] = item.score;
+      return acc;
+    }, {});
+
+    return pets.map(pet => ({
+      ...pet,
+      score: scoresPorId[pet.id] ?? 0, // 0 como fallback se id não for encontrado
+    }));
+  } catch (error) {
+    console.error('Erro ao buscar pontuação de match:', error);
+    // Em caso de erro, retorna os pets com score 0
+    return pets.map(pet => ({
+      ...pet,
+      score: 0,
+    }));
+  }
 }
 
+
+
 export async function buscarPerfilMatchUsuario(userId) {
-  // Simula perfil preenchido para alguns usuários
-  if (userId === 1) {
-    return {
-      idUsuario: 1,
-      especiePreferida: 'cachorro',
-      faixaEtaria: 'jovem',
-      porte: 'médio',
-    };
+  try {
+    const response = await fetch(`${BASE_URL}/perfil-match/usuario/${userId}`);
+    
+    if (!response.ok) {
+      throw new Error(`Erro ao buscar perfil: ${response.status}`);
+    }
+
+    const perfil = await response.json();
+    return perfil;
+  } catch (error) {
+    console.error('Erro ao buscar perfil do usuário:', error);
+    return {};
   }
-  // Simula perfil não preenchido
-  return {};
+
 }
+
 
 
 
