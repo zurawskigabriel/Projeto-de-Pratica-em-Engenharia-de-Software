@@ -9,5 +9,4 @@ public class ApiPrincipalDoMeLevaApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(ApiPrincipalDoMeLevaApplication.class, args);
 	}
-
 }

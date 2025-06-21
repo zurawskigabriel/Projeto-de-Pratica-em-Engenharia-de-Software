@@ -1,177 +1,253 @@
 import React, { useState, useEffect } from 'react';
 import {
-  View,
-  Text,
-  TextInput,
-  StyleSheet,
-  FlatList,
-  Image,
-  TouchableOpacity,
-  ActivityIndicator,
-  Dimensions,
-  Modal,
-  Pressable,
+  View, Text, TextInput, FlatList, Image,
+  TouchableOpacity, ActivityIndicator, Dimensions, Modal,
+  Pressable, StyleSheet, Alert
 } from 'react-native';
 import { Ionicons, FontAwesome } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { listarPets } from '../api/api';
+import {
+  listarPets,
+  listarFavoritosDoUsuario,
+  favoritarPet,
+  desfavoritarPet,
+  buscarPontuacaoMatch,
+  buscarPerfilMatch,
+} from '../api/api';
 import { LinearGradient } from 'expo-linear-gradient';
 import Footer from '../components/Footer';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const screenWidth = Dimensions.get('window').width;
-const screenHeight = Dimensions.get('window').height;
-const cardMargin = 12;
-const cardWidth = (screenWidth - cardMargin * 3) / 2;
-const cardHeight = (screenHeight - cardMargin * 3) / 3;
+const { width, height } = Dimensions.get('window');
+const SEX_FILTERS = ['todos', 'M', 'F'];
+const cardSpacing = width * 0.02;
+const cardWidth = (width - cardSpacing * 3) / 2;
+const cardHeight = height * 0.28;
 
-const PetCard = ({ id, nome, sexo, especie, idade, raca, onPressFavorito, favorito, onPress }) => {
-  const imageSource = especie?.toLowerCase().includes('cachorro')
-    ? require('../../assets/dog.jpg')
-    : require('../../assets/cat.jpg');
-
-  return (
-    <TouchableOpacity style={styles.petCardContainer} onPress={onPress}>
-      <Image source={imageSource} style={styles.petImage} />
-      <LinearGradient
-        colors={['transparent', 'rgba(0,0,0,0.5)', 'rgba(0,0,0,0.6)']}
-        style={styles.petImageShadow}
-      />
-      <View style={styles.petImageFooter}>
-        <View>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Text style={styles.petCardName}>{nome}</Text>
-            <FontAwesome
-              name={sexo === 'M' ? 'mars' : 'venus'}
-              size={24}
-              color="white"
-              style={{ marginLeft: 8, marginTop: 4 }}
-            />
-          </View>
-          <Text style={styles.petInfoText}>{idade} anos, {raca.charAt(0).toUpperCase() + raca.slice(1).toLowerCase()}</Text>
-        </View>
-      </View>
-      <TouchableOpacity
-        style={styles.petFavIcon}
-        onPress={onPressFavorito}
-      >
-        <FontAwesome name='heart-o' size={24} color='black' />
-      </TouchableOpacity>
-    </TouchableOpacity>
-  );
-};
-
-export default function FavoritoScreen() {
-  const [formIconActive, setFormIconActive] = useState(false);
+export default function ExplorarScreen() {
   const navigation = useNavigation();
-
+  const [data, setData] = useState<any[]>([]);
+  const [listaOriginal, setListaOriginal] = useState<any[]>([]);
+  const [favoritos, setFavoritos] = useState<{ [key: number]: boolean }>({});
   const [searchTerm, setSearchTerm] = useState('');
-  const [data, setData] = useState([]);
-  const [isFetching, setIsFetching] = useState(false);
-  const [favoritos, setFavoritos] = useState({});
-  const [showFilter, setShowFilter] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState('todos');
+  const [loading, setLoading] = useState(false);
+  const [showFilter, setShowFilter] = useState(false);
+  const [canMatch, setCanMatch] = useState(false);
+  const [matchActive, setMatchActive] = useState(false);
 
   useEffect(() => {
-    fetchPets();
-  }, []);
+    const carregar = async () => {
+      setLoading(true);
+      const idStr = await AsyncStorage.getItem('userId');
+      const userId = parseInt(idStr || '', 10);
+      if (!userId) return setLoading(false);
 
-  const fetchPets = async () => {
-    setIsFetching(true);
-    try {
-      const pets = await listarPets();
-      setData(pets);
-    } catch (err) {
-      console.error('Erro ao buscar pets:', err);
-    }
-    setIsFetching(false);
+      let perfilOk = false;
+      try {
+        const perfil = await buscarPerfilMatch(userId);
+        perfilOk = !!perfil;
+      } catch {
+        perfilOk = false;
+      }
+      setCanMatch(perfilOk);
+      if (!perfilOk) {
+        Alert.alert(
+          'Criar perfil de compatibilidade?',
+          'Você ainda não possui um perfil. Deseja criar agora?',
+          [
+            { text: 'Sim', onPress: () => navigation.navigate('PerfilMatch') },
+            { text: 'Agora não', style: 'cancel' },
+          ]
+        );
+      }
+
+      const [favAPI, allPets] = await Promise.all([
+        listarFavoritosDoUsuario(userId),
+        listarPets()
+      ]);
+      const favMap: any = {};
+      favAPI.forEach(f => favMap[f.idPet] = true);
+      setFavoritos(favMap);
+
+      const otherPets = allPets.filter((p: any) => p.idUsuario !== userId);
+      setListaOriginal(otherPets);
+
+      if (perfilOk) {
+        const scores = await buscarPontuacaoMatch(otherPets);
+        const enriched = otherPets.map(p => {
+          const found = scores.find((s: any) => s.id === p.id);
+          return { ...p, score: found?.score ?? 0 };
+        }).sort((a, b) => b.score - a.score);
+        setData(enriched);
+        setMatchActive(true);
+      } else {
+        setData(otherPets);
+      }
+
+      setLoading(false);
+    };
+
+    const unsub = navigation.addListener('focus', carregar);
+    return unsub;
+  }, [navigation]);
+
+  const toggleFav = async (pid: number) => {
+    const idStr = await AsyncStorage.getItem('userId');
+    const userId = parseInt(idStr || '', 10);
+    if (!userId) return;
+    const isFav = !!favoritos[pid];
+    Alert.alert(
+      isFav ? 'Remover dos favoritos?' : 'Adicionar aos favoritos?',
+      '',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: isFav ? 'Remover' : 'Adicionar',
+          onPress: async () => {
+            if (isFav) await desfavoritarPet(userId, pid);
+            else await favoritarPet(userId, pid);
+            setFavoritos(prev => ({ ...prev, [pid]: !isFav }));
+          }
+        }
+      ]
+    );
   };
 
-  const toggleFavorito = (id) => {
-    setFavoritos((prev) => ({ ...prev, [id]: !prev[id] }));
-  };
-
-  const filteredData = data.filter(item => {
+  const filtered = data.filter(p => {
     const termo = searchTerm.toLowerCase();
-    const nomeMatch = item.nome.toLowerCase().includes(termo);
-    const racaMatch = item.raca.toLowerCase().includes(termo);
-    const idadeMatch = item.idade.toString().includes(termo);
-    const filtroMatch = selectedFilter === 'todos' || item.sexo === selectedFilter;
-    return (nomeMatch || racaMatch || idadeMatch) && filtroMatch;
+    const ageStr = `${p.idadeAno}a ${p.idadeMes}m`.toLowerCase();
+    if (
+      !p.nome.toLowerCase().includes(termo) &&
+      !p.raca.toLowerCase().includes(termo) &&
+      !ageStr.includes(termo)
+    ) return false;
+    if (selectedFilter !== 'todos' && p.sexo !== selectedFilter) return false;
+    if (p.score !== undefined && p.score <= 0 && matchActive) return false;
+    return true;
   });
 
-  return (
-    <View style={styles.container}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', marginHorizontal: 16, marginBottom: 12 }}>
-  <View style={{ flex: 1, alignItems: 'center' }}>
-    <Text style={styles.title}>Explorar</Text>
-  </View>
-  <TouchableOpacity onPress={() => setFormIconActive(!formIconActive)}>
-    <Ionicons name="document-text-outline" size={28} color={formIconActive ? '#7FCAD2' : 'black'} />
-  </TouchableOpacity>
+  const ordenarMatch = () => {
+    if (!canMatch) {
+      Alert.alert(
+        'Disponível após criar perfil',
+        'Crie seu perfil para ativar o botão.',
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          { text: 'Criar perfil', onPress: () => navigation.navigate('PerfilMatch') }
+        ]
+      );
+      return;
+    }
+    if (matchActive) {
+      setData(listaOriginal);
+      setMatchActive(false);
+    } else {
+      const sorted = [...listaOriginal].sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
+      setData(sorted);
+      setMatchActive(true);
+    }
+  };
+
+  const PetCard = ({ item }: any) => {
+    const imgSrc = item.especie?.toLowerCase().includes('cachorro')
+      ? require('../../assets/dog.jpg')
+      : require('../../assets/cat.jpg');
+    return (
+      <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('PerfilPet', { id: item.id })}>
+        <Image source={imgSrc} style={styles.petImage} />
+        {item.score !== undefined && (
+          <View style={styles.scoreBadge}>
+            <Text style={styles.scoreText}>{item.score.toFixed(0)}%</Text>
+          </View>
+        )}
+        <LinearGradient colors={['transparent', 'rgba(0,0,0,0.25)']} style={styles.shadow} />
+        <View style={styles.infoBox}>
+          <View style={styles.nameRow}>
+            <Text style={styles.petName}>{item.nome}</Text>
+            <FontAwesome name={item.sexo==='M'?'mars':'venus'} size={18} color="#888" style={styles.nameIcon}/>
+          </View>
+          <Text style={styles.petSub}>{`${item.idadeAno}a ${item.idadeMes}m • ${item.raca}`}</Text>
+        </View>
+        <TouchableOpacity style={styles.favIcon} onPress={() => toggleFav(item.id)}>
+          <FontAwesome
+            name={favoritos[item.id] ? 'heart' : 'heart-o'}
+            size={20}
+            color={favoritos[item.id] ? '#E57373' : '#aaa'}
+          />
+        </TouchableOpacity>
+      </TouchableOpacity>
+    );
+  };
+
+  const FilterModal = () => (
+    <Modal visible={showFilter} transparent animationType="fade" onRequestClose={() => setShowFilter(false)}>
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContent}>
+          <Text style={styles.modalTitle}>Filtrar por sexo</Text>
+          {SEX_FILTERS.map(opt => (
+            <Pressable
+              key={opt}
+              style={styles.filterOption}
+              onPress={() => { setSelectedFilter(opt); setShowFilter(false); }}>
+              <Text style={styles.filterOptionText}>
+                {opt === 'todos' ? 'Todos' : opt === 'M' ? 'Machos' : 'Fêmeas'}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
       </View>
-      <View style={styles.searchContainer}>
-        <TextInput
-          placeholder="Procurar por nome, raça ou idade"
-          style={styles.input}
-          value={searchTerm}
-          onChangeText={setSearchTerm}
-        />
-        <TouchableOpacity onPress={() => setShowFilter(true)}>
-          <Ionicons name="filter" size={24} color="black" />
+    </Modal>
+  );
+
+  return (
+    <View style={styles.screen}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Explorar</Text>
+        <TouchableOpacity style={styles.addButton} onPress={ordenarMatch}>
+          <Ionicons
+            name="document-text-outline"
+            size={24}
+            color={!canMatch ? '#ccc' : matchActive ? '#2AA5FF' : '#555'}
+          />
         </TouchableOpacity>
       </View>
 
-      <Modal
-        visible={showFilter}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowFilter(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Filtrar por sexo</Text>
-            {['todos', 'M', 'F'].map(option => (
-              <Pressable
-                key={option}
-                style={styles.filterOption}
-                onPress={() => {
-                  setSelectedFilter(option);
-                  setShowFilter(false);
-                }}
-              >
-                <Text style={styles.filterOptionText}>{option === 'todos' ? 'Todos' : option === 'M' ? 'Machos' : 'Fêmeas'}</Text>
-              </Pressable>
-            ))}
-          </View>
-        </View>
-      </Modal>
+      <View style={styles.searchBox}>
+        <Ionicons name="search" size={24} color="#888" />
+        <TextInput
+          placeholder="Busca por nome, raça ou idade"
+          value={searchTerm}
+          onChangeText={setSearchTerm}
+          style={styles.input}
+          placeholderTextColor="#888"
+        />
+        <TouchableOpacity style={styles.filterBtn} onPress={() => setShowFilter(true)}>
+          <Ionicons name="filter" size={24} color="#555" />
+        </TouchableOpacity>
+      </View>
+      <FilterModal />
 
-      {isFetching ? (
-        <View style={styles.spinnerContainer}>
-          <ActivityIndicator size="large" color="#999" />
-        </View>
-      ) : filteredData.length > 0 ? (
+      {loading ? (
+        <ActivityIndicator style={{ marginTop: 40 }} size="large" color="#2AA5FF" />
+      ) : filtered.length > 0 ? (
         <FlatList
-          data={filteredData}
-          numColumns={2}
+          data={filtered}
+          numColumns={1}
           keyExtractor={item => item.id.toString()}
-          renderItem={({ item }) => (
-            <PetCard
-              id={item.id}
-              nome={item.nome}
-              sexo={item.sexo}
-              especie={item.especie}
-              idade={item.idade}
-              raca={item.raca}
-              favorito={!!favoritos[item.id]}
-              onPressFavorito={() => toggleFavorito(item.id)}
-              onPress={() => navigation.navigate('PerfilPet', { id: item.id })}
-            />
-          )}
-          contentContainerStyle={{ paddingBottom: 100, paddingHorizontal: cardMargin }}
+          contentContainerStyle={styles.listContainer}
+          renderItem={({ item }) => <PetCard item={item} />}
         />
       ) : (
-        <Text style={styles.noResults}>Nenhum pet encontrado.</Text>
+        <View style={styles.emptyState}>
+          <FontAwesome name="paw" size={64} color="#B6E1FA" />
+          <Text style={styles.emptyTitle}>Nenhum pet encontrado.</Text>
+          <TouchableOpacity
+            style={styles.emptyBtn}
+            onPress={() => navigation.navigate('PerfilMatch')}>
+            <Text style={styles.emptyBtnText}>Criar perfil match ❤️</Text>
+          </TouchableOpacity>
+        </View>
       )}
 
       <Footer />
@@ -180,114 +256,104 @@ export default function FavoritoScreen() {
 }
 
 const styles = StyleSheet.create({
-  petInfoText: {
-    color: 'white',
-    fontSize: 16,
-  },
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    paddingTop: 50,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
-  searchContainer: {
+  screen: { flex: 1, backgroundColor: '#F2F6F9' },
+  header: {
+    height: 60,
     flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#eee',
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    marginHorizontal: 16,
-    marginBottom: 16,
+    alignItems: 'center', justifyContent: 'center',
+    paddingHorizontal: 16,
+    backgroundColor: '#FFF',
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1, shadowRadius: 4, elevation: 2,
   },
-  input: {
-    flex: 1,
-    height: 40,
+  title: { fontSize: 24, fontWeight: 'bold', color: '#333' },
+  addButton: {
+    position: 'absolute', right: 16,
+    backgroundColor: '#2AA5FF', width: 44, height: 44,
+    borderRadius: 22, alignItems: 'center', justifyContent: 'center',
+    shadowColor: '#2AA5FF', shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3, shadowRadius: 4, elevation: 3,
   },
-  list: {
-    paddingBottom: 80,
+
+  searchBox: {
+    backgroundColor: '#FFF',
+    margin: 16, paddingHorizontal: 12,
+    flexDirection: 'row', alignItems: 'center',
+    borderRadius: 50,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05, shadowRadius: 3, elevation: 1,
   },
-  spinnerContainer: {
-    paddingVertical: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  noResults: {
-    textAlign: 'center',
-    fontSize: 16,
-    color: '#999',
-    marginTop: 20,
-  },
-  petCardContainer: {
-    width: cardWidth,
-    height: cardHeight,
-    margin: cardMargin / 2,
-    borderRadius: 20,
-    overflow: 'hidden',
-    backgroundColor: '#ddd',
-    position: 'relative',
+  input: { flex: 1, height: 40, fontSize: 16, marginLeft: 8 },
+  filterBtn: { padding: 8 },
+
+  listContainer: { paddingHorizontal: 16, paddingBottom: 24 },
+  card: {
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: '#FFF', borderRadius: 12,
+    padding: 12, marginBottom: 12,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06, shadowRadius: 3, elevation: 2,
   },
   petImage: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 20,
+    width: 68, height: 68, borderRadius: 34,
+    marginRight: 12, backgroundColor: '#DDD',
   },
-  petImageShadow: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 100,
-    borderRadius: 20,
+  infoBox: { flex: 1, justifyContent: 'center' },
+  nameRow: { flexDirection: 'row', alignItems: 'center' },
+  petName: { fontSize: 18, fontWeight: '600', color: '#222' },
+  nameIcon: { marginLeft: 6 },
+  petSub: { fontSize: 14, color: '#666', marginTop: 2 },
+
+  favIcon: { marginLeft: 12 },
+
+  scoreBadge: {
+    position: 'absolute', top: 8, left: 8,
+    backgroundColor: '#FFF', padding: 4, borderRadius: 8,
   },
-  petImageFooter: {
-    position: 'absolute',
-    bottom: 10,
-    left: 10,
-    flexDirection: 'row',
+  scoreText: { fontSize: 12, fontWeight: '600', color: '#333' },
+  shadow: {
+    position: 'absolute', bottom: 0, left: 0, right: 0,
+    height: cardHeight * 0.25,
+  },
+
+  emptyState: {
     alignItems: 'center',
+    marginTop: height * 0.2,
+    paddingHorizontal: 40,
   },
-  petCardName: {
-    color: 'white',
-    fontSize: 30,
-    fontWeight: 'bold',
+  emptyTitle: {
+    fontSize: width * 0.06,
+    fontWeight: '600',
+    marginTop: 20,
+    color: '#333',
   },
-  petFavIcon: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-    backgroundColor: 'white',
-    padding: 6,
-    borderRadius: 999,
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: 36,
-    height: 36,
+  emptyBtn: {
+    marginTop: 24, backgroundColor: '#2AA5FF',
+    paddingVertical: 14, paddingHorizontal: 28,
+    borderRadius: 30,
+    shadowColor: '#2AA5FF',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 5,
+    elevation: 4,
   },
+  emptyBtnText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+
   modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flex: 1, backgroundColor: 'rgba(0,0,0,0.8)',
+    justifyContent: 'center', alignItems: 'center',
   },
   modalContent: {
-    backgroundColor: 'white',
-    borderRadius: 10,
-    padding: 20,
-    width: 250,
+    backgroundColor: '#fff', borderRadius: 10,
+    padding: 20, width: 250,
   },
   modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10,
+    fontSize: 18, fontWeight: 'bold', marginBottom: 10,
   },
-  filterOption: {
-    paddingVertical: 10,
-  },
-  filterOptionText: {
-    fontSize: 16,
-  },
+  filterOption: { paddingVertical: 10 },
+  filterOptionText: { fontSize: 16 },
 });

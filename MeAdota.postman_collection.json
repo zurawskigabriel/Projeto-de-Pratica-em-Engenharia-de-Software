@@ -1,11 +1,45 @@
 {
 	"info": {
-		"_postman_id": "38107479-cbcb-4946-956a-4962a5707561",
+		"_postman_id": "0a0b1176-37cf-4fe1-a9d3-e191783c78a4",
 		"name": "MeAdota",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "26511245"
 	},
 	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"joao2@email.com\",\r\n    \"password\": \"senhaSegura123\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/login",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
 		{
 			"name": "Usuários",
 			"item": [
@@ -160,42 +194,6 @@
 			]
 		},
 		{
-		"name": "Matches",
-		"item": [
-			{
-			"name": "Calcular Matches",
-			"request": {
-				"method": "POST",
-				"header": [
-				{
-					"key": "Content-Type",
-					"value": "application/json"
-				}
-				],
-				"body": {
-				"mode": "raw",
-				"raw": "{\n  \"usuario\": {\n    \"id\": 42,\n    \"nome\": \"Maria\",\n    \"email\": \"maria@exemplo.com\",\n    \"telefone\": \"555-1234\",\n    \"senhaHash\": \"hash-segura\",\n    \"dataCadastro\": \"2025-06-01T10:00:00\",\n    \"tipo\": \"PESSOA\",\n    \"perfilUsuario\": \"ADOTANTE\"\n  },\n  \"pets\": [\n    {\n      \"id\": 1,\n      \"nome\": \"Rex\",\n      \"especie\": \"Cão\",\n      \"raca\": \"Labrador\",\n      \"idade\": 3,\n      \"porte\": \"MEDIO\"\n    },\n    {\n      \"id\": 2,\n      \"nome\": \"Mimi\",\n      \"especie\": \"Gato\",\n      \"raca\": \"Siamês\",\n      \"idade\": 2,\n      \"porte\": \"PEQUENO\"\n    }\n  ]\n}",
-				"options": {
-					"raw": {
-					"language": "json"
-					}
-				}
-				},
-				"url": {
-				"raw": "{{url}}/matches",
-				"host": [
-					"{{url}}"
-				],
-				"path": [
-					"matches"
-				]
-				}
-			},
-			"response": []
-			}
-		]
-		},
-		{
 			"name": "Pets",
 			"item": [
 				{
@@ -283,13 +281,66 @@
 					"response": []
 				},
 				{
+					"name": "Filtros do Pet",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/pets/petsPorFiltro?idadeMinima=1&idadeMaxima=10",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"pets",
+								"petsPorFiltro"
+							],
+							"query": [
+								{
+									"key": "especie",
+									"value": "cachorro",
+									"disabled": true
+								},
+								{
+									"key": "raca",
+									"value": "Viralata",
+									"disabled": true
+								},
+								{
+									"key": "idadeMinima",
+									"value": "1"
+								},
+								{
+									"key": "idadeMaxima",
+									"value": "10"
+								},
+								{
+									"key": "porte",
+									"value": "pequeno",
+									"disabled": true
+								},
+								{
+									"key": "sexo",
+									"value": "M",
+									"disabled": true
+								},
+								{
+									"key": "temHistoricoMedico",
+									"value": "true",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Atualizar Pet",
 					"request": {
 						"method": "PUT",
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"idUsuario\": 3,\r\n    \"nome\": \"Luna teste\",\r\n    \"especie\": \"Gato\",\r\n    \"raca\": \"VIRA-LATA\",\r\n    \"idade\": 2,\r\n    \"porte\": \"PEQUENO\",\r\n    \"peso\": 4.2,\r\n    \"sexo\": \"F\",\r\n    \"favorito\": false,\r\n    \"bio\": \"Gatinha tranquila que adora carinho\",\r\n    \"fotos\": null\r\n}",
+							"raw": "{\r\n    \"idUsuario\": 3,\r\n    \"nome\": \"Luna teste\",\r\n    \"especie\": \"Gato\",\r\n    \"raca\": \"VIRA-LATA\",\r\n    \"idadeAno\": 2,\r\n    \"idadeMes\": 5,\r\n    \"porte\": \"PEQUENO\",\r\n    \"peso\": 4.2,\r\n    \"sexo\": \"F\",\r\n    \"favorito\": false,\r\n    \"bio\": \"Gatinha tranquila que adora carinho\",\r\n    \"fotos\": null\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -361,7 +412,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"idUsuario\": 1,\r\n    \"nome\": \"tommy\",\r\n    \"especie\": \"Cachorro\",\r\n    \"raca\": \"RACA-O-LOCO-BICHO\",\r\n    \"idade\": 11,\r\n    \"porte\": \"ANAO\",\r\n    \"peso\": 2.2,\r\n    \"sexo\": \"F\",\r\n    \"favorito\": true,\r\n    \"bio\": \"Cachorro tranquilo que adora carinho\",\r\n    \"fotos\": null\r\n}",
+							"raw": "{\r\n    \"idUsuario\": 1,\r\n    \"nome\": \"tommy\",\r\n    \"especie\": \"Cachorro\",\r\n    \"raca\": \"RACA-O-LOCO-BICHO\",\r\n    \"idadeAno\": 11,\r\n    \"idadeMes\": 2,\r\n    \"porte\": \"ANAO\",\r\n    \"peso\": 2.2,\r\n    \"sexo\": \"F\",\r\n    \"favorito\": true,\r\n    \"bio\": \"Cachorro tranquilo que adora carinho\",\r\n    \"fotos\": null\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -386,24 +437,15 @@
 			]
 		},
 		{
-			"name": "Adoções",
+			"name": "Perfil de Match",
 			"item": [
 				{
-					"name": "(PROTETOR) Atualizar Status Adoção do Pet",
+					"name": "Retornar Perfil de Match do Usuario",
 					"request": {
-						"method": "PATCH",
+						"method": "GET",
 						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"idAdotante\": 2,\r\n    \"status\": \"Adotado\" // Adotado, Falecido, Disponivel, Perdido \r\n}\r\n",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
 						"url": {
-							"raw": "http://localhost:8080/api/adocoes/:id_pet/status",
+							"raw": "http://localhost:8080/api/perfil-match/usuario/3",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -411,33 +453,22 @@
 							"port": "8080",
 							"path": [
 								"api",
-								"adocoes",
-								":id_pet",
-								"status"
-							],
-							"variable": [
-								{
-									"key": "id_pet",
-									"value": "1"
-								}
+								"perfil-match",
+								"usuario",
+								"3"
 							]
 						}
 					},
 					"response": []
-				}
-			]
-		},
-		{
-			"name": "Auth",
-			"item": [
+				},
 				{
-					"name": "Login",
+					"name": "Criar ou Atualizar Perfil De Match do Usuario",
 					"request": {
-						"method": "POST",
+						"method": "PUT",
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"username\": \"joao2@email.com\",\r\n    \"password\": \"senhaSegura123\"\r\n}",
+							"raw": "{\r\n    \"gato\": true,\r\n    \"cachorro\": true,\r\n    \"macho\": false,\r\n    \"femea\": true,\r\n    \"pequeno\": false,\r\n    \"medio\": true,\r\n    \"grande\": true,\r\n    \"conviveBem\": true,\r\n    \"necessidadesEspeciais\": false,\r\n    \"raca\": \"Poodle, Viralata\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -445,7 +476,7 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:8080/api/login",
+							"raw": "http://localhost:8080/api/perfil-match/usuario/3",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -453,7 +484,31 @@
 							"port": "8080",
 							"path": [
 								"api",
-								"login"
+								"perfil-match",
+								"usuario",
+								"3"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Deletar Perfil de Match",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/perfil-match/usuario/3",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"perfil-match",
+								"usuario",
+								"3"
 							]
 						}
 					},
@@ -495,6 +550,324 @@
 					"response": []
 				}
 			]
+		},
+		{
+			"name": "Pets Favoritos",
+			"item": [
+				{
+					"name": "Registrar Pet Favorito",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"idUsuario\": 2,\r\n    \"idPet\": 2\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/pets-favoritos",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"pets-favoritos"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Pets Favoritos do Usuário",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/pets-favoritos/:idUsuario",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"pets-favoritos",
+								":idUsuario"
+							],
+							"variable": [
+								{
+									"key": "idUsuario",
+									"value": "2"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Deletar Pet Favorito do Usuário",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/pets-favoritos/:idUsuario/:idPet",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"pets-favoritos",
+								":idUsuario",
+								":idPet"
+							],
+							"variable": [
+								{
+									"key": "idUsuario",
+									"value": "2"
+								},
+								{
+									"key": "idPet",
+									"value": "3"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Solicitação de Adoção",
+			"item": [
+				{
+					"name": "(ADOTANTE) Listar Solicitação de Adoção do Usuário Adotante",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/solicitacoes-adocao/adotante/:idAdotante",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"solicitacoes-adocao",
+								"adotante",
+								":idAdotante"
+							],
+							"variable": [
+								{
+									"key": "idAdotante",
+									"value": "2"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Listar  Solicitações de Adoção do Pet",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/solicitacoes-adocao/pet/:idPet/situacao",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"solicitacoes-adocao",
+								"pet",
+								":idPet",
+								"situacao"
+							],
+							"variable": [
+								{
+									"key": "idPet",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "(ADOTANTE) Solicitar Adoção de Pet",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"idPet\": 1,\r\n    \"idAdotante\": 5\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/solicitacoes-adocao/adotante",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"solicitacoes-adocao",
+								"adotante"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "(PROTETOR) Atualizar Solicitação de Adoção",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"situacao\": \"Recusada\" // Aceita, Recusada, Pendente\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/solicitacoes-adocao/:idSolicitacao/situacao",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"solicitacoes-adocao",
+								":idSolicitacao",
+								"situacao"
+							],
+							"variable": [
+								{
+									"key": "idSolicitacao",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "(PROTETOR) Listar Solicitações de Adoção do Protetor",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/solicitacoes-adocao/protetor/:idProtetor",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"solicitacoes-adocao",
+								"protetor",
+								":idProtetor"
+							],
+							"variable": [
+								{
+									"key": "idProtetor",
+									"value": "3"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Adoções",
+			"item": [
+				{
+					"name": "(PROTETOR) Atualizar Status Adoção do Pet",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"idPet\": 1,\r\n    \"idProtetor\": 3,\r\n    \"idAdotante\": 1,\r\n    \"status\": \"Indisponivel\" // Adotado, Disponivel, Indisponivel \r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/adocoes/status",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"adocoes",
+								"status"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Status de Adoção do Pet",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/adocoes/:idPet",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"adocoes",
+								":idPet"
+							],
+							"variable": [
+								{
+									"key": "idPet",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Matches",
+			"item": [
+				{
+					"name": "Calcular Matches",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"usuario\": {\n    \"id\": 42,\n    \"nome\": \"Maria\",\n    \"email\": \"maria@exemplo.com\",\n    \"telefone\": \"555-1234\",\n    \"senhaHash\": \"hash-segura\",\n    \"dataCadastro\": \"2025-06-01T10:00:00\",\n    \"tipo\": \"PESSOA\",\n    \"perfilUsuario\": \"ADOTANTE\"\n  },\n  \"pets\": [\n    {\n      \"id\": 1,\n      \"nome\": \"Rex\",\n      \"especie\": \"Cão\",\n      \"raca\": \"Labrador\",\n      \"idade\": 3,\n      \"porte\": \"MEDIO\"\n    },\n    {\n      \"id\": 2,\n      \"nome\": \"Mimi\",\n      \"especie\": \"Gato\",\n      \"raca\": \"Siamês\",\n      \"idade\": 2,\n      \"porte\": \"PEQUENO\"\n    }\n  ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/matches",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"matches"
+							]
+						}
+					},
+					"response": []
+				}
+			]
 		}
 	],
 	"auth": {
@@ -502,7 +875,7 @@
 		"bearer": [
 			{
 				"key": "token",
-				"value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqb2FvMkBlbWFpbC5jb20iLCJ1c2VySWQiOjQsImlhdCI6MTc0ODk5MDc5MywiZXhwIjoxNzQ4OTk0MzkzfQ.55uLeXsYIgIBipbkiJdeaB5UVK_mWxFjcPwGmHwm5xU",
+				"value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqb2FvMkBlbWFpbC5jb20iLCJ1c2VySWQiOjYsImlhdCI6MTc1MDM3OTM3NCwiZXhwIjoxNzUwMzgyOTc0fQ.Edp18vbgrVB55Jzm7dqRs3MxKkCt9DvjIOLovQmtgRY",
 				"type": "string"
 			}
 		]

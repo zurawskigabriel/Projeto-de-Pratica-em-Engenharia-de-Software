@@ -1,308 +1,356 @@
 import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  TextInput,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-  Switch,
-  Modal,
+  View, Text, TextInput, StyleSheet,
+  TouchableOpacity, ScrollView,
+  KeyboardAvoidingView, Platform, Switch
 } from 'react-native';
-import { FontAwesome, FontAwesome5 } from '@expo/vector-icons';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { criarUsuario, fazerLogin } from '../api/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { decode as atob } from 'base-64';
 
+function analisarSenha(senha: string) {
+  const regras = [
+    { test: (s: string) => s.length >= 12, label: 'mínimo 12 caracteres' },
+    { regex: /[A-Z]/, label: 'letra maiúscula' },
+    { regex: /[a-z]/, label: 'letra minúscula' },
+    { regex: /[0-9]/, label: 'número' },
+    { regex: /[@#$%^&*!.,]/, label: 'caractere especial' }
+  ];
+  const status = regras.map(r => ({
+    label: r.label,
+    ok: r.regex ? r.regex.test(senha) : r.test(senha)
+  }));
+  const score = status.filter(s => s.ok).length;
+  const força = score <= 2 ? 'Fraca' : score === 3 ? 'Média' : score === 4 ? 'Boa' : 'Forte';
+  return { score, força, status };
+}
+
 export default function CadastrarScreen() {
-  const [senhaVisivel, setSenhaVisivel] = useState(false);
-  const [senhaRepetidaVisivel, setSenhaRepetidaVisivel] = useState(false);
-  const [promocoes, setPromocoes] = useState(false);
   const [tipoPessoa, setTipoPessoa] = useState<'queroAdotar' | 'queroDoar' | null>(null);
-  const [nome, setNome] = useState('');
-  const [cpf, setCpf] = useState('');
-  const [email, setEmail] = useState('');
-  const [telefone, setTelefone] = useState('');
-  const [senha, setSenha] = useState('');
-  const [senhaRepetida, setSenhaRepetida] = useState('');
+  const [inputs, setInputs] = useState({ nome: '', cpf: '', email: '', telefone: '', senha: '', senhaRep: '' });
+  const [visibilidades, setVisibilidades] = useState({ senha: false, senhaRep: false });
+  const [indicador, setIndicador] = useState({ score: 0, força: '', status: [] as { label: string; ok: boolean }[] });
+  const [showCrit, setShowCrit] = useState(false);
+  const [showMatch, setShowMatch] = useState(false);
+  const [promocoes, setPromocoes] = useState(false);
   const router = useRouter();
 
-  const formatarCPF = (texto: string) => {
-    return texto
-      .replace(/\D/g, '')
-      .slice(0, 11)
-      .replace(/(\d{3})(\d)/, '$1.$2')
-      .replace(/(\d{3})(\d)/, '$1.$2')
-      .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+  const handleChange = (key: string, value: string) => {
+    setInputs(prev => ({ ...prev, [key]: value }));
+    if (key === 'senha') {
+      const inv = analisarSenha(value);
+      setIndicador(inv);
+      if (!showCrit) setShowCrit(true);
+    }
   };
 
-  const formatarTelefone = (texto: string) => {
-    return texto
-      .replace(/\D/g, '')
-      .slice(0, 11)
-      .replace(/(\d{2})(\d)/, '($1) $2')
-      .replace(/(\d{5})(\d)/, '$1-$2')
-      .slice(0, 15);
-  };
-
-  const emailValido = (email: string) => {
-    return /\S+@\S+\.\S+/.test(email);
-  };
+  const emailValido = (em: string) => /\S+@\S+\.\S+/.test(em);
 
   const handleCadastro = async () => {
-    if (senha !== senhaRepetida) {
-      alert("As senhas não coincidem.");
-      return;
-    }
+    const { nome, cpf, email, telefone, senha, senhaRep } = inputs;
+    if (senha !== senhaRep) return alert('Senhas não coincidem.');
+    if (!emailValido(email)) return alert('E‑mail inválido.');
+    if (indicador.score < 4) return alert('Senha precisa ser forte.');
 
-    if (!emailValido(email)) {
-      alert("Digite um email válido.");
-      return;
-    }
-
-    const usuarioDTO = {
-      nome,
-      telefone,
-      email,
-      senha,
-      tipo: tipoPessoa === "queroAdotar" ? "PESSOA" : "ONG",
-      perfilUsuario: "ADOTANTE"
+    const dto = {
+      nome, cpf, email, telefone, senha,
+      tipo: tipoPessoa === 'queroAdotar' ? 'PESSOA' : 'ONG',
+      perfilUsuario: 'ADOTANTE', promocoes
     };
-
     try {
-      const resposta = await criarUsuario(usuarioDTO);
-      const loginResponse = await fazerLogin(email, senha);
-      const token = loginResponse.token;
-      const base64Payload = token.split('.')[1];
-      const decodedPayload = JSON.parse(atob(base64Payload));
-      const userId = decodedPayload.userId;
-
-      await AsyncStorage.setItem('token', token);
-      await AsyncStorage.setItem('userId', userId.toString());
-      alert("Cadastro concluído com sucesso!");
+      await criarUsuario(dto);
+      const resp = await fazerLogin(email, senha);
+      const payload = JSON.parse(atob(resp.token.split('.')[1]));
+      await AsyncStorage.multiSet([
+        ['token', resp.token],
+        ['userId', payload.userId.toString()]
+      ]);
+      alert('Cadastro bem‑sucedido!');
       router.replace('/Explorar');
-    } catch (error: any) {
-      alert(error.message || "Erro ao criar usuário.");
+    } catch (e: any) {
+      alert(e.message || 'Erro ao cadastrar.');
     }
   };
 
-  const renderFormulario = () => (
-    <>
-      <TouchableOpacity style={styles.voltar} onPress={() => setTipoPessoa(null)}>
-        <Ionicons name="arrow-back" size={24} color="black" />
+  const Formulario = () => (
+    <View style={styles.card}>
+      <TouchableOpacity onPress={() => setTipoPessoa(null)} style={styles.backBtn}>
+        <Ionicons name="arrow-back" size={24} color="#333" />
       </TouchableOpacity>
+      <Text style={styles.title}>Cadastrar Conta</Text>
 
-      <Text style={styles.title}>Cadastrar</Text>
+      {['nome','cpf','email','telefone'].map((ck, i) => (
+        <TextInput
+          key={ck}
+          style={styles.input}
+          placeholder={ck === 'email' ? 'E‑mail' : ck.charAt(0).toUpperCase() + ck.slice(1)}
+          placeholderTextColor="#aaa"
+          keyboardType={
+            ck === 'email' ? 'email-address' :
+            ck === 'telefone' ? 'phone-pad' :
+            'default'
+          }
+          value={(inputs as any)[ck]}
+          onChangeText={t => handleChange(ck, t)}
+        />
+      ))}
 
-      <TextInput style={styles.input} placeholder="Nome" value={nome} onChangeText={setNome} placeholderTextColor="#aaa" />
-      <TextInput style={styles.input} placeholder="CPF" value={cpf} onChangeText={text => setCpf(formatarCPF(text))} keyboardType="numeric" placeholderTextColor="#aaa" maxLength={14} />
-      <TextInput style={styles.input} placeholder="Email" value={email} onChangeText={setEmail} keyboardType="email-address" placeholderTextColor="#aaa" />
-      <TextInput style={styles.input} placeholder="Telefone" value={telefone} onChangeText={text => setTelefone(formatarTelefone(text))} keyboardType="phone-pad" placeholderTextColor="#aaa" maxLength={15} />
-
-      <View style={styles.inputComIcone}>
-        <TextInput style={styles.inputInterno} placeholder="Senha" value={senha} onChangeText={setSenha} placeholderTextColor="#aaa" secureTextEntry={!senhaVisivel} />
-        <TouchableOpacity onPress={() => setSenhaVisivel(!senhaVisivel)}>
-          <Ionicons name={senhaVisivel ? "eye-off" : "eye"} size={20} color="gray" />
+      <View style={styles.inputIcon}>
+        <TextInput
+          style={styles.passInput}
+          placeholder="Senha"
+          placeholderTextColor="#aaa"
+          secureTextEntry={!visibilidades.senha}
+          value={inputs.senha}
+          onChangeText={t => handleChange('senha', t)}
+        />
+        <TouchableOpacity onPress={() => setVisibilidades(prev => ({ ...prev, senha: !prev.senha }))}>
+          <Ionicons name={visibilidades.senha ? 'eye-off' : 'eye'} size={20} color="gray" />
         </TouchableOpacity>
       </View>
 
-      <View style={styles.inputComIcone}>
-        <TextInput style={styles.inputInterno} placeholder="Repita a senha" value={senhaRepetida} onChangeText={setSenhaRepetida} placeholderTextColor="#aaa" secureTextEntry={!senhaRepetidaVisivel} />
-        <TouchableOpacity onPress={() => setSenhaRepetidaVisivel(!senhaRepetidaVisivel)}>
-          <Ionicons name={senhaRepetidaVisivel ? "eye-off" : "eye"} size={20} color="gray" />
+      {showCrit && inputs.senha.length > 0 && (
+        <View style={styles.critList}>
+          {indicador.status.map(s => (
+            <Text key={s.label} style={{ color: s.ok ? '#2AA5FF' : '#F25F5C', marginBottom: 4 }}>
+              {s.ok ? '✓' : '✗'} {s.label}
+            </Text>
+          ))}
+        </View>
+      )}
+
+      <View style={styles.inputIcon}>
+        <TextInput
+          style={styles.passInput}
+          placeholder="Repita a senha"
+          placeholderTextColor="#aaa"
+          secureTextEntry={!visibilidades.senhaRep}
+          value={inputs.senhaRep}
+          onFocus={() => !showMatch && setShowMatch(true)}
+          onChangeText={t => handleChange('senhaRep', t)}
+        />
+        <TouchableOpacity onPress={() => setVisibilidades(prev => ({ ...prev, senhaRep: !prev.senhaRep }))}>
+          <Ionicons name={visibilidades.senhaRep ? 'eye-off' : 'eye'} size={20} color="gray" />
         </TouchableOpacity>
       </View>
+
+      {showMatch && inputs.senhaRep.length > 0 && (
+        <Text style={[
+          styles.matchText,
+          { color: inputs.senhaRep === inputs.senha ? '#2AA5FF' : '#F25F5C' }
+        ]}>
+          {inputs.senhaRep === inputs.senha ? '✓ Senhas iguais' : '✗ Senhas diferentes'}
+        </Text>
+      )}
 
       <View style={styles.checkboxRow}>
-        <Switch value={promocoes} onValueChange={setPromocoes} trackColor={{ false: '#ccc', true: '#000' }} thumbColor="#fff" />
-        <Text style={styles.checkboxLabel}>Eu gostaria de receber novidades e outras informações promocionais.</Text>
+        <Switch
+          value={promocoes}
+          onValueChange={setPromocoes}
+          trackColor={{ false: '#ccc', true: '#2AA5FF' }}
+          thumbColor="#fff"
+        />
+        <Text style={styles.checkboxLabel}>Receber promoções e novidades</Text>
       </View>
 
-      <Text style={styles.labelSocial}>Cadastrar com:</Text>
-      <View style={styles.socialIcons}>
-        <TouchableOpacity style={styles.icon}><FontAwesome name="facebook-f" size={18} color="white" /></TouchableOpacity>
-        <TouchableOpacity style={styles.icon}><FontAwesome5 name="google" size={18} color="white" /></TouchableOpacity>
-        <TouchableOpacity style={styles.icon}><FontAwesome name="instagram" size={18} color="white" /></TouchableOpacity>
-      </View>
-
-      <TouchableOpacity style={styles.botaoCadastrar} onPress={handleCadastro}>
-        <Text style={styles.botaoCadastrarTexto}>Cadastrar</Text>
+      <TouchableOpacity style={styles.submitBtn} onPress={handleCadastro} activeOpacity={0.8}>
+        <Text style={styles.submitText}>Cadastrar</Text>
       </TouchableOpacity>
-
-      <TouchableOpacity>
-        <Text style={styles.link}>Esqueceu a senha?</Text>
-      </TouchableOpacity>
-    </>
+    </View>
   );
 
-  if (!tipoPessoa) {
-    return (
-      <View style={styles.selectorContainer}>
-        <Text style={styles.botaoCadastrarTexto}>Inicialmente o que você pretende?</Text>
-        <TouchableOpacity style={styles.selectorButton} onPress={() => setTipoPessoa('queroAdotar')}>
-          <Text style={styles.selectorButtonText}>Quero Adotar</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.selectorButton} onPress={() => setTipoPessoa('queroDoar')}>
-          <Text style={styles.selectorButtonText}>Quero Doar</Text>
-        </TouchableOpacity>
+if (!tipoPessoa) {
+  return (
+    <View style={styles.selectorContainer}>
+      <View style={styles.selectorCard}>
+        <Text style={styles.selectorTitle}>Quem você é?</Text>
+        <View style={styles.optionsContainer}>
+          <TouchableOpacity
+            style={[styles.selectorBtn, styles.adotanteBtn]}
+            onPress={() => setTipoPessoa('queroAdotar')}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="heart" size={24} color="#FFF" style={styles.btnIcon} />
+            <Text style={styles.selectorText}>Adotante</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.selectorBtn, styles.doadorBtn]}
+            onPress={() => setTipoPessoa('queroDoar')}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="paw" size={24} color="#FFF" style={styles.btnIcon} />
+            <Text style={styles.selectorText}>Protetor</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-    );
-  }
+    </View>
+  );
+}
+
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-        {renderFormulario()}
+    <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <ScrollView contentContainerStyle={styles.scroll}>
+        {Formulario()}
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
-
 const styles = StyleSheet.create({
-  selectorContainer: {
+  // Tela principal
+  screen: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-    borderRadius: 12,
-  },
-  selectorButton: {
-    backgroundColor: '#F6F6F6',
-    borderRadius: 50,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    width: '100%',
-    alignItems: 'center',
-    marginVertical: 8,
-    borderColor: 'rgba(0, 0, 0, 0.2)',
-    borderWidth: 1,
-  },
-  selectorButtonText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F1F9FA',
   },
   scroll: {
-    padding: 20,
+    padding: 16,
+    paddingTop: 48,
   },
-  voltar: {
-    alignSelf: 'flex-start',
-    marginBottom: 10,
+
+  // Seletor inicial com relevo/card
+  selectorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  selectorCard: {
+    width: '100%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 24,
+    // Sombra cross‑platform (iOS e Android)
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 6,
+  }, // segue boas práticas de sombras em React Native :contentReference[oaicite:1]{index=1}
+  selectorTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#333',
+    marginBottom: 24,
+    textAlign: 'center',
+  },
+  optionsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  selectorBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 24,
+    paddingHorizontal: 40,
+    borderRadius: 26,
+  },
+  adotanteBtn: {
+    backgroundColor: '#219CD9',
+  },
+  doadorBtn: {
+    backgroundColor: '#86B9D1',
+  },
+  btnIcon: {
+    marginRight: 8,
+  },
+  selectorText: {
+    fontSize: 22,
+    fontWeight: '600',
+    color: '#FFF',
+  },
+
+  // Card de formulário
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  backBtn: {
+    position: 'absolute',
+    top: 16,
+    left: 16,
   },
   title: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: '700',
-    marginBottom: 20,
-    alignSelf: 'center',
+    color: '#333',
+    textAlign: 'center',
+    marginBottom: 24,
   },
+
+  // Inputs e senhas
   input: {
     backgroundColor: '#F6F6F6',
-    borderRadius: 10,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+    borderColor: '#DDD',
+    borderWidth: 1,
     fontSize: 16,
-    marginBottom: 16,
-    borderColor: 'rgba(0, 0, 0, 0.2)',
-    borderWidth: 1,
-    minHeight: 52,
   },
-  inputComIcone: {
+  inputIcon: {
     flexDirection: 'row',
-    backgroundColor: '#F6F6F6',
-    borderRadius: 10,
-    paddingHorizontal: 16,
     alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-    borderColor: 'rgba(0, 0, 0, 0.2)',
+    backgroundColor: '#F6F6F6',
+    borderRadius: 8,
+    borderColor: '#DDD',
     borderWidth: 1,
+    paddingHorizontal: 12,
+    marginBottom: 16,
     height: 52,
   },
-  inputInterno: {
+  passInput: {
     flex: 1,
     fontSize: 16,
   },
+
+  // Listas de validação
+  critList: {
+    marginBottom: 16,
+  },
+  matchText: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 16,
+  },
+
+  // Checkbox promocional
   checkboxRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 24,
   },
   checkboxLabel: {
     marginLeft: 10,
     fontSize: 14,
+    color: '#333',
     flex: 1,
   },
-  labelSocial: {
-    alignSelf: 'center',
-    fontSize: 14,
-    marginBottom: 10,
-  },
-  socialIcons: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 6,
-    marginBottom: 20,
-  },
-  icon: {
-    width: 36,
-    height: 36,
-    backgroundColor: '#000',
-    borderRadius: 6,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginHorizontal: 4,
-  },
-  botaoCadastrar: {
-    width: '100%',
-    backgroundColor: '#F6F6F6',
+
+  // Botão de envio
+  submitBtn: {
+    backgroundColor: '#219CD9',
     paddingVertical: 16,
     borderRadius: 50,
     alignItems: 'center',
-    marginBottom: 16,
-    borderColor: 'rgba(0, 0, 0, 0.2)',
-    borderWidth: 1,
+    shadowColor: '#219CD9',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 4,
   },
-  botaoCadastrarTexto: {
+  submitText: {
+    color: '#FFF',
     fontSize: 18,
     fontWeight: '600',
-  },
-  link: {
-    alignSelf: 'center',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContent: {
-    backgroundColor: '#fff',
-    padding: 24,
-    borderRadius: 12,
-    alignItems: 'center',
-    width: '80%',
-  },
-  modalTexto: {
-    fontSize: 18,
-    fontWeight: '500',
-    marginBottom: 16,
-  },
-  botaoOK: {
-    backgroundColor: 'white',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 50,
-    borderColor: 'black',
-    borderWidth: 3,
   },
 });

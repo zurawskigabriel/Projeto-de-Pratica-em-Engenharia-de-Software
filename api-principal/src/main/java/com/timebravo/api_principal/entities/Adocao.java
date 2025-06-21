@@ -25,6 +25,11 @@ public class Adocao {
     private Usuario adotante;
 
     @NotNull
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "Id_protetor", nullable = false)
+    private Usuario protetor;
+
+    @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "Status", nullable = false, length = 20)
     private StatusAdocao status;
@@ -35,13 +40,12 @@ public class Adocao {
          orphanRemoval = true,
          fetch = FetchType.LAZY
      )
-     private List<HistoricoAdocao> historicoAdocao = new ArrayList<>();
+    private List<HistoricoAdocao> historicoAdocao = new ArrayList<>();
 
     public enum StatusAdocao {
         Disponivel,
         Adotado,
-        Falecido,
-        Perdido
+        Indisponivel
     }
 
     public Long getId() { return id; }
@@ -52,6 +56,14 @@ public class Adocao {
 
     public Usuario getAdotante() { return adotante; }
     public void setAdotante(Usuario adotante) { this.adotante = adotante; }
+
+    public Usuario getProtetor() {
+        return protetor;
+    }
+
+    public void setProtetor(Usuario protetor) {
+        this.protetor = protetor;
+    }
 
     public StatusAdocao getStatus() { return status; }
     public void setStatus(StatusAdocao status) { this.status = status; }

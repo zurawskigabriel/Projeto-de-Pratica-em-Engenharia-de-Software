@@ -15,12 +15,12 @@ public class PetMapper {
         dto.setNome(pet.getNome());
         dto.setEspecie(pet.getEspecie());
         dto.setRaca(pet.getRaca());
-        dto.setIdade(pet.getIdade());
+        dto.setIdadeAno(pet.getIdadeAno());
+        dto.setIdadeMes(pet.getIdadeMes());
         dto.setPeso(pet.getPeso());
         dto.setBio(pet.getBio());
         dto.setFotos(pet.getFotos());
         dto.setSexo(pet.getSexo());
-        dto.setFavorito(pet.getFavorito());
 
         if (pet.getPorte() != null) {
             dto.setPorte(pet.getPorte().name());
@@ -42,12 +42,12 @@ public class PetMapper {
         pet.setNome(dto.getNome());
         pet.setEspecie(dto.getEspecie());
         pet.setRaca(dto.getRaca());
-        pet.setIdade(dto.getIdade());
+        pet.setIdadeAno(dto.getIdadeAno());
+        pet.setIdadeMes(dto.getIdadeMes());
         pet.setPeso(dto.getPeso());
         pet.setBio(dto.getBio());
         pet.setFotos(dto.getFotos());
         pet.setSexo(dto.getSexo());
-        pet.setFavorito(dto.getFavorito());
 
         if (dto.getPorte() != null) {
             pet.setPorte(Pet.PetPorte.valueOf(dto.getPorte()));

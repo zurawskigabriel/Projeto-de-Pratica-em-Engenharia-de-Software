@@ -20,6 +20,10 @@ public class Usuario {
         ADOTANTE, PROTETOR, AMBOS
     }
 
+    // Construtor vazio obrigatório para o Jackson
+    public Usuario() {
+    }
+
     // Construtor usado no Main (exemplo de parâmetros; ajuste conforme quiser)
     public Usuario(Long id, String nome, String email, String telefone,
                    String senhaHash, LocalDateTime dataCadastro,
@@ -34,7 +38,7 @@ public class Usuario {
         this.perfilUsuario = perfilUsuario;
     }
 
-    // Getters (pelo menos os que você usa em MatchService/Main):
+    // Getters
     public Long getId() { return id; }
     public String getNome() { return nome; }
     public String getEmail() { return email; }
@@ -44,7 +48,7 @@ public class Usuario {
     public TipoUsuario getTipo() { return tipo; }
     public PerfilUsuario getPerfilUsuario() { return perfilUsuario; }
 
-    // Se quiser também setters (opcional)
+    // Setters
     public void setId(Long id) { this.id = id; }
     public void setNome(String nome) { this.nome = nome; }
     public void setEmail(String email) { this.email = email; }

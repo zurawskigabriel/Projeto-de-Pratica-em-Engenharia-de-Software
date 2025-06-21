@@ -1,8 +1,10 @@
 package com.timebravo.api_principal.controllers;
 
 import com.timebravo.api_principal.dtos.PetDTO;
+import com.timebravo.api_principal.dtos.PetFavoritoDTO;
 import com.timebravo.api_principal.utils.AuthUtil;
 import com.timebravo.api_principal.services.PetService;
+import com.timebravo.api_principal.services.PetFavoritoService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -18,12 +20,14 @@ import java.util.Map;
 public class PetController {
 
     private final PetService petService;
+    private PetFavoritoService petFavoritoService;
     private final AuthUtil authUtil;
 
     @Autowired
-    public PetController(PetService petService, AuthUtil authUtil) {
+    public PetController(PetService petService, AuthUtil authUtil, PetFavoritoService petFavoritoService) {
         this.petService = petService;
         this.authUtil = authUtil;
+        this.petFavoritoService = petFavoritoService;
     }
 
     @PostMapping
@@ -80,5 +84,19 @@ public class PetController {
     public ResponseEntity<List<PetDTO>> buscarPetsDisponiveis() {
         List<PetDTO> petsDisponiveis = petService.buscarPetsDisponiveis();
         return ResponseEntity.ok(petsDisponiveis);
+    }
+
+    @GetMapping("/petsPorFiltro")
+    public ResponseEntity<List<PetDTO>> buscarPetsPorFiltro(
+        @RequestParam(required = false) String especie, 
+        @RequestParam(required = false) String raca, 
+        @RequestParam(required = false) Integer idadeMinima, 
+        @RequestParam(required = false) Integer idadeMaxima,
+        @RequestParam(required = false) String porte, 
+        @RequestParam(required = false) Character sexo,
+        @RequestParam(required = false) Boolean temHistoricoMedico) {
+        
+        List<PetDTO> petsFiltrados = petService.buscarPetsPorFiltro(especie, raca, idadeMinima, idadeMaxima, porte, sexo, temHistoricoMedico);
+        return ResponseEntity.ok(petsFiltrados);
     }
 }
