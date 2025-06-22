@@ -81,7 +81,7 @@ export default function CadastrarScreen() {
       </TouchableOpacity>
       <Text style={styles.title}>Cadastrar Conta</Text>
 
-      {['nome','cpf','email','telefone'].map((ck, i) => (
+      {['nome','CPF','email','telefone'].map((ck, i) => (
         <TextInput
           key={ck}
           style={styles.input}
@@ -238,18 +238,19 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   optionsContainer: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     justifyContent: 'space-around',
   },
   selectorBtn: {
     flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 24,
-    paddingHorizontal: 40,
-    borderRadius: 26,
+    alignItems: 'stretch',
+    paddingVertical: 25,
+    paddingHorizontal: 80,
+    borderRadius: 25,
   },
   adotanteBtn: {
     backgroundColor: '#219CD9',
+    marginBottom: 16
   },
   doadorBtn: {
     backgroundColor: '#86B9D1',
