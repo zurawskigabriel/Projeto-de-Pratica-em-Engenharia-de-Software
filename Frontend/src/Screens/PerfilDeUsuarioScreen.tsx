@@ -261,6 +261,16 @@ export default function UsuarioScreen() {
                 <Text style={styles.userDetail}>Tipo de conta: {usuario.perfilUsuario}</Text>
                 <Text style={styles.userDetail}>Desde: {new Date(usuario.dataCadastro).toLocaleDateString()}</Text>
 
+                {/* Botão para Solicitações de Adoção (Apenas para Protetores) */}
+                {(usuario.perfilUsuario === 'PROTETOR' || usuario.perfilUsuario === 'AMBOS') && (
+                  <TouchableOpacity
+                    style={[styles.botaoAcaoespecial, { marginTop: height * 0.02 }]}
+                    onPress={() => router.push('/SolicitacoesProtetor')}
+                  >
+                    <Text style={styles.botaoTexto}>Ver Solicitações de Adoção</Text>
+                  </TouchableOpacity>
+                )}
+
                 <TouchableOpacity style={[styles.botaoCinza, { marginTop: height * 0.025 }]} onPress={handleLogoff}>
                   <Text style={styles.botaoTexto}>Sair</Text>
                 </TouchableOpacity>
@@ -366,7 +376,15 @@ const styles = StyleSheet.create({
     fontSize: width * 0.045,
     color: '#000',
   },
-  
+  botaoAcaoespecial: { // Novo estilo para o botão de solicitações
+    backgroundColor: '#007bff', // Azul como exemplo
+    width: '100%',
+    marginHorizontal: width * 0.02,
+    borderRadius: height * 0.02,
+    paddingVertical: height * 0.02,
+    alignItems: 'center',
+    marginBottom: height * 0.015,
+  },
   botaoCinza: {
     backgroundColor: '#B0B0B0',
     width: '100%',
