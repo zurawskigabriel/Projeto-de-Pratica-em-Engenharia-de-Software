@@ -35,17 +35,25 @@ export default function ExplorarScreen() {
   const [showFilter, setShowFilter] = useState(false);
   const [canMatch, setCanMatch] = useState(false);
   const [matchActive, setMatchActive] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null); // Novo estado para userId
 
   useEffect(() => {
     const carregar = async () => {
       setLoading(true);
       const idStr = await AsyncStorage.getItem('userId');
-      const userId = parseInt(idStr || '', 10);
-      if (!userId) return setLoading(false);
+      const userIdFromStorage = idStr ? parseInt(idStr, 10) : null;
+
+      if (!userIdFromStorage) {
+        Alert.alert("Usuário não autenticado.");
+        setLoading(false);
+        // Idealmente, redirecionar para Login: navigation.replace('Login');
+        return;
+      }
+      setCurrentUserId(userIdFromStorage); // Armazena o userId no estado
 
       let perfilOk = false;
       try {
-        const perfil = await buscarPerfilMatch(userId);
+        const perfil = await buscarPerfilMatch(userIdFromStorage);
         perfilOk = !!perfil;
       } catch {
         perfilOk = false;
@@ -63,26 +71,41 @@ export default function ExplorarScreen() {
       }
 
       const [favAPI, allPets] = await Promise.all([
-        listarFavoritosDoUsuario(userId),
+        listarFavoritosDoUsuario(userIdFromStorage),
         listarPets()
       ]);
       const favMap: any = {};
       favAPI.forEach(f => favMap[f.idPet] = true);
       setFavoritos(favMap);
 
-      const otherPets = allPets.filter((p: any) => p.idUsuario !== userId);
-      setListaOriginal(otherPets);
+      // Não filtrar os pets do próprio usuário aqui, eles serão sinalizados no card
+      setListaOriginal(allPets);
 
       if (perfilOk) {
-        const scores = await buscarPontuacaoMatch(otherPets);
-        const enriched = otherPets.map(p => {
+        // Aplicar score de match a todos os pets, incluindo os do usuário se fizer sentido,
+        // ou ajustar buscarPontuacaoMatch para lidar com isso ou filtrar aqui.
+        // Por ora, vamos passar todos os pets para buscarPontuacaoMatch.
+        const scores = await buscarPontuacaoMatch(allPets);
+        const enriched = allPets.map(p => { // Usar allPets
           const found = scores.find((s: any) => s.id === p.id);
-          return { ...p, score: found?.score ?? 0 };
-        }).sort((a, b) => b.score - a.score);
+          // Pets do próprio usuário podem não ter score ou ter um score padrão (ex: 0 ou não mostrar)
+          // Se p.idUsuario === currentUserId, talvez o score não seja relevante da mesma forma.
+          // Vamos manter o score se existir, ou 0.
+          return { ...p, score: p.idUsuario === currentUserId ? undefined : (found?.score ?? 0) };
+        }).sort((a, b) => {
+            // Colocar pets do usuário no topo ou manter a ordenação por score?
+            // Por enquanto, apenas ordena por score, pets do usuário sem score irão para o final se score for undefined.
+            // Ou podemos dar prioridade se quisermos.
+            // Ajuste: pets do usuário sem score (undefined) devem ir para o final se ordenando por score.
+             if (a.score === undefined && b.score !== undefined) return 1; // a depois de b
+             if (a.score !== undefined && b.score === undefined) return -1; // a antes de b
+             if (a.score === undefined && b.score === undefined) return 0; // manter ordem original entre eles
+            return (b.score ?? 0) - (a.score ?? 0);
+        });
         setData(enriched);
         setMatchActive(true);
       } else {
-        setData(otherPets);
+        setData(allPets); // Usar allPets
       }
 
       setLoading(false);
@@ -153,10 +176,23 @@ export default function ExplorarScreen() {
     const imgSrc = item.especie?.toLowerCase().includes('cachorro')
       ? require('../../assets/dog.jpg')
       : require('../../assets/cat.jpg');
+    const isMyPet = item.idUsuario === currentUserId;
+
     return (
-      <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('PerfilPet', { id: item.id })}>
+      <TouchableOpacity
+        style={[styles.card, isMyPet && styles.myPetCardOutline]}
+        onPress={() => navigation.navigate('PerfilPet', { id: item.id })}
+      >
         <Image source={imgSrc} style={styles.petImage} />
-        {item.score !== undefined && (
+
+        {isMyPet && (
+          <View style={styles.myPetIndicator}>
+            <Ionicons name="home" size={14} color="#fff" />
+            <Text style={styles.myPetIndicatorText}>Seu Pet</Text>
+          </View>
+        )}
+
+        {item.score !== undefined && !isMyPet && ( // Não mostrar score para o próprio pet
           <View style={styles.scoreBadge}>
             <Text style={styles.scoreText}>{item.score.toFixed(0)}%</Text>
           </View>
@@ -356,4 +392,26 @@ const styles = StyleSheet.create({
   },
   filterOption: { paddingVertical: 10 },
   filterOptionText: { fontSize: 16 },
+  myPetCardOutline: {
+    borderColor: '#007bff', // Cor azul para destacar o card do próprio pet
+    borderWidth: 2,
+  },
+  myPetIndicator: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: 'rgba(0, 123, 255, 0.8)', // Azul com transparência
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    zIndex: 1, // Para ficar sobre a imagem/gradiente
+  },
+  myPetIndicatorText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: 'bold',
+    marginLeft: 4,
+  },
 });

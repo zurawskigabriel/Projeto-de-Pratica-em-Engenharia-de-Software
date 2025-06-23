@@ -264,10 +264,19 @@ export default function UsuarioScreen() {
                 {/* Botão para Solicitações de Adoção (Apenas para Protetores) */}
                 {(usuario.perfilUsuario === 'PROTETOR' || usuario.perfilUsuario === 'AMBOS') && (
                   <TouchableOpacity
-                    style={[styles.botaoAcaoespecial, { marginTop: height * 0.02 }]}
+                    style={[styles.botaoAcaoespecial, { marginTop: height * 0.02, backgroundColor: '#007bff' }]} // Cor azul para protetor
                     onPress={() => router.push('/SolicitacoesProtetor')}
                   >
-                    <Text style={styles.botaoTexto}>Ver Solicitações de Adoção</Text>
+                    <Text style={styles.botaoTexto}>Gerenciar Solicitações Recebidas</Text>
+                  </TouchableOpacity>
+                )}
+
+                {(usuario.perfilUsuario === 'ADOTANTE' || usuario.perfilUsuario === 'AMBOS') && (
+                  <TouchableOpacity
+                    style={[styles.botaoAcaoespecial, { marginTop: height * 0.02, backgroundColor: '#28a745' }]} // Cor verde para adotante
+                    onPress={() => router.push('/DetalhesSolicitacaoAdotante')}
+                  >
+                    <Text style={styles.botaoTexto}>Minhas Solicitações Enviadas</Text>
                   </TouchableOpacity>
                 )}
 

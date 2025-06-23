@@ -24,35 +24,35 @@
 }
 
 {
-    "idUsuario": 1,
+    "id": 1,
     "nome": "Rex",
     "especie": "Cachorro",
     "raca": "SRD (Sem Raça Definida)",
     "idadeAno": 2,
     "idadeMes": 3,
-    "porte": "MEDIO",
+    "porte": "Medio",
     "sexo": "M",
     "bio": "Rex é um cachorro muito brincalhão e cheio de energia. Adora correr no parque e se dá bem com crianças e outros cachorros."
 }
 {
-    "idUsuario": 1,
+    "id": 1,
     "nome": "Mia",
     "especie": "Gato",
     "raca": "Siamês",
     "idadeAno": 1,
     "idadeMes": 1,
-    "porte": "PEQUENO",
+    "porte": "Pequeno",
     "sexo": "F",
     "bio": "Mia é uma gatinha calma e carinhosa. Gosta de um bom colo e de tirar longas sonecas ao sol. É um pouco tímida no começo."
 }
 {
-    "idUsuario": 1,
+    "id": 1,
     "nome": "Thor",
     "especie": "Cachorro",
     "raca": "Labrador",
     "idadeAno": 0,
     "idadeMes": 8,
-    "porte": "GRANDE",
+    "porte": "Grande",
     "sexo": "M",
     "bio": "Apesar do nome, Thor é um filhotão muito dócil e um pouco medroso. Está aprendendo os comandos básicos e adora um petisco."
 }
