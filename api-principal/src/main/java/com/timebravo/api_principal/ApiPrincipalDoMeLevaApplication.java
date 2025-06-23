@@ -10,3 +10,4 @@ public class ApiPrincipalDoMeLevaApplication {
 		SpringApplication.run(ApiPrincipalDoMeLevaApplication.class, args);
 	}
 }
+

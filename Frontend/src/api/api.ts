@@ -4,47 +4,22 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const BASE_URL = "http://192.168.0.48:8080/api";
 const BASE_URL_GPT = "http://192.168.0.197:9000/api";
 
-export async function buscarSolicitacoesUsuario(idUsuario: number) {
-  const headers = await getAuthHeaders();
-
-  const response = await fetch(`${BASE_URL}/solicitacoes-adocao/adotante/${idUsuario}`, {
-    method: 'GET',
-    headers,
-  });
-
-  const texto = await response.text();
-
-  if (!response.ok) {
-    //throw new Error(`Erro ao buscar solicitações: ${texto}`);
-  }
-  
-  return JSON.parse(texto); // deve retornar uma lista de solicitações
-}
-
-export async function buscarSituacaoPet(idPet: number) {
-  const headers = await getAuthHeaders();
-
-  const response = await fetch(`${BASE_URL}/solicitacoes-adocao/pet/${idPet}/situacao`, {
-    method: 'GET',
-    headers,
-  });
-
-  if (response.status === 404) {
-    // Pet sem solicitações
-    return [];
-  }
-
-  const textoErro = await response.text();
-
-  if (!response.ok) {
-    console.error(`❌ Erro ao buscar situação do pet: ${response.status}`, textoErro);
-    //throw new Error(`Erro ${response.status}: ${textoErro}`);
-  }
-
-  return JSON.parse(textoErro);
+async function getAuthHeaders() {
+  const token = await AsyncStorage.getItem('token');
+  return {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
+  };
 }
 
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
+// Solicitação de Adoção
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Para o Adotante: Cria uma nova solicitação de adoção para um pet.
+ */
 export async function solicitarAdocaoPet(idPet: number, idAdotante: number) {
   const headers = await getAuthHeaders();
 
@@ -62,44 +37,96 @@ export async function solicitarAdocaoPet(idPet: number, idAdotante: number) {
   return true;
 }
 
-// Simula busca de pontuação de match para cada pet (score aleatório entre 0 e 100)
-export async function buscarPontuacaoMatch(pets) {
-  return pets.map(pet => ({
-    id: pet.id,
-    score: Math.random() * 100, // score aleatório entre 0 e 100
-  }));
-}
+/**
+ * Para o Adotante: Busca o histórico de solicitações de um usuário específico.
+ */
+export async function buscarSolicitacoesUsuario(idUsuario: number) {
+  const headers = await getAuthHeaders();
 
-export async function buscarPerfilMatchUsuario(userId) {
-  // Simula perfil preenchido para alguns usuários
-  if (userId === 1) {
-    return {
-      idUsuario: 1,
-      especiePreferida: 'cachorro',
-      faixaEtaria: 'jovem',
-      porte: 'médio',
-    };
+  const response = await fetch(`${BASE_URL}/solicitacoes-adocao/adotante/${idUsuario}`, {
+    method: 'GET',
+    headers,
+  });
+
+  if (!response.ok) {
+    // Permite que uma resposta vazia (sem solicitações) não seja um erro.
+    if (response.status === 404) return [];
+    const texto = await response.text();
+    throw new Error(`Erro ao buscar solicitações: ${texto}`);
   }
-  // Simula perfil não preenchido
-  return {};
+  
+  return await response.json(); // deve retornar uma lista de solicitações
+}
+
+/**
+ * Para o Protetor: Busca todas as solicitações de adoção para os pets de um protetor.
+ */
+export async function buscarSolicitacoesProtetor(idProtetor: number) {
+  const headers = await getAuthHeaders();
+
+  const response = await fetch(`${BASE_URL}/solicitacoes-adocao/protetor/${idProtetor}`, {
+    method: 'GET',
+    headers,
+  });
+  
+  if (!response.ok) {
+    if (response.status === 404) return [];
+    const texto = await response.text();
+    throw new Error(`Erro ao buscar solicitações do protetor: ${texto}`);
+  }
+
+  return await response.json();
+}
+
+/**
+ * Para o Protetor: Busca todas as solicitações de adoção para um pet específico.
+ */
+export async function buscarSolicitacoesPorPet(idPet: number) {
+  const headers = await getAuthHeaders();
+
+  const response = await fetch(`${BASE_URL}/solicitacoes-adocao/pet/${idPet}/situacao`, {
+    method: 'GET',
+    headers,
+  });
+
+  if (response.status === 404) {
+    // É normal um pet não ter solicitações, retorna lista vazia.
+    return [];
+  }
+
+  if (!response.ok) {
+    const textoErro = await response.text();
+    console.error(`❌ Erro ao buscar solicitações do pet: ${response.status}`, textoErro);
+    throw new Error(`Erro ${response.status}: ${textoErro}`);
+  }
+
+  return await response.json();
+}
+
+/**
+ * Para o Protetor: Atualiza a situação de uma solicitação (Aceita ou Recusada).
+ */
+export async function atualizarSituacaoSolicitacao(idSolicitacao: number, novaSituacao: 'Aceita' | 'Recusada') {
+    const headers = await getAuthHeaders();
+
+    const response = await fetch(`${BASE_URL}/solicitacoes-adocao/${idSolicitacao}/situacao`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify({ situacao: novaSituacao }),
+    });
+
+    if (!response.ok) {
+        const erro = await response.text();
+        throw new Error(`Erro ao atualizar situação da adoção: ${erro}`);
+    }
+
+    return true;
 }
 
 
-
-async function getAuthHeaders() {
-  const token = await AsyncStorage.getItem('token');
-  return {
-    'Content-Type': 'application/json',
-    Authorization: `Bearer ${token}`,
-  };
-}
-
-export function gerarLinkPet(id: number): string {
-  return `${BASE_URL}/pets/${id}`;
-}
-
-
-// ---------------- USUÁRIO ----------------
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
+// Usuário
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 export async function criarUsuario(dadosUsuario) {
   const response = await fetch(`${BASE_URL}/usuarios`, {
@@ -176,68 +203,19 @@ export async function atualizarUsuario(id, dados) {
   });
 
   if (!response.ok) {
-    const erro = await response.text(); // ← aqui ainda pode usar text()
-    throw new Error(`Erro ao atualizar usuário: ${erro}`);
-  }
-
-  return await response.json(); // retorna os dados atualizados
-}
-
-
-// ---------------- PETS ----------------
-
-export async function buscarStatusPet(idDoPet: number) {
-  const headers = await getAuthHeaders();
-
-  try {
-    const url = `${BASE_URL}/solicitacoes-adocao/pet/${idDoPet}/situacao`;
-    console.log(`📡 Fazendo requisição para: ${url}`);
-
-    const response = await fetch(url, {
-      method: 'GET',
-      headers,
-    });
-
-    const textoErro = await response.text();
-
-    if (!response.ok) {
-      //console.error(`❌ Erro HTTP ao buscar status do pet ${idDoPet}:`, response.status, textoErro);
-      //throw new Error(`Erro ${response.status}: ${textoErro}`);
-    }
-
-    const dados = JSON.parse(textoErro); // já pegou texto antes
-    console.log(`✅ Resposta da API para pet ${idDoPet}:`, dados);
-
-    return dados.length > 0 ? dados[dados.length - 1].situacao : 'Sem solicitação';
-
-  } catch (err) {
-    //console.error(`⚠️ Erro de rede ou código em buscarStatusPet(${idDoPet}):`, err.message);
-    //throw err;
-  }
-}
-
-
-export async function criarPet(dadosPet) {
-  const token = await AsyncStorage.getItem('token');
-
-  const response = await fetch(`${BASE_URL}/pets`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`, // ✅ Aqui garante que o Spring Security reconheça
-    },
-    body: JSON.stringify(dadosPet),
-  });
-
-  if (!response.ok) {
     const erro = await response.text();
-    throw new Error(`Erro ao criar pet: ${erro}`);
+    throw new Error(`Erro ao atualizar usuário: ${erro}`);
   }
 
   return await response.json();
 }
 
-export async function adicionarPet(dadosPet) {
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
+// Pet
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+export async function criarPet(dadosPet) {
   const headers = await getAuthHeaders();
 
   const response = await fetch(`${BASE_URL}/pets`, {
@@ -248,7 +226,7 @@ export async function adicionarPet(dadosPet) {
 
   if (!response.ok) {
     const erro = await response.text();
-    throw new Error(`Erro ao adicionar pet: ${erro}`);
+    throw new Error(`Erro ao criar pet: ${erro}`);
   }
 
   return await response.json();
@@ -270,7 +248,7 @@ export async function buscarPet(id: number) {
   return await response.json();
 }
 
-export async function listarPets(id: number) {
+export async function listarPets() {
   const headers = await getAuthHeaders();
 
   const response = await fetch(`${BASE_URL}/pets`, {
@@ -316,7 +294,7 @@ export async function atualizarPet(id: number, dadosPet) {
     throw new Error(`Erro ao atualizar pet: ${erro}`);
   }
 
-  return await response.json(); // retorna os dados atualizados do pet
+  return await response.json();
 }
 
 export async function favoritarPet(idUsuario: number, idPet: number) {
@@ -349,17 +327,15 @@ export async function listarFavoritosDoUsuario(idUsuario: number) {
     throw new Error(`Erro ao buscar favoritos: ${erro}`);
   }
 
-  return await response.json(); // espera-se uma lista de objetos com idPet
+  return await response.json();
 }
 
 export async function desfavoritarPet(idUsuario: number, idPet: number) {
-  const token = await AsyncStorage.getItem('token'); // ou como você guarda
+    const headers = await getAuthHeaders();
 
   const resposta = await fetch(`${BASE_URL}/pets-favoritos/${idUsuario}/${idPet}`, {
     method: 'DELETE',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-    },
+    headers,
   });
 
   if (!resposta.ok) {
@@ -369,7 +345,10 @@ export async function desfavoritarPet(idUsuario: number, idPet: number) {
   return true;
 }
 
-// ---------------- PERFIL DE MATCH ----------------
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
+// Perfil de Match
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
  * Busca o perfil de match de um usuário.
@@ -431,8 +410,28 @@ export async function excluirPerfilMatch(idUsuario: number) {
   return true; // Sucesso na exclusão ou perfil já não existia
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
+// Funções Mockadas / Simulações
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// Simula busca de pontuação de match para cada pet (score aleatório entre 0 e 100)
+export async function buscarPontuacaoMatch(pets) {
+  return pets.map(pet => ({
+    id: pet.id,
+    score: Math.random() * 100, // score aleatório entre 0 e 100
+  }));
+}
 
-
-// ... (resto do arquivo)
-
+export async function buscarPerfilMatchUsuario(userId) {
+  // Simula perfil preenchido para alguns usuários
+  if (userId === 1) {
+    return {
+      idUsuario: 1,
+      especiePreferida: 'cachorro',
+      faixaEtaria: 'jovem',
+      porte: 'médio',
+    };
+  }
+  // Simula perfil não preenchido
+  return {};
+}
