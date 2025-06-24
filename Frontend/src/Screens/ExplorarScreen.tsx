@@ -17,8 +17,9 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import Footer from '../components/Footer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import theme, { COLORS, FONTS, SIZES, SHADOWS } from '../../theme/theme'; // Importar o tema
 
-const { width, height } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window'); // Manter por enquanto
 const SEX_FILTERS = ['todos', 'M', 'F'];
 const cardSpacing = width * 0.02;
 const cardWidth = (width - cardSpacing * 3) / 2;
@@ -292,126 +293,203 @@ export default function ExplorarScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#F2F6F9' },
+  screen: {
+    flex: 1,
+    backgroundColor: COLORS.background
+  },
   header: {
-    height: 60,
+    height: SIZES.headerHeight,
     flexDirection: 'row',
-    alignItems: 'center', justifyContent: 'center',
-    paddingHorizontal: 16,
-    backgroundColor: '#FFF',
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1, shadowRadius: 4, elevation: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: SIZES.spacingRegular,
+    backgroundColor: COLORS.cardBackground,
+    ...SHADOWS.light,
   },
-  title: { fontSize: 24, fontWeight: 'bold', color: '#333' },
-  addButton: {
-    position: 'absolute', right: 16,
-    backgroundColor: '#2AA5FF', width: 44, height: 44,
-    borderRadius: 22, alignItems: 'center', justifyContent: 'center',
-    shadowColor: '#2AA5FF', shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.3, shadowRadius: 4, elevation: 3,
+  title: {
+    fontSize: FONTS.sizeXLarge, // Mantido XLarge para o título principal da tela
+    fontFamily: FONTS.familyBold,
+    color: COLORS.text
   },
-
+  addButton: { // Botão de Match/Perfil
+    position: 'absolute',
+    right: SIZES.spacingRegular,
+    // backgroundColor: COLORS.primary, // Cor será dinâmica
+    width: SIZES.hp(5.5), // ~44px
+    height: SIZES.hp(5.5),
+    borderRadius: SIZES.hp(2.75),
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...SHADOWS.regular,
+    borderWidth: 1, // Adicionando uma borda para quando não está ativo
+    borderColor: COLORS.borderColor,
+  },
   searchBox: {
-    backgroundColor: '#FFF',
-    margin: 16, paddingHorizontal: 12,
-    flexDirection: 'row', alignItems: 'center',
-    borderRadius: 50,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05, shadowRadius: 3, elevation: 1,
+    backgroundColor: COLORS.cardBackground,
+    margin: SIZES.spacingRegular,
+    paddingHorizontal: SIZES.spacingMedium,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: SIZES.borderRadiusCircle, // Bem arredondado
+    ...SHADOWS.light,
+    height: SIZES.inputHeight,
   },
-  input: { flex: 1, height: 40, fontSize: 16, marginLeft: 8 },
-  filterBtn: { padding: 8 },
-
-  listContainer: { paddingHorizontal: 16, paddingBottom: 24 },
+  input: {
+    flex: 1,
+    fontSize: FONTS.sizeRegular,
+    marginLeft: SIZES.spacingSmall,
+    fontFamily: FONTS.familyRegular,
+    color: COLORS.text,
+  },
+  filterBtn: {
+    padding: SIZES.spacingSmall
+  },
+  listContainer: {
+    paddingHorizontal: SIZES.spacingRegular,
+    paddingBottom: SIZES.spacingLarge
+  },
   card: {
-    flexDirection: 'row', alignItems: 'center',
-    backgroundColor: '#FFF', borderRadius: 12,
-    padding: 12, marginBottom: 12,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06, shadowRadius: 3, elevation: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.cardBackground,
+    borderRadius: SIZES.borderRadiusMedium,
+    padding: SIZES.spacingMedium,
+    marginBottom: SIZES.spacingRegular, // Aumentado um pouco
+    ...SHADOWS.regular,
+    position: 'relative', // Para o myPetIndicator
+  },
+  myPetCardOutline: {
+    borderColor: COLORS.primary, // Usando a cor primária do tema
+    borderWidth: 2,
   },
   petImage: {
-    width: 68, height: 68, borderRadius: 34,
-    marginRight: 12, backgroundColor: '#DDD',
+    width: SIZES.wp(18),
+    height: SIZES.wp(18),
+    borderRadius: SIZES.wp(9),
+    marginRight: SIZES.spacingMedium,
+    backgroundColor: COLORS.borderColorLight,
   },
-  infoBox: { flex: 1, justifyContent: 'center' },
-  nameRow: { flexDirection: 'row', alignItems: 'center' },
-  petName: { fontSize: 18, fontWeight: '600', color: '#222' },
-  nameIcon: { marginLeft: 6 },
-  petSub: { fontSize: 14, color: '#666', marginTop: 2 },
-
-  favIcon: { marginLeft: 12 },
-
+  infoBox: {
+    flex: 1,
+    justifyContent: 'center'
+  },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center'
+  },
+  petName: {
+    fontSize: FONTS.sizeMedium,
+    fontFamily: FONTS.familyBold,
+    color: COLORS.text
+  },
+  nameIcon: {
+    marginLeft: SIZES.spacingSmall,
+    color: COLORS.textSecondary, // Cor mais sutil para o ícone de sexo
+  },
+  petSub: {
+    fontSize: FONTS.sizeSmall,
+    fontFamily: FONTS.familyRegular,
+    color: COLORS.textSecondary,
+    marginTop: SIZES.spacingTiny
+  },
+  favIcon: {
+    marginLeft: SIZES.spacingRegular, // Aumentado o espaçamento
+    padding: SIZES.spacingTiny, // Área de toque
+  },
   scoreBadge: {
-    position: 'absolute', top: 8, left: 8,
-    backgroundColor: '#FFF', padding: 4, borderRadius: 8,
+    position: 'absolute',
+    top: SIZES.spacingSmall,
+    left: SIZES.spacingSmall,
+    backgroundColor: COLORS.white,
+    paddingVertical: SIZES.spacingTiny / 2,
+    paddingHorizontal: SIZES.spacingSmall,
+    borderRadius: SIZES.borderRadiusRegular,
+    ...SHADOWS.light,
   },
-  scoreText: { fontSize: 12, fontWeight: '600', color: '#333' },
-  shadow: {
+  scoreText: {
+    fontSize: FONTS.sizeXSmall,
+    fontFamily: FONTS.familyBold,
+    color: COLORS.primary
+  },
+  shadow: { // Gradiente na imagem, se mantido, verificar se cardHeight ainda é usado
     position: 'absolute', bottom: 0, left: 0, right: 0,
-    height: cardHeight * 0.25,
-  },
-
-  emptyState: {
-    alignItems: 'center',
-    marginTop: height * 0.2,
-    paddingHorizontal: 40,
-  },
-  emptyTitle: {
-    fontSize: width * 0.06,
-    fontWeight: '600',
-    marginTop: 20,
-    color: '#333',
-  },
-  emptyBtn: {
-    marginTop: 24, backgroundColor: '#2AA5FF',
-    paddingVertical: 14, paddingHorizontal: 28,
-    borderRadius: 30,
-    shadowColor: '#2AA5FF',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 5,
-    elevation: 4,
-  },
-  emptyBtnText: {
-    color: '#FFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-
-  modalOverlay: {
-    flex: 1, backgroundColor: 'rgba(0,0,0,0.8)',
-    justifyContent: 'center', alignItems: 'center',
-  },
-  modalContent: {
-    backgroundColor: '#fff', borderRadius: 10,
-    padding: 20, width: 250,
-  },
-  modalTitle: {
-    fontSize: 18, fontWeight: 'bold', marginBottom: 10,
-  },
-  filterOption: { paddingVertical: 10 },
-  filterOptionText: { fontSize: 16 },
-  myPetCardOutline: {
-    borderColor: '#007bff', // Cor azul para destacar o card do próprio pet
-    borderWidth: 2,
+    height: cardHeight * 0.25, // cardHeight precisa ser definido ou recalculado com SIZES
+    borderBottomLeftRadius: SIZES.borderRadiusMedium, // Para acompanhar o card
+    borderBottomRightRadius: SIZES.borderRadiusMedium,
   },
   myPetIndicator: {
     position: 'absolute',
-    top: 8,
-    right: 8,
-    backgroundColor: 'rgba(0, 123, 255, 0.8)', // Azul com transparência
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
+    top: SIZES.spacingSmall,
+    right: SIZES.spacingSmall,
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: SIZES.spacingSmall,
+    paddingVertical: SIZES.spacingTiny / 2,
+    borderRadius: SIZES.borderRadiusLarge, // Mais arredondado
     flexDirection: 'row',
     alignItems: 'center',
-    zIndex: 1, // Para ficar sobre a imagem/gradiente
+    zIndex: 1,
+    ...SHADOWS.light,
   },
   myPetIndicatorText: {
-    color: '#fff',
-    fontSize: 10,
-    fontWeight: 'bold',
-    marginLeft: 4,
+    color: COLORS.white,
+    fontSize: FONTS.sizeXXSmall, // Menor para o badge
+    fontFamily: FONTS.familyBold,
+    marginLeft: SIZES.spacingTiny,
+  },
+  emptyState: {
+    alignItems: 'center',
+    marginTop: SIZES.hp(15),
+    paddingHorizontal: SIZES.wp(10),
+  },
+  emptyTitle: {
+    fontSize: FONTS.sizeXLarge,
+    fontFamily: FONTS.familyBold,
+    marginTop: SIZES.spacingLarge,
+    color: COLORS.text,
+    textAlign: 'center',
+  },
+  emptyBtn: {
+    marginTop: SIZES.spacingXLarge,
+    backgroundColor: COLORS.primary,
+    paddingVertical: SIZES.spacingRegular,
+    paddingHorizontal: SIZES.spacingLarge,
+    borderRadius: SIZES.borderRadiusCircle,
+    ...SHADOWS.regular,
+  },
+  emptyBtnText: {
+    color: COLORS.white,
+    fontSize: FONTS.sizeRegular,
+    fontFamily: FONTS.familyBold,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)', // Overlay um pouco mais escuro
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: COLORS.cardBackground,
+    borderRadius: SIZES.borderRadiusMedium,
+    padding: SIZES.spacingLarge,
+    width: SIZES.wp(80), // 80% da largura da tela
+    ...SHADOWS.strong,
+  },
+  modalTitle: {
+    fontSize: FONTS.sizeLarge,
+    fontFamily: FONTS.familyBold,
+    marginBottom: SIZES.spacingMedium,
+    color: COLORS.text,
+    textAlign: 'center',
+  },
+  filterOption: {
+    paddingVertical: SIZES.spacingRegular,
+    borderBottomWidth: SIZES.borderWidthThin,
+    borderBottomColor: COLORS.borderColorLight,
+  },
+  filterOptionText: {
+    fontSize: FONTS.sizeRegular,
+    fontFamily: FONTS.familyRegular,
+    color: COLORS.text,
+    textAlign: 'center',
   },
 });

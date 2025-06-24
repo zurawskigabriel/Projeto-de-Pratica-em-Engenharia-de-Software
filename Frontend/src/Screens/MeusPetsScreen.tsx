@@ -8,10 +8,11 @@ import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { FontAwesome } from '@expo/vector-icons';
 import Footer from '../components/Footer';
-import { listarPets } from '../api/api'; // buscarStatusPet e buscarSolicitacoesUsuario removidas
-import { useRouter } from 'expo-router'; // Adicionado na última modificação, mas garantindo
+import { listarPets } from '../api/api';
+import { useRouter } from 'expo-router';
+import theme, { COLORS, FONTS, SIZES, SHADOWS } from '../../theme/theme'; // Importar o tema
 
-const { width, height } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window'); // Manter por enquanto, pode ser substituído por SIZES.wp/hp
 
 export default function MeusPetsScreen() {
   const navigation = useNavigation(); // Será substituído por useRouter de expo-router
@@ -183,113 +184,143 @@ export default function MeusPetsScreen() {
 
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#F2F6F9' },
+  screen: {
+    flex: 1,
+    backgroundColor: COLORS.background
+  },
   header: {
-    height: 60, flexDirection: 'row',
-    alignItems: 'center', justifyContent: 'center',
-    paddingHorizontal: 16, backgroundColor: '#FFF',
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1, shadowRadius: 4, elevation: 2,
-  },
-  title: { fontSize: 24, fontWeight: 'bold', color: '#333' },
-  addButton: {
-    position: 'absolute', right: 16,
-    backgroundColor: '#2AA5FF', width: 44, height: 44,
-    borderRadius: 22, alignItems: 'center', justifyContent: 'center',
-    shadowColor: '#2AA5FF', shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.3, shadowRadius: 4, elevation: 3,
-  },
-  listContainer: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 24 },
-
-  sectionTitle: {
-    fontSize: 20, marginTop: 16, marginBottom: 8,
-    fontWeight: '600', color: '#555',
-  },
-
-  card: {
-    flexDirection: 'row', alignItems: 'center',
-    backgroundColor: '#FFF', borderRadius: 12,
-    padding: 12, marginBottom: 12,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06, shadowRadius: 3, elevation: 2,
-  },
-  cardAdotando: { backgroundColor: '#E0F7FA' },
-
-  petImage: {
-    width: 68, height: 68, borderRadius: 34,
-    marginRight: 12, backgroundColor: '#DDD',
-  },
-  info: { flex: 1, justifyContent: 'center' },
-  nameRow: { flexDirection: 'row', alignItems: 'center' },
-  petName: { fontSize: 18, fontWeight: '600', color: '#222' },
-  petSexIcon: { marginLeft: 6, color: '#888' },
-  petDetails: { fontSize: 14, color: '#666', marginTop: 2 },
-  petStatus: { fontSize: 13, color: '#007AFF', marginTop: 2 },
-
-  emptyState: {
-    alignItems: 'center',
-    marginTop: height * 0.2,
-    paddingHorizontal: 40,
-  },
-  emptyTitle: {
-    fontSize: width * 0.06,
-    fontWeight: '600',
-    marginTop: 20,
-    color: '#333',
-  },
-  emptySubtitle: {
-    fontSize: width * 0.04,
-    color: '#666',
-    textAlign: 'center',
-    marginTop: 8,
-  },
-  emptyBtn: {
-    marginTop: 24,
-    backgroundColor: '#2AA5FF',
-    paddingVertical: 14,
-    paddingHorizontal: 28,
-    borderRadius: 30,
-    shadowColor: '#2AA5FF',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 5,
-    elevation: 4,
-  },
-  emptyBtnText: {
-    color: '#FFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  // Estilos para o PetCard e Menu de Opções
-  cardContent: { // Novo container para o conteúdo clicável do card, excluindo o botão de menu
+    height: SIZES.headerHeight,
     flexDirection: 'row',
     alignItems: 'center',
-    flex: 1, // Para ocupar o espaço disponível
+    justifyContent: 'center', // Centraliza o título
+    paddingHorizontal: SIZES.spacingRegular,
+    backgroundColor: COLORS.cardBackground, // Fundo branco para o header
+    ...SHADOWS.light, // Sombra sutil no header
+  },
+  title: {
+    fontSize: FONTS.sizeLarge, // Ajustado para um tamanho de título mais padrão
+    fontFamily: FONTS.familyBold,
+    color: COLORS.text,
+  },
+  addButton: {
+    position: 'absolute',
+    right: SIZES.spacingRegular,
+    backgroundColor: COLORS.primary,
+    width: SIZES.iconLarge, // Tamanho do ícone como base
+    height: SIZES.iconLarge,
+    borderRadius: SIZES.iconLarge / 2, // Circular
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...SHADOWS.regular, // Sombra para o botão de adicionar
+  },
+  listContainer: {
+    paddingHorizontal: SIZES.spacingRegular,
+    paddingTop: SIZES.spacingRegular,
+    paddingBottom: SIZES.spacingLarge, // Mais padding no final da lista
+  },
+  // sectionTitle: { // Removido pois não há mais seções separadas
+  //   fontSize: FONTS.sizeLarge,
+  //   fontFamily: FONTS.familyBold,
+  //   marginTop: SIZES.spacingRegular,
+  //   marginBottom: SIZES.spacingSmall,
+  //   color: COLORS.textSecondary,
+  // },
+  card: {
+    backgroundColor: COLORS.cardBackground,
+    borderRadius: SIZES.borderRadiusMedium,
+    marginBottom: SIZES.spacingRegular,
+    ...SHADOWS.regular,
+    // O flexDirection: 'row' e alignItems: 'center' estão implícitos pelo cardContent e menuButton
+  },
+  cardContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: SIZES.spacingMedium, // Padding dentro do conteúdo clicável
+    flex: 1,
+  },
+  petImage: {
+    width: SIZES.wp(18),
+    height: SIZES.wp(18),
+    borderRadius: SIZES.borderRadiusCircle, // Para garantir circularidade
+    marginRight: SIZES.spacingMedium,
+    backgroundColor: COLORS.borderColorLight, // Placeholder visual
+  },
+  info: {
+    flex: 1,
+    justifyContent: 'center'
+  },
+  petName: {
+    fontSize: FONTS.sizeMedium,
+    fontFamily: FONTS.familyBold,
+    color: COLORS.text
+  },
+  petSexIcon: {
+    marginLeft: SIZES.spacingSmall,
+    // A cor é definida inline agora
+  },
+  petDetails: {
+    fontSize: FONTS.sizeSmall,
+    fontFamily: FONTS.familyRegular,
+    color: COLORS.textSecondary,
+    marginTop: SIZES.spacingTiny,
   },
   menuButton: {
-    padding: 8, // Área de clique maior para o ícone
-    marginLeft: 'auto', // Empurra o botão para a direita
+    padding: SIZES.spacingSmall,
+    position: 'absolute', // Posiciona o botão de menu no canto do card
+    top: SIZES.spacingSmall,
+    right: SIZES.spacingSmall,
+    zIndex: 1, // Garante que o botão de menu esteja acima do conteúdo do card
   },
   menuOptions: {
     position: 'absolute',
-    right: width * 0.03, // Posiciona perto do ícone de menu
-    top: height * 0.05, // Ajustar conforme necessário
-    backgroundColor: 'white',
-    borderRadius: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-    zIndex: 10, // Para garantir que apareça sobre outros elementos
+    right: SIZES.spacingMedium + SIZES.spacingTiny, // Ajustado para alinhar melhor com o ícone
+    top: SIZES.spacingMedium + SIZES.spacingSmall,      // Ajustado
+    backgroundColor: COLORS.cardBackground,
+    borderRadius: SIZES.borderRadiusRegular,
+    paddingVertical: SIZES.spacingSmall,
+    ...SHADOWS.strong, // Sombra mais forte para o menu
+    zIndex: 100, // Para garantir que o menu apareça sobre tudo
   },
   menuItem: {
-    paddingVertical: 10,
+    paddingVertical: SIZES.spacingRegular,
+    paddingHorizontal: SIZES.spacingMedium,
   },
   menuItemText: {
-    fontSize: 16,
-    color: '#333',
+    fontSize: FONTS.sizeRegular,
+    fontFamily: FONTS.familyRegular,
+    color: COLORS.text,
+  },
+  emptyState: {
+    alignItems: 'center',
+    marginTop: SIZES.hp(15), // Porcentagem da altura da tela
+    paddingHorizontal: SIZES.wp(10), // Porcentagem da largura da tela
+  },
+  emptyTitle: {
+    fontSize: FONTS.sizeXLarge,
+    fontFamily: FONTS.familyBold,
+    marginTop: SIZES.spacingLarge,
+    color: COLORS.text,
+    textAlign: 'center',
+  },
+  emptySubtitle: {
+    fontSize: FONTS.sizeRegular,
+    fontFamily: FONTS.familyRegular,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    marginTop: SIZES.spacingSmall,
+    lineHeight: FONTS.sizeRegular * 1.5, // Melhorar legibilidade
+  },
+  emptyBtn: {
+    marginTop: SIZES.spacingXLarge,
+    backgroundColor: COLORS.primary,
+    paddingVertical: SIZES.spacingRegular,
+    paddingHorizontal: SIZES.spacingLarge,
+    borderRadius: SIZES.borderRadiusCircle, // Botão bem arredondado
+    ...SHADOWS.regular,
+  },
+  emptyBtnText: {
+    color: COLORS.white,
+    fontSize: FONTS.sizeRegular,
+    fontFamily: FONTS.familyBold,
   },
 });
