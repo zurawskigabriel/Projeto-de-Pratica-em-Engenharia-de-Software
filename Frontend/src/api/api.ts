@@ -1,13 +1,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios'; // Importar Axios para controle de timeout
 
-//const BASE_URL = "http://192.168.0.197:8080/api";
-const BASE_URL = "http://192.168.0.48:8080/api";
-const BASE_URL_GPT = "http://192.168.0.197:9000/api";
+//const BASE_URL = "http://192.168.0.197:8080/api"; // Endereço Allan
+const BASE_URL = "http://192.168.0.48:8080/api";    // Endereço Gabriel
 
-// URL do serviço de match (ajuste conforme necessário)
-// const MATCH_ALLAN_URL = "http://127.0.0.1:9000"; // Endereço padrão do FastAPI
-const MATCH_ALLAN_URL = "http://192.168.0.48:9000"; // Enderço Gabriel
+// const MATCH_ALLAN_URL = "http://127.0.0.1:9000"; // Endereço padrão do FastAPI (Allan)
+const MATCH_ALLAN_URL = "http://192.168.0.48:9000"; // Endereço Gabriel
 
 async function getAuthHeaders() {
   const token = await AsyncStorage.getItem('token');
@@ -17,8 +15,6 @@ async function getAuthHeaders() {
   };
 }
 
-// ... (todas as outras funções de API: solicitarAdocaoPet, criarUsuario, etc. permanecem as mesmas)
-// ... (cole aqui todas as suas funções existentes que não foram alteradas)
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
 // Solicitação de Adoção
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -423,29 +419,32 @@ export async function excluirPerfilMatch(idUsuario: number) {
 
 /**
  * Transforma o perfil do usuário para o formato esperado pela API de Match.
- * ESTA FUNÇÃO CORRIGE O BUG DE INCOMPATIBILIDADE DE DADOS.
+ * O objeto do perfil já vem com a estrutura correta, então esta função
+ * apenas garante a tipagem correta dos dados antes do envio.
  */
 function formatarPerfilParaMatchAPI(perfilUsuario: any) {
-    // Valores padrão para evitar erros se os campos estiverem ausentes
-    const especie = perfilUsuario.especiePreferida || 'ambos';
-    const sexo = perfilUsuario.sexoPreferido || 'ambos';
-    const porte = perfilUsuario.portePreferido || 'todos';
+  // O objeto 'perfilUsuario' já vem no formato correto.
+  // Apenas garantimos que os tipos estão corretos e que campos essenciais existem.
+  if (perfilUsuario.usuarioId == null) { // Checa tanto null quanto undefined
+    throw new Error("O 'usuarioId' está ausente no perfil recebido e é obrigatório.");
+  }
 
-    return {
-        id: perfilUsuario.id || 0,
-        usuarioId: perfilUsuario.idUsuario,
-        gato: especie === 'gato' || especie === 'ambos',
-        cachorro: especie === 'cachorro' || especie === 'ambos',
-        macho: sexo === 'macho' || sexo === 'ambos',
-        femea: sexo === 'femea' || sexo === 'ambos',
-        pequeno: porte === 'pequeno' || porte === 'todos',
-        medio: porte === 'medio' || porte === 'todos',
-        grande: porte === 'grande' || porte === 'todos',
-        conviveBem: perfilUsuario.conviveBemComOutrosAnimais || false,
-        necessidadesEspeciais: perfilUsuario.aceitaPetComNecessidadesEspeciais || false,
-        raca: perfilUsuario.racaPreferida || 'qualquer',
-    };
+  return {
+    id: Number(perfilUsuario.id || 0),
+    usuarioId: Number(perfilUsuario.usuarioId),
+    gato: Boolean(perfilUsuario.gato),
+    cachorro: Boolean(perfilUsuario.cachorro),
+    macho: Boolean(perfilUsuario.macho),
+    femea: Boolean(perfilUsuario.femea),
+    pequeno: Boolean(perfilUsuario.pequeno),
+    medio: Boolean(perfilUsuario.medio),
+    grande: Boolean(perfilUsuario.grande),
+    conviveBem: Boolean(perfilUsuario.conviveBem),
+    necessidadesEspeciais: Boolean(perfilUsuario.necessidadesEspeciais),
+    raca: String(perfilUsuario.raca || ''),
+  };
 }
+
 
 
 /**
@@ -458,21 +457,28 @@ export async function iniciarAvaliacaoMatch(userId: number, perfilUsuario: any, 
   
   const perfilFormatado = formatarPerfilParaMatchAPI(perfilUsuario);
 
-  const petsFormatados = pets.map(p => ({
-    id: p.id,
-    nome: p.nome || "N/I",
-    especie: p.especie || "N/I",
-    sexo: p.sexo || "N/I",
-    porte: p.porte || "N/I",
-    raca: p.raca || "N/I",
-    idadeAno: p.idadeAno || 0,
-    idadeMes: p.idadeMes || 0,
-    peso: p.peso || 0,
-    bio: p.bio || "",
-    idUsuario: p.idUsuario,
-    fotos: p.fotos || [],
-    historicoMedico: p.historicoMedico || [],
-  }));
+  const petsFormatados = pets.map(p => {
+      // Garante que o pet seja um objeto válido para evitar erros
+      if (!p || typeof p !== 'object') {
+          return null; // ou lançar um erro, ou continuar
+      }
+
+      return {
+          id: Number(p.id) || 0,
+          nome: String(p.nome || "Não informado"),
+          especie: String(p.especie || "Não informada"),
+          sexo: String(p.sexo || "Não informado"),
+          porte: String(p.porte || "Não informado"),
+          raca: String(p.raca || "Não informada"),
+          idadeAno: Number(p.idadeAno) || 0,
+          idadeMes: Number(p.idadeMes) || 0,
+          peso: parseFloat(String(p.peso)) || 0.0,
+          bio: String(p.bio || ""),
+          idUsuario: Number(p.idUsuario) || 0,
+          fotos: Array.isArray(p.fotos) ? p.fotos : [],
+          historicoMedico: Array.isArray(p.historicoMedico) ? p.historicoMedico : []
+      };
+  }).filter(p => p !== null); // Remove pets que eram inválidos
 
   const requestBody = {
     perfil: perfilFormatado,

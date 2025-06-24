@@ -121,6 +121,7 @@ export default function ExplorarScreen() {
 
     try {
       const perfilCompleto = await buscarPerfilMatch(currentUserId);
+      console.log("Estrutura do Perfil Recebido:", JSON.stringify(perfilCompleto, null, 2));
       if (!perfilCompleto) {
         Alert.alert(
           'Perfil de Match Não Encontrado',
