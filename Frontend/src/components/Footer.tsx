@@ -41,7 +41,7 @@ export default function Footer() {
           { text: 'Cadastrar', onPress: () => navigation.navigate('Cadastrar') }
         ]
       );
-    } else if (userType === 'adotante' && screenName === 'MeusPets') {
+    } else if (userType === 'ADOTANTE' && screenName === 'MeusPets') {
       Alert.alert(
         'Funcionalidade restrita',
         'Para cadastrar pets e gerenciar seus pets, você precisa criar uma conta como protetor.',
@@ -58,7 +58,7 @@ export default function Footer() {
   return (
     <View style={styles.footer}>
       {/* Botão Meus Pets - Apenas para Protetor */}
-      {userType === 'protetor' && (
+      {userType === 'PROTETOR' && (
         <TouchableOpacity
           style={styles.footerItem}
           onPress={() => handlePress('MeusPets')}
@@ -84,7 +84,7 @@ export default function Footer() {
       </TouchableOpacity>
 
       {/* Botão Solicitações - Apenas para Protetor */}
-      {userType === 'protetor' && (
+      {userType === 'PROTETOR' && (
         <TouchableOpacity
           style={styles.footerItem}
           onPress={() => handlePress('SolicitacoesProtetor')}
@@ -99,7 +99,7 @@ export default function Footer() {
       )}
 
       {/* Botão Minhas Adoções - Apenas para Adotante */}
-      {userType === 'adotante' && (
+      {userType === 'ADOTANTE' && (
         <TouchableOpacity
           style={styles.footerItem}
           onPress={() => handlePress('DetalhesSolicitacaoAdotante')}

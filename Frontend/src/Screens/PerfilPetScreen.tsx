@@ -45,6 +45,7 @@ export default function PerfilPet() {
   const [adotando, setAdotando] = useState(false);
   const [meuUsuarioId, setMeuUsuarioId] = useState<number | null>(null);
   const [tipoUsuario, setTipoUsuario] = useState<string | null>(null);
+  const [telefoneProtetor, setTelefoneProtetor] = useState<string | null>(null);
 
   useEffect(() => {
     const carregarPet = async () => {
@@ -76,6 +77,7 @@ export default function PerfilPet() {
         if (petNormalizado.idUsuario) {
           const dono = await buscarUsuarioPorId(petNormalizado.idUsuario);
           setNomeProtetor(dono?.nome ?? '');
+          setTelefoneProtetor(dono?.telefone ?? null); // Assumindo que 'telefone' existe no objeto do usuário
         }
   
         if (idUsuarioAtual && petNormalizado?.id) {
@@ -377,7 +379,7 @@ export default function PerfilPet() {
       <Text style={styles.buttonTextBase}>Excluir Pet</Text>
     </TouchableOpacity>
   </>
-) : tipoUsuario === 'protetor' ? (
+) : tipoUsuario === 'PROTETOR' ? (
   <View style={styles.infoCard}>
     <Text style={styles.infoText}>Para adotar, por favor, crie uma conta como adotante.</Text>
   </View>
@@ -431,23 +433,26 @@ export default function PerfilPet() {
 
     <TouchableOpacity
       style={[styles.actionButtonBase, styles.contatarButton]}
+      disabled={!telefoneProtetor} // Desabilita o botão se não houver telefone
       onPress={() => {
-        const numeroWhatsApp =
-          nomeProtetor && pet.idUsuario
-            ? 'NUMERO_DO_PROTETOR_AQUI' // Substituir pelo número real ou lógica para obtê-lo
-            : '5555996168060'; // Fallback
+        if (!telefoneProtetor) {
+          Alert.alert('Contato Indisponível', 'O número de telefone do protetor não está disponível.');
+          return;
+        }
+        // Remove caracteres não numéricos do telefone (ex: (xx) xxxxx-xxxx -> xxxxxxxxxxx)
+        const numeroLimpo = telefoneProtetor.replace(/\D/g, '');
         const mensagem = `Olá, ${
           nomeProtetor || 'protetor(a)'
         }! Tenho interesse no pet ${pet.nome} (ID: ${
           pet.id
         }) que vi no Me Adota.`;
-        const url = `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(
+        const url = `https://wa.me/${numeroLimpo}?text=${encodeURIComponent(
           mensagem
         )}`;
         Linking.openURL(url).catch(err =>
           Alert.alert(
             'Erro',
-            'Não foi possível abrir o WhatsApp. Verifique se está instalado.'
+            'Não foi possível abrir o WhatsApp. Verifique se está instalado e se o número é válido.'
           )
         );
       }}
