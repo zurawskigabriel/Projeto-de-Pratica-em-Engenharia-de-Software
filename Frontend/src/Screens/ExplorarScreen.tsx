@@ -1,18 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, TextInput, FlatList, Image,
-  TouchableOpacity, ActivityIndicator, Dimensions, Modal,
+  TouchableOpacity, ActivityIndicator, Modal,
   Pressable, StyleSheet, Alert, Platform
 } from 'react-native';
 import { Ionicons, FontAwesome } from '@expo/vector-icons';
-import { useNavigation, useIsFocused } from '@react-navigation/native'; // Adicionado useIsFocused
+import { useNavigation, useIsFocused } from '@react-navigation/native';
 import {
   listarPets,
   listarFavoritosDoUsuario,
   favoritarPet,
   desfavoritarPet,
-  buscarPontuacaoMatch,
   buscarPerfilMatch,
+  iniciarAvaliacaoMatch,
+  verificarStatusMatch,
+  limparResultadoMatch
 } from '../api/api';
 import { LinearGradient } from 'expo-linear-gradient';
 import Footer from '../components/Footer';
@@ -27,184 +29,165 @@ const cardHeightExplorar = SIZES.hp(28);
 
 export default function ExplorarScreen() {
   const navigation = useNavigation();
-  const isFocused = useIsFocused(); // Hook para saber se a tela está focada
+  const isFocused = useIsFocused();
   const [data, setData] = useState<any[]>([]);
-  const [listaOriginal, setListaOriginal] = useState<any[]>([]); // Lista de pets sem score de match
+  const [listaOriginal, setListaOriginal] = useState<any[]>([]);
   const [favoritos, setFavoritos] = useState<{ [key: number]: boolean }>({});
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('todos');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true); // Começa como true para mostrar o loading inicial
   const [showFilter, setShowFilter] = useState(false);
-  const [canMatch, setCanMatch] = useState(false); // Indica se o usuário tem perfil de match
-  const [matchActive, setMatchActive] = useState(false); // Indica se os scores de match estão sendo exibidos
+  const [canMatch, setCanMatch] = useState(false);
+  const [matchActive, setMatchActive] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
-  const [isFirstLoad, setIsFirstLoad] = useState(true);
 
-  // Função para carregar todos os pets e favoritos
-  const loadAllPetsAndFavorites = async (userId: number) => {
+  const [isMatching, setIsMatching] = useState(false);
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const isFirstLoadRef = useRef(true); // Usando ref para controlar o primeiro carregamento
+
+  const stopPolling = () => {
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
+      pollingIntervalRef.current = null;
+    }
+  };
+
+  const fetchData = async (showAlertOnNoProfile = false) => {
+    setLoading(true);
+    setMatchActive(false); // Desativa o match ao recarregar
+    stopPolling(); // Para qualquer polling anterior
+
     try {
+      const idStr = await AsyncStorage.getItem('userId');
+      const userId = idStr ? parseInt(idStr, 10) : null;
+      if (!userId) {
+        Alert.alert("Usuário não autenticado.");
+        setLoading(false);
+        return;
+      }
+      setCurrentUserId(userId);
+
       const [favAPI, allPetsResponse] = await Promise.all([
         listarFavoritosDoUsuario(userId),
         listarPets()
       ]);
-
       const favMap: { [key: number]: boolean } = {};
       favAPI.forEach(f => { if(f.idPet) favMap[f.idPet] = true; });
       setFavoritos(favMap);
 
       const allPets = allPetsResponse.filter(p => p);
-      setListaOriginal(allPets); // Guarda a lista original sem scores
-      setData(allPets); // Inicialmente, exibe todos os pets sem scores de match
-      setMatchActive(false); // Garante que o modo match está desativado no carregamento inicial
+      setListaOriginal(allPets);
+      setData(allPets);
+
+      const perfil = await buscarPerfilMatch(userId);
+      setCanMatch(!!perfil);
+
+      if (showAlertOnNoProfile && !perfil) {
+        const promptDismissed = await AsyncStorage.getItem('matchProfilePromptDismissed');
+        if (promptDismissed !== 'true') {
+          Alert.alert(
+            'Complete seu Perfil de Match!',
+            'Para encontrar os pets que mais combinam com você, que tal criar seu perfil de compatibilidade agora?',
+            [
+              { text: 'Criar Perfil', onPress: () => navigation.navigate('PerfilMatch') },
+              {
+                text: 'Agora não',
+                style: 'cancel',
+                onPress: async () => {
+                  await AsyncStorage.setItem('matchProfilePromptDismissed', 'true');
+                },
+              },
+            ],
+            { cancelable: false }
+          );
+        }
+      }
     } catch (error) {
-      console.error("Erro ao buscar dados dos pets ou favoritos:", error);
-      Alert.alert("Erro", "Não foi possível carregar os pets. Tente atualizar.");
+      console.error("Erro ao buscar dados:", error);
+      Alert.alert("Erro", "Não foi possível carregar os pets. Tente novamente.");
       setData([]);
       setListaOriginal([]);
-    }
-  };
-
-  // Função principal para buscar dados e verificar perfil de match
-  const fetchData = async (showAlertOnNoProfile = false) => {
-    setLoading(true);
-    const idStr = await AsyncStorage.getItem('userId');
-    const userIdFromStorage = idStr ? parseInt(idStr, 10) : null;
-
-    if (!userIdFromStorage) {
-      Alert.alert("Usuário não autenticado.");
-      setLoading(false);
-      return;
-    }
-    setCurrentUserId(userIdFromStorage);
-
-    // Carrega todos os pets e favoritos primeiro
-    await loadAllPetsAndFavorites(userIdFromStorage);
-
-    // Verifica o perfil de match
-    let perfilOk = false;
-    try {
-      const perfil = await buscarPerfilMatch(userIdFromStorage);
-      perfilOk = !!perfil;
-    } catch (error) {
-      console.warn("Erro ao buscar perfil match:", error);
-      perfilOk = false;
-    }
-    setCanMatch(perfilOk);
-
-    // Alerta para preencher o perfil de match na primeira carga, se aplicável
-    if (showAlertOnNoProfile && !perfilOk) {
-      const promptDismissed = await AsyncStorage.getItem('matchProfilePromptDismissed');
-      if (promptDismissed !== 'true') {
-        Alert.alert(
-          'Complete seu Perfil de Match!',
-          'Para encontrar os pets que mais combinam com você, que tal criar seu perfil de compatibilidade agora?',
-          [
-            {
-              text: 'Criar Perfil',
-              onPress: () => navigation.navigate('PerfilMatch'),
-            },
-            {
-              text: 'Agora não',
-              style: 'cancel',
-              onPress: async () => {
-                try {
-                  await AsyncStorage.setItem('matchProfilePromptDismissed', 'true');
-                } catch (e) {
-                  console.error("Erro ao salvar dismiss do prompt:", e);
-                }
-              },
-            },
-          ],
-          { cancelable: false }
-        );
-      }
-    }
-    setLoading(false);
-    setIsFirstLoad(false);
-  };
-
-  // NOVO: Função para calcular e exibir os scores de match
-  const calculateAndDisplayMatchScores = async () => {
-    if (!currentUserId) {
-      Alert.alert("Erro", "ID do usuário não disponível.");
-      return;
-    }
-    setLoading(true);
-    try {
-      const perfilCompleto = await buscarPerfilMatch(currentUserId);
-      if (!perfilCompleto) {
-        Alert.alert(
-          'Perfil de Match Não Encontrado',
-          'Por favor, crie ou atualize seu perfil de match antes de calcular a compatibilidade.',
-          [{ text: 'OK', onPress: () => navigation.navigate('PerfilMatch') }]
-        );
-        setLoading(false);
-        setMatchActive(false);
-        // Volta para a lista original sem scores se o perfil não for encontrado
-        setData(listaOriginal);
-        return;
-      }
-
-      const petsToEvaluate = listaOriginal.filter(p => p.idUsuario !== currentUserId); // Não avalia pets do próprio usuário
-      const scores = await buscarPontuacaoMatch(perfilCompleto, petsToEvaluate);
-
-      const enriched = listaOriginal.map(p => {
-        const found = scores.find((s: any) => s.id === p.id);
-        return { 
-          ...p, 
-          // Se o pet for do usuário logado, score é undefined para não mostrar % e não ser filtrado por match.
-          // Se não for do usuário, usa o score encontrado ou 0 por padrão.
-          score: p.idUsuario === currentUserId ? undefined : (found?.score ?? 0) 
-        };
-      }).sort((a, b) => {
-        // Lógica de ordenação: pets com score vêm primeiro, depois pets sem score (do usuário)
-        // E dentro dos com score, ordena do maior para o menor.
-        if (a.score === undefined && b.score !== undefined) return 1; // a (sem score) depois de b (com score)
-        if (a.score !== undefined && b.score === undefined) return -1; // a (com score) antes de b (sem score)
-        if (a.score === undefined && b.score === undefined) return 0; // ambos sem score, mantém ordem
-        return (b.score ?? 0) - (a.score ?? 0); // Ordena por score descendente
-      });
-
-      setData(enriched);
-      setMatchActive(true); // Ativa o modo match (com scores exibidos)
-
-    } catch (error) {
-      console.error("Erro ao calcular e exibir scores de match:", error);
-      Alert.alert("Erro", "Não foi possível calcular os scores de match.");
-      setMatchActive(false);
-      setData(listaOriginal); // Volta para a lista original em caso de erro
     } finally {
       setLoading(false);
     }
   };
 
-
-  useEffect(() => {
-    if (isFirstLoad) {
-      fetchData(true); // Tenta buscar dados e alerta para perfil na primeira carga
+  const handleMatchRequest = async () => {
+    if (!currentUserId) {
+      Alert.alert("Erro", "ID do usuário não disponível.");
+      return;
     }
-    // Ouve o foco da tela para atualizar dados (mas não alerta sobre perfil toda vez)
-    const unsubscribe = navigation.addListener('focus', () => {
-      // Se a tela for focada novamente (e não for a primeira carga), recarrega sem o alerta de perfil
-      if (!isFirstLoad) {
-        fetchData(false); 
-      }
-    });
+    setIsMatching(true);
 
-    return unsubscribe;
-  }, [navigation, isFirstLoad, isFocused]); // Adicionado isFocused para garantir re-renderização ao voltar para a tela
+    try {
+      const perfilCompleto = await buscarPerfilMatch(currentUserId);
+      if (!perfilCompleto) {
+        Alert.alert(
+          'Perfil de Match Não Encontrado',
+          'Por favor, crie seu perfil de match antes de calcular.',
+          [{ text: 'OK', onPress: () => navigation.navigate('PerfilMatch') }]
+        );
+        setIsMatching(false);
+        return;
+      }
+      
+      const petsToEvaluate = listaOriginal.filter(p => p.idUsuario !== currentUserId);
+      await iniciarAvaliacaoMatch(currentUserId, perfilCompleto, petsToEvaluate);
+
+      pollingIntervalRef.current = setInterval(async () => {
+        const statusResponse = await verificarStatusMatch(currentUserId);
+        if (statusResponse.status === 'completed') {
+          stopPolling();
+          const scores = statusResponse.result || [];
+          const enriched = listaOriginal.map(p => {
+            const found = scores.find((s: any) => s.id === p.id);
+            return { 
+              ...p, 
+              score: p.idUsuario === currentUserId ? undefined : (found?.score ?? 0) 
+            };
+          }).sort((a, b) => (b.score ?? -1) - (a.score ?? -1));
+          
+          setData(enriched);
+          setMatchActive(true);
+          setIsMatching(false);
+          await limparResultadoMatch(currentUserId);
+          Alert.alert("Match Concluído!", "Encontramos os pets que mais combinam com você.");
+        } else if (statusResponse.status === 'error') {
+          stopPolling();
+          setIsMatching(false);
+          Alert.alert("Erro no Match", statusResponse.message || "Ocorreu um erro ao processar a compatibilidade.");
+        }
+      }, 5000);
+    } catch (error) {
+      stopPolling();
+      setIsMatching(false);
+      Alert.alert("Erro", error.message);
+    }
+  };
+
+  // LÓGICA DE CARREGAMENTO CORRIGIDA
+  useEffect(() => {
+    if (isFocused) {
+      if (isFirstLoadRef.current) {
+        isFirstLoadRef.current = false; // Marca que o primeiro carregamento já ocorreu
+        fetchData(true); // Busca dados e mostra o alerta de perfil se necessário
+      } else {
+        fetchData(false); // Nas próximas vezes, apenas busca os dados
+      }
+    }
+    return () => {
+      stopPolling(); // Cleanup ao sair da tela
+    };
+  }, [isFocused]); // Depende APENAS de 'isFocused'
 
   const handleRefresh = () => {
-    // Ao invés de chamar fetchData(false), garante que apenas os pets sejam recarregados e o match desativado
-    fetchData(false); // Isso vai recarregar tudo e desativar o modo match
-    setSearchTerm(''); // Limpa a busca
-    setSelectedFilter('todos'); // Reseta o filtro
+    fetchData(false);
+    setSearchTerm('');
+    setSelectedFilter('todos');
   };
 
   const toggleFav = async (pid: number) => {
-    const idStr = await AsyncStorage.getItem('userId');
-    const userId = parseInt(idStr || '', 10);
-    if (!userId) return;
+    if (!currentUserId) return;
     const isFav = !!favoritos[pid];
     Alert.alert(
       isFav ? 'Remover dos favoritos?' : 'Adicionar aos favoritos?',
@@ -214,9 +197,13 @@ export default function ExplorarScreen() {
         {
           text: isFav ? 'Remover' : 'Adicionar',
           onPress: async () => {
-            if (isFav) await desfavoritarPet(userId, pid);
-            else await favoritarPet(userId, pid);
-            setFavoritos(prev => ({ ...prev, [pid]: !isFav }));
+            try {
+              if (isFav) await desfavoritarPet(currentUserId, pid);
+              else await favoritarPet(currentUserId, pid);
+              setFavoritos(prev => ({ ...prev, [pid]: !isFav }));
+            } catch (error) {
+              Alert.alert("Erro", "Não foi possível atualizar os favoritos.");
+            }
           }
         }
       ]
@@ -227,7 +214,6 @@ export default function ExplorarScreen() {
     const termo = searchTerm.toLowerCase();
     const ageStr = `${p.idadeAno}a ${p.idadeMes}m`.toLowerCase();
     
-    // Filtro de busca
     const matchesSearch = 
       p.nome.toLowerCase().includes(termo) ||
       p.raca.toLowerCase().includes(termo) ||
@@ -235,23 +221,10 @@ export default function ExplorarScreen() {
 
     if (!matchesSearch) return false;
 
-    // Filtro de sexo
     if (selectedFilter !== 'todos' && p.sexo !== selectedFilter) return false;
-
-    // Filtro de score: Mostrar pets com score 0 ou negativo apenas se o match NÃO estiver ativo
-    // OU se o score for indefinido (meu pet), OU se o score for maior que 0.
-    // Assim, removemos a linha problemática que escondia pets com score <= 0 quando o match estava ativo.
-    // Agora, se o match estiver ativo, o pet será exibido com seu score (mesmo que 0), a menos que você queira filtrar
-    // especificamente pets com score 0 para não aparecerem. Por padrão, deixarei aparecer.
-    
-    // Se você *ainda* quiser esconder pets com score 0 quando o match está ativo,
-    // descomente e use a linha abaixo, mas considere se é a UX desejada:
-    // if (matchActive && typeof p.score === 'number' && p.score <= 0 && p.idUsuario !== currentUserId) return false;
     
     return true;
   });
-
-  // Removida a função ordenarMatch, que será substituída pelos novos botões
 
   const PetCardSquare = ({ item }: { item: any }) => {
     if (!item) return null;
@@ -314,7 +287,7 @@ export default function ExplorarScreen() {
       </TouchableOpacity>
     );
   };
-
+  
   const FilterModal = () => (
     <Modal visible={showFilter} transparent animationType="fade" onRequestClose={() => setShowFilter(false)}>
       <View style={styles.modalOverlay}>
@@ -337,6 +310,20 @@ export default function ExplorarScreen() {
 
   return (
     <View style={styles.screen}>
+      <Modal
+        transparent={true}
+        animationType="fade"
+        visible={isMatching}
+      >
+        <View style={styles.modalOverlay}>
+            <View style={styles.processingModalContent}>
+                <ActivityIndicator size="large" color={COLORS.primary} />
+                <Text style={styles.processingText}>Buscando pets ideais para você...</Text>
+                <Text style={styles.processingSubText}>Isso pode levar um minuto.</Text>
+            </View>
+        </View>
+      </Modal>
+
       <View style={styles.topBarContainer}>
         <View style={styles.searchBox}>
           <Ionicons name="search" size={SIZES.iconMedium} color={COLORS.textSecondary} />
@@ -356,60 +343,45 @@ export default function ExplorarScreen() {
       <FilterModal />
 
       {loading ? (
-        <ActivityIndicator style={{ marginTop: 40 }} size="large" color="#2AA5FF" />
-      ) : filtered.length > 0 ? (
+        <ActivityIndicator style={{ flex: 1 }} size="large" color={COLORS.primary} />
+      ) : (
         <FlatList
           data={filtered}
           numColumns={2}
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.listContainerSquare}
           renderItem={PetCardSquare}
-          ListEmptyComponent={!loading && filtered.length === 0 ? (
+          ListEmptyComponent={
             <View style={styles.emptyState}>
-              <FontAwesome name="search" size={SIZES.iconLarge * 1.5} color={COLORS.textSecondary} style={{ opacity: 0.7 }} />
-              <Text style={styles.emptyTitle}>Nenhum pet por aqui.</Text>
+              <FontAwesome name="paw" size={64} color="#B6E1FA" />
+              <Text style={styles.emptyTitle}>Nenhum pet encontrado.</Text>
               <Text style={styles.emptySubtitle}>Tente ajustar sua busca ou filtros.</Text>
-              {/* Botão para criar perfil de match na tela de vazio, se necessário */}
             </View>
-          ) : null}
+          }
         />
-      ) : (
-        <View style={styles.emptyState}>
-          <FontAwesome name="paw" size={64} color="#B6E1FA" />
-          <Text style={styles.emptyTitle}>Nenhum pet encontrado.</Text>
-          {/* Botão para criar perfil de match na tela de vazio */}
-        </View>
       )}
 
       <Footer />
 
-      {/* Botões Flutuantes (FABs) */}
-      {/* NOVO: Botão para ir para o Perfil de Match */}
       <TouchableOpacity
         style={styles.fabMatchProfileStyle}
         onPress={() => navigation.navigate('PerfilMatch')}
       >
-        <Ionicons
-          name="person-circle-outline" // Ícone representativo para perfil
-          size={SIZES.iconLarge}
-          color={COLORS.white}
-        />
+        <Ionicons name="person-circle-outline" size={SIZES.iconLarge} color={COLORS.white} />
       </TouchableOpacity>
 
-      {/* NOVO: Botão para Atualizar Scores de Match (substitui o antigo ordenarMatch) */}
       <TouchableOpacity
         style={[styles.fabUpdateMatchScoresStyle, !canMatch && styles.fabDisabled]}
-        onPress={calculateAndDisplayMatchScores} // Nova função de callback
-        disabled={!canMatch || loading} // Desabilita se não tiver perfil ou estiver carregando
+        onPress={handleMatchRequest}
+        disabled={!canMatch || loading || isMatching}
       >
         <Ionicons
-          name={matchActive ? "flame" : "flame-outline"} // Ícone de chama para match
+          name={matchActive ? "flame" : "flame-outline"}
           size={SIZES.iconLarge}
           color={canMatch ? COLORS.white : COLORS.buttonDisabledText}
         />
       </TouchableOpacity>
 
-      {/* Botão de Refresh */}
       <TouchableOpacity
         style={styles.refreshFabStyle}
         onPress={handleRefresh}
@@ -421,6 +393,7 @@ export default function ExplorarScreen() {
 }
 
 const styles = StyleSheet.create({
+  // ... (Cole aqui os estilos da sua folha de estilos original)
   screen: {
     flex: 1,
     backgroundColor: COLORS.background,
@@ -431,11 +404,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: SIZES.spacingRegular,
     paddingTop: Platform.OS === 'android' ? SIZES.spacingLarge : SIZES.hp(5),
     paddingBottom: SIZES.spacingSmall,
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 1,
     backgroundColor: COLORS.background,
     ...SHADOWS.light,
   },
@@ -462,7 +430,7 @@ const styles = StyleSheet.create({
   },
   listContainerSquare: {
     paddingHorizontal: cardSpacingExplorar / 2,
-    paddingTop: SIZES.hp(12),
+    paddingTop: SIZES.hp(1), 
     paddingBottom: SIZES.hp(12),
   },
   cardSquare: {
@@ -513,7 +481,6 @@ const styles = StyleSheet.create({
     marginRight: SIZES.spacingTiny,
   },
   sexIconSquare: {
-    // Estilos adicionais, se necessário
   },
   petSubSquare: {
     color: COLORS.white,
@@ -563,7 +530,6 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: SIZES.hp(15),
     paddingHorizontal: SIZES.wp(10),
   },
   emptyTitle: {
@@ -580,19 +546,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: SIZES.spacingSmall,
     lineHeight: FONTS.sizeRegular * 1.4,
-  },
-  emptyBtn: {
-    marginTop: SIZES.spacingXLarge,
-    backgroundColor: COLORS.primary,
-    paddingVertical: SIZES.spacingRegular,
-    paddingHorizontal: SIZES.spacingLarge,
-    borderRadius: SIZES.borderRadiusCircle,
-    ...SHADOWS.regular,
-  },
-  emptyBtnText: {
-    color: COLORS.white,
-    fontSize: FONTS.sizeRegular,
-    fontFamily: FONTS.familyBold,
   },
   modalOverlay: {
     flex: 1,
@@ -625,12 +578,11 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     textAlign: 'center',
   },
-  // NOVO: Estilo para o botão de Perfil de Match
   fabMatchProfileStyle: {
     position: 'absolute',
     right: SIZES.spacingLarge,
-    bottom: SIZES.hp(24), // Posição acima dos outros FABs
-    backgroundColor: COLORS.secondary, // Cor distinta
+    bottom: SIZES.hp(24),
+    backgroundColor: COLORS.secondary,
     width: SIZES.hp(6),
     height: SIZES.hp(6),
     borderRadius: SIZES.hp(3),
@@ -639,11 +591,10 @@ const styles = StyleSheet.create({
     ...SHADOWS.regular,
     zIndex: 10,
   },
-  // NOVO: Estilo para o botão de Atualizar Scores de Match
   fabUpdateMatchScoresStyle: {
     position: 'absolute',
     right: SIZES.spacingLarge,
-    bottom: SIZES.hp(17), // Abaixo do botão de perfil, acima do de refresh
+    bottom: SIZES.hp(17),
     backgroundColor: COLORS.primary,
     width: SIZES.hp(7.5),
     height: SIZES.hp(7.5),
@@ -661,7 +612,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: SIZES.spacingLarge,
     bottom: SIZES.hp(10),
-    backgroundColor: '#00BFFF', // Use uma cor diferente para o refresh
+    backgroundColor: '#00BFFF',
     width: SIZES.hp(6),
     height: SIZES.hp(6),
     borderRadius: SIZES.hp(3),
@@ -669,5 +620,27 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     ...SHADOWS.regular,
     zIndex: 10,
+  },
+   processingModalContent: {
+    backgroundColor: COLORS.cardBackground,
+    borderRadius: SIZES.borderRadiusMedium,
+    padding: SIZES.spacingXLarge,
+    width: SIZES.wp(80),
+    alignItems: 'center',
+    ...SHADOWS.strong,
+  },
+  processingText: {
+    fontSize: FONTS.sizeLarge,
+    fontFamily: FONTS.familyBold,
+    color: COLORS.text,
+    marginTop: SIZES.spacingLarge,
+    textAlign: 'center',
+  },
+  processingSubText: {
+    fontSize: FONTS.sizeRegular,
+    fontFamily: FONTS.familyRegular,
+    color: COLORS.textSecondary,
+    marginTop: SIZES.spacingSmall,
+    textAlign: 'center',
   },
 });

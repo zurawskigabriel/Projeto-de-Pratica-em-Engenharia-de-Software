@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste da API de Match</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; line-height: 1.6; }
+        button { font-size: 16px; padding: 10px 15px; cursor: pointer; }
+        pre { background-color: #f0f0f0; padding: 15px; border-radius: 5px; white-space: pre-wrap; word-wrap: break-word; }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>Teste de Requisição para API de Match</h1>
+    <p>
+        Verifique se o seu servidor Python está rodando e clique no botão abaixo para enviar uma requisição 
+        <code>POST</code> para <code>http://192.168.0.48:9000/avaliar/user_browser_456</code>.
+    </p>
+    <button id="sendRequest">Enviar Requisição de Teste</button>
+
+    <h2>Resposta do Servidor:</h2>
+    <pre id="responseOutput">Aguardando requisição...</pre>
+
+    <script>
+        document.getElementById('sendRequest').addEventListener('click', async () => {
+            const outputElement = document.getElementById('responseOutput');
+            const url = 'http://192.168.0.48:9000/avaliar/user_browser_456';
+            
+            const testData = {
+                perfil: {
+                    id: 2,
+                    usuarioId: 456,
+                    gato: true,
+                    cachorro: false,
+                    macho: true,
+                    femea: true,
+                    pequeno: false,
+                    medio: true,
+                    grande: true,
+                    conviveBem: false,
+                    necessidadesEspeciais: true,
+                    raca: "Siamês"
+                },
+                pets: [{
+                    id: 101,
+                    nome: "Bolinha",
+                    especie: "cachorro",
+                    sexo: "F",
+                    porte: "pequeno",
+                    raca: "SRD",
+                    idadeAno: 2,
+                    idadeMes: 3,
+                    peso: 5.5,
+                    bio: "Sou uma cachorrinha muito dócil e adoro um carinho.",
+                    idUsuario: 999,
+                    fotos: [],
+                    historicoMedico: []
+                }]
+            };
+
+            outputElement.textContent = 'Enviando requisição...';
+            outputElement.className = '';
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(testData),
+                });
+
+                const responseData = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(`Erro ${response.status}: ${JSON.stringify(responseData)}`);
+                }
+
+                outputElement.textContent = `Sucesso!\n\n${JSON.stringify(responseData, null, 2)}`;
+                outputElement.className = 'success';
+
+            } catch (error) {
+                outputElement.textContent = `Falha na Requisição:\n\n${error.message}\n\nVerifique o console do navegador (F12) para mais detalhes e certifique-se de que o servidor FastAPI está rodando e acessível.`;
+                outputElement.className = 'error';
+                console.error("Detalhes do erro:", error);
+            }
+        });
+    </script>
+</body>
+</html>

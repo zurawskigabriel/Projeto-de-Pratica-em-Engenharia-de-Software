@@ -1,12 +1,13 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios'; // Importar Axios para controle de timeout
 
 //const BASE_URL = "http://192.168.0.197:8080/api";
 const BASE_URL = "http://192.168.0.48:8080/api";
 const BASE_URL_GPT = "http://192.168.0.197:9000/api";
 
 // URL do serviço de match (ajuste conforme necessário)
-// const MATCH_ALLAN_URL = "http://127.0.0.1:8000"; // Endereço padrão do FastAPI
-const MATCH_ALLAN_URL = "http://192.168.0.48:8000"; 
+// const MATCH_ALLAN_URL = "http://127.0.0.1:9000"; // Endereço padrão do FastAPI
+const MATCH_ALLAN_URL = "http://192.168.0.48:9000"; // Enderço Gabriel
 
 async function getAuthHeaders() {
   const token = await AsyncStorage.getItem('token');
@@ -16,7 +17,8 @@ async function getAuthHeaders() {
   };
 }
 
-
+// ... (todas as outras funções de API: solicitarAdocaoPet, criarUsuario, etc. permanecem as mesmas)
+// ... (cole aqui todas as suas funções existentes que não foram alteradas)
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
 // Solicitação de Adoção
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -414,22 +416,48 @@ export async function excluirPerfilMatch(idUsuario: number) {
   return true; // Sucesso na exclusão ou perfil já não existia
 }
 
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
-// Funções de Match com o backend match_allan
+// Funções de Match com o backend match_allan (ASSÍNCRONO)
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
- * Busca a pontuação de match para uma lista de pets com base no perfil do usuário.
+ * Transforma o perfil do usuário para o formato esperado pela API de Match.
+ * ESTA FUNÇÃO CORRIGE O BUG DE INCOMPATIBILIDADE DE DADOS.
  */
-export async function buscarPontuacaoMatch(perfilUsuario: any, pets: any[]) {
-  if (!perfilUsuario || !pets || pets.length === 0) {
-    console.warn("Perfil do usuário ou lista de pets ausente/vazia para buscar pontuação de match.");
-    return []; // Retorna vazio se não houver perfil ou pets
-  }
+function formatarPerfilParaMatchAPI(perfilUsuario: any) {
+    // Valores padrão para evitar erros se os campos estiverem ausentes
+    const especie = perfilUsuario.especiePreferida || 'ambos';
+    const sexo = perfilUsuario.sexoPreferido || 'ambos';
+    const porte = perfilUsuario.portePreferido || 'todos';
 
-  // Adapta o perfil do usuário e os pets para o formato esperado pela API match_allan
-  // O perfil já deve vir no formato correto da API principal (que é similar ao de match_allan)
-  // Os pets precisam ser mapeados para garantir que todos os campos esperados existam
+    return {
+        id: perfilUsuario.id || 0,
+        usuarioId: perfilUsuario.idUsuario,
+        gato: especie === 'gato' || especie === 'ambos',
+        cachorro: especie === 'cachorro' || especie === 'ambos',
+        macho: sexo === 'macho' || sexo === 'ambos',
+        femea: sexo === 'femea' || sexo === 'ambos',
+        pequeno: porte === 'pequeno' || porte === 'todos',
+        medio: porte === 'medio' || porte === 'todos',
+        grande: porte === 'grande' || porte === 'todos',
+        conviveBem: perfilUsuario.conviveBemComOutrosAnimais || false,
+        necessidadesEspeciais: perfilUsuario.aceitaPetComNecessidadesEspeciais || false,
+        raca: perfilUsuario.racaPreferida || 'qualquer',
+    };
+}
+
+
+/**
+ * 1. Inicia a avaliação de match no backend.
+ */
+export async function iniciarAvaliacaoMatch(userId: number, perfilUsuario: any, pets: any[]) {
+  if (!perfilUsuario || !pets || pets.length === 0) {
+    throw new Error("Perfil do usuário ou lista de pets ausente para iniciar a avaliação.");
+  }
+  
+  const perfilFormatado = formatarPerfilParaMatchAPI(perfilUsuario);
+
   const petsFormatados = pets.map(p => ({
     id: p.id,
     nome: p.nome || "N/I",
@@ -447,48 +475,60 @@ export async function buscarPontuacaoMatch(perfilUsuario: any, pets: any[]) {
   }));
 
   const requestBody = {
-    perfil: perfilUsuario,
+    perfil: perfilFormatado,
     pets: petsFormatados,
   };
 
   try {
-    const response = await fetch(`${MATCH_ALLAN_URL}/avaliar`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        // Se o serviço de match_allan precisar de autenticação, adicione aqui
-      },
-      body: JSON.stringify(requestBody),
+    const response = await axios.post(`${MATCH_ALLAN_URL}/avaliar/${userId}`, requestBody, {
+        timeout: 15000 // Timeout curto, pois a resposta deve ser imediata
     });
-
-    if (!response.ok) {
-      const erroText = await response.text();
-      console.error(`Erro ao buscar pontuação de match (${response.status}): ${erroText}`);
-      throw new Error(`Erro ao buscar pontuação de match: ${erroText}`);
-    }
-
-    const responseData = await response.json();
-
-    // A API match_allan retorna { "result": [ { "id": <id>, "score": <valor> }, ... ] }
-    if (responseData && responseData.result && Array.isArray(responseData.result)) {
-      return responseData.result;
-    } else if (responseData && responseData.erro) {
-      console.error("Erro retornado pela API de match:", responseData.erro, responseData.resposta_original);
-      throw new Error(`Erro da API de match: ${responseData.erro}`);
-    }
-    else {
-      console.error("Formato de resposta inesperado da API de match:", responseData);
-      throw new Error("Formato de resposta inesperado da API de match.");
+    
+    // A API deve retornar 200 ou 202 com uma mensagem de sucesso
+    if (response.status === 200 || response.status === 202) {
+        console.log("Servidor iniciou a avaliação de match.");
+        return true;
+    } else {
+        throw new Error(`Resposta inesperada do servidor ao iniciar avaliação: ${response.status}`);
     }
   } catch (error) {
-    console.error("Falha na requisição para buscarPontuacaoMatch:", error);
-    // Em caso de erro na API de match (ex: indisponível), retorna scores zerados para não quebrar a tela
-    return pets.map(pet => ({
-      id: pet.id,
-      score: 0,
-    }));
+    console.error("Erro ao iniciar a avaliação de match:", error);
+    throw new Error(`Não foi possível iniciar a avaliação de compatibilidade. Tente novamente. Detalhes: ${error.message}`);
   }
 }
+
+/**
+ * 2. Verifica o status da avaliação de match (polling).
+ */
+export async function verificarStatusMatch(userId: number) {
+    try {
+        const response = await axios.get(`${MATCH_ALLAN_URL}/avaliar/status/${userId}`, {
+            timeout: 10000 // Timeout de 10 segundos
+        });
+        return response.data; // Deve retornar { status: 'processing' | 'completed' | 'error', result?: [...], message?: '...' }
+    } catch (error) {
+        console.error("Erro ao verificar status do match:", error);
+        // Retorna um estado de erro para ser tratado na UI
+        return { status: 'error', message: 'Não foi possível contatar o serviço de match.' };
+    }
+}
+
+/**
+ * 3. Limpa o resultado do match do servidor.
+ */
+export async function limparResultadoMatch(userId: number) {
+    try {
+        await axios.delete(`${MATCH_ALLAN_URL}/avaliar/resultado/${userId}`, {
+            timeout: 10000
+        });
+        console.log("Resultado do match limpo no servidor.");
+        return true;
+    } catch (error) {
+        console.error("Erro ao limpar resultado do match no servidor:", error);
+        return false;
+    }
+}
+
 
 export async function buscarPerfilMatchUsuario(userId) {
   // Simula perfil preenchido para alguns usuários
@@ -502,4 +542,4 @@ export async function buscarPerfilMatchUsuario(userId) {
   }
   // Simula perfil não preenchido
   return {};
-}
+} 
