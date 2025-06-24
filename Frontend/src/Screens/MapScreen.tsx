@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView } from 'react-native'; // Adicionado ScrollView
 import { useRouter } from 'expo-router';
-import theme, { COLORS, FONTS, SIZES, SHADOWS } from '../../theme/theme'; // Importar o tema
+import theme, { COLORS, FONTS, SIZES, SHADOWS } from '../theme/theme'; // Importar o tema
 
 export default function MenuScreen() { // Renomear para MapScreen ou DebugMenuScreen seria mais claro
     const router = useRouter();

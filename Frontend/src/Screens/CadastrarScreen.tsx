@@ -9,7 +9,7 @@ import { useRouter } from 'expo-router';
 import { criarUsuario, fazerLogin } from '../api/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { decode as atob } from 'base-64';
-import theme, { COLORS, FONTS, SIZES, SHADOWS } from '../../theme/theme'; // Importar o tema
+import theme, { COLORS, FONTS, SIZES, SHADOWS } from '../theme/theme'; // Importar o tema
 
 function analisarSenha(senha: string) {
   const regras = [

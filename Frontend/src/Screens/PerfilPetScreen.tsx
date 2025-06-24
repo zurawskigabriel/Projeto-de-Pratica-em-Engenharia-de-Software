@@ -31,7 +31,7 @@ import {
   solicitarAdocaoPet,
   buscarSituacaoPet
 } from '../api/api';
-import theme, { COLORS, FONTS, SIZES, SHADOWS } from '../../theme/theme'; // Importar o tema
+import theme, { COLORS, FONTS, SIZES, SHADOWS } from '../theme/theme'; // Importar o tema
 
 const { width, height } = Dimensions.get('window'); // Manter por enquanto
 

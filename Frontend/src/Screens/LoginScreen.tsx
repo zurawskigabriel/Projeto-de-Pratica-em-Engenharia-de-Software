@@ -8,7 +8,7 @@ import { decode as atob } from 'base-64';
 import { FontAwesome, FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { fazerLogin } from '../api/api';
-import theme, { COLORS, FONTS, SIZES, SHADOWS } from '../../theme/theme'; // Importar o tema
+import theme, { COLORS, FONTS, SIZES, SHADOWS } from '../theme/theme'; // Importar o tema
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');

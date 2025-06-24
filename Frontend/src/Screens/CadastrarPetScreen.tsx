@@ -9,7 +9,7 @@ import { useRouter } from 'expo-router';
 import { criarPet } from '../api/api';
 import * as FileSystem from 'expo-file-system';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import theme, { COLORS, FONTS, SIZES, SHADOWS } from '../../theme/theme'; // Importar o tema
+import theme, { COLORS, FONTS, SIZES, SHADOWS } from '../theme/theme'; // Importar o tema
 
 export default function CadastrarPetScreen() {
   const [nome, setNome] = useState('');

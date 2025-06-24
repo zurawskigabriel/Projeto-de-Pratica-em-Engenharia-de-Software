@@ -10,9 +10,9 @@ import {
   RefreshControl,
 } from 'react-native';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
-import { buscarSolicitacoesPorPet, buscarUsuarioPorId, atualizarSituacaoSolicitacao } from '../../api/api';
+import { buscarSolicitacoesPorPet, buscarUsuarioPorId, atualizarSituacaoSolicitacao } from '../api/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import theme, { COLORS, FONTS, SIZES, SHADOWS } from '../../theme/theme'; // Importar o tema
+import theme, { COLORS, FONTS, SIZES, SHADOWS } from '../theme/theme'; // Importar o tema
 
 interface Adotante {
   id: number;

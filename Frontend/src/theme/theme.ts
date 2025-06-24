@@ -99,9 +99,9 @@ export const SIZES = {
   iconLarge: wp(8),   // ~30px
 
   // Altura de elementos comuns
-  inputHeight: hp(6), // Altura padrão para inputs
-  buttonHeight: hp(6), // Altura padrão para botões
-  headerHeight: hp(8), // Altura para cabeçalhos de tela
+  inputHeight: hp(7.5), // Altura padrão para inputs
+  buttonHeight: hp(7.5), // Altura padrão para botões
+  headerHeight: hp(7.5), // Altura para cabeçalhos de tela
 };
 
 export const SHADOWS = {

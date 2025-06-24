@@ -15,7 +15,7 @@ import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native'; // Importação principal para a correção
 import { buscarPerfilMatch, salvarPerfilMatch, excluirPerfilMatch } from '../api/api'; // Ajuste o caminho se necessário
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import theme, { COLORS, FONTS, SIZES, SHADOWS } from '../../theme/theme'; // Importar o tema
+import theme, { COLORS, FONTS, SIZES, SHADOWS } from '../theme/theme'; // Importar o tema
 
 const { width, height } = Dimensions.get('window'); // Manter por enquanto
 

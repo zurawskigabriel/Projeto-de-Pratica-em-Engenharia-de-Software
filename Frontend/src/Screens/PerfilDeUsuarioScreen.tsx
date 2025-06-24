@@ -20,7 +20,7 @@ import { Entypo } from '@expo/vector-icons';
 import FooterNav from '../components/Footer';
 import perfilImage from '../../assets/perfil.jpg';
 import { buscarUsuarioPorId, excluirUsuario, atualizarUsuario } from '../api/api';
-import theme, { COLORS, FONTS, SIZES, SHADOWS } from '../../theme/theme'; // Importar o tema
+import theme, { COLORS, FONTS, SIZES, SHADOWS } from '../theme/theme'; // Importar o tema
 
 const { width, height } = Dimensions.get('window'); // Manter por enquanto, SIZES.wp/hp podem substituir
 
