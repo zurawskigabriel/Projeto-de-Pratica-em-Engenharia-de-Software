@@ -10,12 +10,15 @@ export default function Footer() {
 
   const currentRoute = route.name;
   const [email, setEmail] = React.useState('');
+  const [userType, setUserType] = React.useState<string | null>(null);
 
   React.useEffect(() => {
-    const fetchEmail = async () => {
+    const fetchData = async () => {
       const token = await AsyncStorage.getItem('token');
+      const storedUserType = await AsyncStorage.getItem('userType');
+      setUserType(storedUserType);
+
       if (!token) return;
-      // Adicionando um try-catch para evitar erros se o token for inválido
       try {
         const payload = JSON.parse(atob(token.split('.')[1]));
         setEmail(payload.sub);
@@ -23,13 +26,13 @@ export default function Footer() {
         console.error("Erro ao decodificar o token:", error);
       }
     };
-    fetchEmail();
+    fetchData();
   }, []);
 
   const isVisitante = email === 'visitante@visitante';
 
   const handlePress = (screenName) => {
-    if (isVisitante && (screenName === 'MeusPets' || screenName === 'Favoritos')) {
+    if (isVisitante && (screenName === 'MeusPets' || screenName === 'Favoritos' || screenName === 'SolicitacoesProtetor' || screenName === 'DetalhesSolicitacaoAdotante')) {
       Alert.alert(
         'Acesso restrito',
         'Para acessar essa funcionalidade, você precisa criar uma conta. Deseja se cadastrar agora?',
@@ -38,26 +41,37 @@ export default function Footer() {
           { text: 'Cadastrar', onPress: () => navigation.navigate('Cadastrar') }
         ]
       );
-    } else {
+    } else if (userType === 'adotante' && screenName === 'MeusPets') {
+      Alert.alert(
+        'Funcionalidade restrita',
+        'Para cadastrar pets e gerenciar seus pets, você precisa criar uma conta como protetor.',
+        [
+          { text: 'OK', onPress: () => navigation.navigate('Explorar') }
+        ]
+      );
+    }
+     else {
       navigation.navigate(screenName);
     }
   };
 
   return (
     <View style={styles.footer}>
-      {/* Botão Meus Pets */}
-      <TouchableOpacity
-        style={styles.footerItem}
-        onPress={() => handlePress('MeusPets')}
-      >
-        <FontAwesome5
-          name="paw"
-          size={24}
-          solid={currentRoute === 'MeusPets'}
-          color={currentRoute === 'MeusPets' ? 'black' : 'gray'}
-        />
-        <Text style={[styles.footerText, currentRoute === 'MeusPets' && styles.activeText]}>Meus Pets</Text>
-      </TouchableOpacity>
+      {/* Botão Meus Pets - Apenas para Protetor */}
+      {userType === 'protetor' && (
+        <TouchableOpacity
+          style={styles.footerItem}
+          onPress={() => handlePress('MeusPets')}
+        >
+          <FontAwesome5
+            name="paw"
+            size={24}
+            solid={currentRoute === 'MeusPets'}
+            color={currentRoute === 'MeusPets' ? 'black' : 'gray'}
+          />
+          <Text style={[styles.footerText, currentRoute === 'MeusPets' && styles.activeText]}>Meus Pets</Text>
+        </TouchableOpacity>
+      )}
 
       {/* Botão Explorar */}
       <TouchableOpacity style={styles.footerItem} onPress={() => handlePress('Explorar')}>
@@ -69,18 +83,51 @@ export default function Footer() {
         <Text style={[styles.footerText, currentRoute === 'Explorar' && styles.activeText]}>Explorar</Text>
       </TouchableOpacity>
 
-      {/* Botão Favoritos */}
-      <TouchableOpacity
-        style={styles.footerItem}
-        onPress={() => handlePress('Favoritos')}
-      >
-        <Ionicons
-          name={currentRoute === 'Favoritos' ? 'heart' : 'heart-outline'}
-          size={24}
-          color={currentRoute === 'Favoritos' ? 'black' : 'gray'}
-        />
-        <Text style={[styles.footerText, currentRoute === 'Favoritos' && styles.activeText]}>Favoritos</Text>
-      </TouchableOpacity>
+      {/* Botão Solicitações - Apenas para Protetor */}
+      {userType === 'protetor' && (
+        <TouchableOpacity
+          style={styles.footerItem}
+          onPress={() => handlePress('SolicitacoesProtetor')}
+        >
+          <Ionicons
+            name={currentRoute === 'SolicitacoesProtetor' ? 'file-tray-full' : 'file-tray-full-outline'}
+            size={24}
+            color={currentRoute === 'SolicitacoesProtetor' ? 'black' : 'gray'}
+          />
+          <Text style={[styles.footerText, currentRoute === 'SolicitacoesProtetor' && styles.activeText]}>Solicitações</Text>
+        </TouchableOpacity>
+      )}
+
+      {/* Botão Minhas Adoções - Apenas para Adotante */}
+      {userType === 'adotante' && (
+        <TouchableOpacity
+          style={styles.footerItem}
+          onPress={() => handlePress('DetalhesSolicitacaoAdotante')}
+        >
+          <Ionicons
+            name={currentRoute === 'DetalhesSolicitacaoAdotante' ? 'document-text' : 'document-text-outline'}
+            size={24}
+            color={currentRoute === 'DetalhesSolicitacaoAdotante' ? 'black' : 'gray'}
+          />
+          <Text style={[styles.footerText, currentRoute === 'DetalhesSolicitacaoAdotante' && styles.activeText]}>Minhas Adoções</Text>
+        </TouchableOpacity>
+      )}
+
+      {/* Botão Favoritos - Para Adotante e Protetor (não visitante) */}
+      {!isVisitante && (
+          <TouchableOpacity
+            style={styles.footerItem}
+            onPress={() => handlePress('Favoritos')}
+          >
+            <Ionicons
+              name={currentRoute === 'Favoritos' ? 'heart' : 'heart-outline'}
+              size={24}
+              color={currentRoute === 'Favoritos' ? 'black' : 'gray'}
+            />
+            <Text style={[styles.footerText, currentRoute === 'Favoritos' && styles.activeText]}>Favoritos</Text>
+          </TouchableOpacity>
+      )}
+
 
       {/* Botão Perfil */}
       <TouchableOpacity style={styles.footerItem} onPress={() => handlePress('PerfilDeUsuario')}>

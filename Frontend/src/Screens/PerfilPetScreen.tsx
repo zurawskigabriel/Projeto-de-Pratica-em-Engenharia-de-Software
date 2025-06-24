@@ -44,11 +44,14 @@ export default function PerfilPet() {
   const [abaAtiva, setAbaAtiva] = useState('Resumo');
   const [adotando, setAdotando] = useState(false);
   const [meuUsuarioId, setMeuUsuarioId] = useState<number | null>(null);
+  const [tipoUsuario, setTipoUsuario] = useState<string | null>(null);
 
   useEffect(() => {
     const carregarPet = async () => {
       try {
         const idSalvo = await AsyncStorage.getItem('userId');
+        const tipoUsuarioSalvo = await AsyncStorage.getItem('userType'); // Assume que 'userType' está salvo
+        setTipoUsuario(tipoUsuarioSalvo);
         const idUsuarioAtual = idSalvo ? parseInt(idSalvo, 10) : null;
         setMeuUsuarioId(idUsuarioAtual);
   
@@ -374,36 +377,50 @@ export default function PerfilPet() {
       <Text style={styles.buttonTextBase}>Excluir Pet</Text>
     </TouchableOpacity>
   </>
+) : tipoUsuario === 'protetor' ? (
+  <View style={styles.infoCard}>
+    <Text style={styles.infoText}>Para adotar, por favor, crie uma conta como adotante.</Text>
+  </View>
 ) : (
   <>
     {adotando && ( // Se o usuário já está no processo de adotar este pet, mostra "Acompanhar"
       <TouchableOpacity
         style={[styles.actionButtonBase, styles.acompanharButton]}
-        onPress={() => router.push({ pathname: '/Acompanhamento', params: { id: pet.id } })}
+        onPress={() => router.push({ pathname: '/DetalhesSolicitacaoAdotante', params: { petId: pet.id, solicitacaoId: null } })} // solicitacaoId pode precisar ser buscado ou passado de outra forma se necessário imediatamente
       >
         <Text style={styles.buttonTextBase}>Acompanhar Adoção</Text>
       </TouchableOpacity>
     )}
 
     <TouchableOpacity
-      style={[styles.actionButtonBase, adotando ? styles.adotarButtonActive : styles.adotarButton]}
+      style={[
+        styles.actionButtonBase,
+        adotando ? styles.adotarButtonActive : styles.adotarButton,
+      ]}
       onPress={async () => {
         if (!pet?.id || !meuUsuarioId) return;
 
-        if (adotando) { // Lógica para cancelar solicitação (se desejado, ou apenas visual)
-          // Aqui poderia ter uma chamada para cancelar a solicitação na API se existir
-          Alert.alert('Processo de Adoção', `Você já está no processo de adoção de ${pet.nome}. Acompanhe o status!`);
-          // setAdotando(false); // Remover se não houver cancelamento real
+        if (adotando) {
+          Alert.alert(
+            'Processo de Adoção',
+            `Você já está no processo de adoção de ${pet.nome}. Acompanhe o status!`
+          );
           return;
         }
 
         try {
           await solicitarAdocaoPet(pet.id, meuUsuarioId);
-          Alert.alert('Adoção Solicitada! 😁', `${pet.nome} e o protetor foram notificados! Você pode acompanhar o status.`);
-          setAdotando(true); // Atualiza o estado para refletir a solicitação
+          Alert.alert(
+            'Adoção Solicitada! 😁',
+            `${pet.nome} e o protetor foram notificados! Você pode acompanhar o status.`
+          );
+          setAdotando(true);
         } catch (error) {
           console.error(error);
-          Alert.alert('Erro', 'Não foi possível solicitar a adoção. Verifique se já não há uma solicitação pendente.');
+          Alert.alert(
+            'Erro',
+            'Não foi possível solicitar a adoção. Verifique se já não há uma solicitação pendente.'
+          );
         }
       }}
     >
@@ -415,10 +432,24 @@ export default function PerfilPet() {
     <TouchableOpacity
       style={[styles.actionButtonBase, styles.contatarButton]}
       onPress={() => {
-        const numeroWhatsApp = nomeProtetor && pet.idUsuario ? 'NUMERO_DO_PROTETOR_AQUI' : '5555996168060'; // Idealmente buscar o telefone do protetor
-        const mensagem = `Olá, ${nomeProtetor || 'protetor(a)'}! Tenho interesse no pet ${pet.nome} (ID: ${pet.id}) que vi no Me Adota.`;
-        const url = `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensagem)}`;
-        Linking.openURL(url).catch(err => Alert.alert('Erro', 'Não foi possível abrir o WhatsApp. Verifique se está instalado.'));
+        const numeroWhatsApp =
+          nomeProtetor && pet.idUsuario
+            ? 'NUMERO_DO_PROTETOR_AQUI' // Substituir pelo número real ou lógica para obtê-lo
+            : '5555996168060'; // Fallback
+        const mensagem = `Olá, ${
+          nomeProtetor || 'protetor(a)'
+        }! Tenho interesse no pet ${pet.nome} (ID: ${
+          pet.id
+        }) que vi no Me Adota.`;
+        const url = `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(
+          mensagem
+        )}`;
+        Linking.openURL(url).catch(err =>
+          Alert.alert(
+            'Erro',
+            'Não foi possível abrir o WhatsApp. Verifique se está instalado.'
+          )
+        );
       }}
     >
       <Text style={styles.buttonTextBase}>Contatar Protetor</Text>
