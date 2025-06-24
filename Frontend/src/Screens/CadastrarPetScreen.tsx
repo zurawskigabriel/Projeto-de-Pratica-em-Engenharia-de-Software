@@ -131,6 +131,20 @@ export default function CadastrarPetScreen() {
           <Text style={styles.label}>Peso (kg)</Text>
           <TextInput style={styles.input} value={peso} onChangeText={setPeso} placeholder="Ex: 5.5" keyboardType="decimal-pad" placeholderTextColor={COLORS.textSecondary}/>
 
+          <Text style={styles.label}>Porte</Text>
+            <View style={styles.row}>
+              {['PEQUENO', 'MEDIO', 'GRANDE'].map(p => (
+                <TouchableOpacity
+                  key={p}
+                  style={[styles.pickerOption, porte === p && styles.pickerOptionSelected]}
+                  onPress={() => setPorte(p)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.pickerText, porte === p && styles.pickerTextSelected]}>{p}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
           <Text style={styles.label}>Espécie</Text>
           <View style={styles.row}>
             {['Gato','Cachorro'].map(o=>(
