@@ -164,12 +164,16 @@ export async function fazerLogin(username: string, password: string) {
   return await response.json(); // espera-se { token, userId }
 }
 
-export async function buscarUsuarioPorId(id: number) {
-  const headers = await getAuthHeaders();
+export async function buscarUsuarioPorId(id: number, token: string) {
+  // Não chame getAuthHeaders(). Crie os cabeçalhos diretamente aqui.
+  const headers = {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
+  };
 
   const response = await fetch(`${BASE_URL}/usuarios/${id}`, {
     method: 'GET',
-    headers,
+    headers, // Use os cabeçalhos recém-criados
   });
 
   if (!response.ok) {

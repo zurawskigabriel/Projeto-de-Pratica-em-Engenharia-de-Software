@@ -42,9 +42,13 @@ export default function UsuarioScreen() {
   useEffect(() => {
     const carregarUsuario = async () => {
       try {
+        // Busque tanto o ID quanto o TOKEN do armazenamento
         const idSalvo = await AsyncStorage.getItem('userId');
-        if (!idSalvo) {
-          Alert.alert('Erro', 'Usuário não autenticado.');
+        const token = await AsyncStorage.getItem('token');
+
+        // Verifique se ambos existem antes de continuar
+        if (!idSalvo || !token) {
+          Alert.alert('Erro', 'Sessão inválida. Faça login novamente.');
           router.replace('/Login');
           return;
         }
@@ -52,7 +56,9 @@ export default function UsuarioScreen() {
         const id = parseInt(idSalvo, 10);
         setUserId(id);
 
-        const dados = await buscarUsuarioPorId(id);
+        // CORREÇÃO: Passe o ID e o token para a função
+        const dados = await buscarUsuarioPorId(id, token);
+
         setUsuario(dados);
         setForm({
           nome: dados.nome,

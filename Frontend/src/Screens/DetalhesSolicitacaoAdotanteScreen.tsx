@@ -13,6 +13,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { buscarSolicitacoesUsuario, buscarPet } from '../api/api';
 import theme, { COLORS, FONTS, SIZES, SHADOWS } from '../theme/theme'; // Importar o tema
+import FooterNav from '../components/Footer';
 
 interface PetInfo {
   id: number;

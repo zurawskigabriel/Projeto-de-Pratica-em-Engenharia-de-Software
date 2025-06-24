@@ -26,8 +26,8 @@ export default function LoginScreen() {
       }
 
       // Buscar detalhes do usuário para obter o tipoUsuario
-      const usuarioDetalhes = await buscarUsuarioPorId(userId);
-      if (!usuarioDetalhes || !usuarioDetalhes.tipoUsuario) {
+      const usuarioDetalhes = await buscarUsuarioPorId(userId, dados.token);
+      if (!usuarioDetalhes || !usuarioDetalhes.perfilUsuario) {
         Alert.alert('Erro', 'Não foi possível obter o tipo do usuário.');
         return;
       }
@@ -35,7 +35,7 @@ export default function LoginScreen() {
       await AsyncStorage.multiSet([
         ['token', dados.token],
         ['userId', userId.toString()],
-        ['userType', usuarioDetalhes.tipoUsuario] // Salvar o tipo de usuário
+        ['userType', usuarioDetalhes.perfilUsuario] // Salvar o tipo de usuário
       ]);
       Alert.alert('Sucesso', 'Bem-vindo de volta!');
       router.replace('/Explorar');
