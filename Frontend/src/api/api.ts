@@ -411,15 +411,82 @@ export async function excluirPerfilMatch(idUsuario: number) {
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
-// Funções Mockadas / Simulações
+// Funções de Match com o backend match_allan
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// Simula busca de pontuação de match para cada pet (score aleatório entre 0 e 100)
-export async function buscarPontuacaoMatch(pets) {
-  return pets.map(pet => ({
-    id: pet.id,
-    score: Math.random() * 100, // score aleatório entre 0 e 100
+// URL do serviço de match (ajuste conforme necessário)
+const MATCH_ALLAN_URL = "http://127.0.0.1:8000"; // Endereço padrão do FastAPI
+
+/**
+ * Busca a pontuação de match para uma lista de pets com base no perfil do usuário.
+ */
+export async function buscarPontuacaoMatch(perfilUsuario: any, pets: any[]) {
+  if (!perfilUsuario || !pets || pets.length === 0) {
+    console.warn("Perfil do usuário ou lista de pets ausente/vazia para buscar pontuação de match.");
+    return []; // Retorna vazio se não houver perfil ou pets
+  }
+
+  // Adapta o perfil do usuário e os pets para o formato esperado pela API match_allan
+  // O perfil já deve vir no formato correto da API principal (que é similar ao de match_allan)
+  // Os pets precisam ser mapeados para garantir que todos os campos esperados existam
+  const petsFormatados = pets.map(p => ({
+    id: p.id,
+    nome: p.nome || "N/I",
+    especie: p.especie || "N/I",
+    sexo: p.sexo || "N/I",
+    porte: p.porte || "N/I",
+    raca: p.raca || "N/I",
+    idadeAno: p.idadeAno || 0,
+    idadeMes: p.idadeMes || 0,
+    peso: p.peso || 0,
+    bio: p.bio || "",
+    idUsuario: p.idUsuario,
+    fotos: p.fotos || [],
+    historicoMedico: p.historicoMedico || [],
   }));
+
+  const requestBody = {
+    perfil: perfilUsuario,
+    pets: petsFormatados,
+  };
+
+  try {
+    const response = await fetch(`${MATCH_ALLAN_URL}/avaliar`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        // Se o serviço de match_allan precisar de autenticação, adicione aqui
+      },
+      body: JSON.stringify(requestBody),
+    });
+
+    if (!response.ok) {
+      const erroText = await response.text();
+      console.error(`Erro ao buscar pontuação de match (${response.status}): ${erroText}`);
+      throw new Error(`Erro ao buscar pontuação de match: ${erroText}`);
+    }
+
+    const responseData = await response.json();
+
+    // A API match_allan retorna { "result": [ { "id": <id>, "score": <valor> }, ... ] }
+    if (responseData && responseData.result && Array.isArray(responseData.result)) {
+      return responseData.result;
+    } else if (responseData && responseData.erro) {
+      console.error("Erro retornado pela API de match:", responseData.erro, responseData.resposta_original);
+      throw new Error(`Erro da API de match: ${responseData.erro}`);
+    }
+    else {
+      console.error("Formato de resposta inesperado da API de match:", responseData);
+      throw new Error("Formato de resposta inesperado da API de match.");
+    }
+  } catch (error) {
+    console.error("Falha na requisição para buscarPontuacaoMatch:", error);
+    // Em caso de erro na API de match (ex: indisponível), retorna scores zerados para não quebrar a tela
+    return pets.map(pet => ({
+      id: pet.id,
+      score: 0,
+    }));
+  }
 }
 
 export async function buscarPerfilMatchUsuario(userId) {

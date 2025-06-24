@@ -103,18 +103,27 @@ export default function ExplorarScreen() {
         setListaOriginal(allPets);
 
         if (perfilOk && allPets.length > 0) {
-          const scores = await buscarPontuacaoMatch(allPets);
-          const enriched = allPets.map(p => {
-            const found = scores.find((s: any) => s.id === p.id);
-            return { ...p, score: p.idUsuario === currentUserId ? undefined : (found?.score ?? 0) };
-          }).sort((a, b) => {
-            if (a.score === undefined && b.score !== undefined) return 1;
-            if (a.score !== undefined && b.score === undefined) return -1;
-            if (a.score === undefined && b.score === undefined) return 0;
-            return (b.score ?? 0) - (a.score ?? 0);
-          });
-          setData(enriched);
-          setMatchActive(true);
+          const perfilCompleto = await buscarPerfilMatch(userIdFromStorage);
+          if (!perfilCompleto) {
+            setData(allPets);
+            setMatchActive(false);
+            console.warn("Perfil de match não encontrado em fetchData, mesmo com perfilOk=true.");
+          } else {
+            const scores = await buscarPontuacaoMatch(perfilCompleto, allPets);
+            const enriched = allPets.map(p => {
+              const found = scores.find((s: any) => s.id === p.id);
+              // Se o pet for do usuário logado, score é undefined para não mostrar % e não ser filtrado por match.
+              return { ...p, score: p.idUsuario === currentUserId ? undefined : (found?.score ?? 0) };
+            }).sort((a, b) => {
+              // Lógica de ordenação: pets com score vêm primeiro, depois pets sem score (do usuário)
+              if (a.score === undefined && b.score !== undefined) return 1; // a (sem score) depois de b (com score)
+              if (a.score !== undefined && b.score === undefined) return -1; // a (com score) antes de b (sem score)
+              if (a.score === undefined && b.score === undefined) return 0; // ambos sem score, mantém ordem
+              return (b.score ?? 0) - (a.score ?? 0); // Ordena por score descendente
+            });
+            setData(enriched);
+            setMatchActive(true);
+          }
         } else {
           setData(allPets);
           setMatchActive(false);
@@ -178,7 +187,8 @@ export default function ExplorarScreen() {
       !ageStr.includes(termo)
     ) return false;
     if (selectedFilter !== 'todos' && p.sexo !== selectedFilter) return false;
-    if (p.score !== undefined && p.score <= 0 && matchActive) return false;
+    // Filtra pets com score baixo APENAS se o match estiver ativo E o score existir (não é do próprio usuário)
+    if (matchActive && p.score !== undefined && p.score <= 0) return false;
     return true;
   });
 
