@@ -188,7 +188,7 @@ export default function ExplorarScreen() {
     ) return false;
     if (selectedFilter !== 'todos' && p.sexo !== selectedFilter) return false;
     // Filtra pets com score baixo APENAS se o match estiver ativo E o score existir (não é do próprio usuário)
-    if (matchActive && p.score !== undefined && p.score <= 0) return false;
+    //if (matchActive && p.score !== undefined && p.score <= 0) return false;
     return true;
   });
 

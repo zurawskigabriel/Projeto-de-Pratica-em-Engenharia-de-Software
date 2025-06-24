@@ -4,6 +4,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const BASE_URL = "http://192.168.0.48:8080/api";
 const BASE_URL_GPT = "http://192.168.0.197:9000/api";
 
+// URL do serviço de match (ajuste conforme necessário)
+// const MATCH_ALLAN_URL = "http://127.0.0.1:8000"; // Endereço padrão do FastAPI
+const MATCH_ALLAN_URL = "http://192.168.0.48:8000"; 
+
 async function getAuthHeaders() {
   const token = await AsyncStorage.getItem('token');
   return {
@@ -413,9 +417,6 @@ export async function excluirPerfilMatch(idUsuario: number) {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
 // Funções de Match com o backend match_allan
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// URL do serviço de match (ajuste conforme necessário)
-const MATCH_ALLAN_URL = "http://127.0.0.1:8000"; // Endereço padrão do FastAPI
 
 /**
  * Busca a pontuação de match para uma lista de pets com base no perfil do usuário.
