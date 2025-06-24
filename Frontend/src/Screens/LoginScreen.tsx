@@ -8,6 +8,7 @@ import { decode as atob } from 'base-64';
 import { FontAwesome, FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { fazerLogin } from '../api/api';
+import theme, { COLORS, FONTS, SIZES, SHADOWS } from '../../theme/theme'; // Importar o tema
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -101,95 +102,107 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#F9F9F9' },
-  scroll: { flexGrow: 1, justifyContent: 'center', padding: 20 },
+  screen: {
+    flex: 1,
+    backgroundColor: COLORS.background
+  },
+  scroll: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    padding: SIZES.spacingLarge
+  },
   card: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 3,
+    backgroundColor: COLORS.cardBackground,
+    borderRadius: SIZES.borderRadiusLarge, // Bordas mais arredondadas
+    padding: SIZES.spacingXLarge, // Mais padding interno
+    ...SHADOWS.regular, // Sombra padronizada
   },
   logoWrapper: {
     alignSelf: 'center',
-    borderRadius: 30,
-    backgroundColor: 'transparent',  // Envoltório transparente
-    shadowColor: '#000',              // iOS
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 6,                     // Android
-    marginBottom: 16,
+    borderRadius: SIZES.wp(8), // ~30px, mas responsivo
+    backgroundColor: 'transparent',
+    ...SHADOWS.strong, // Sombra mais forte para o logo
+    marginBottom: SIZES.spacingLarge,
   },
   logo: {
-    width: 126,
-    height: 126,
-    borderRadius: 30,                 // Imagem circular
+    width: SIZES.wp(33), // ~126px
+    height: SIZES.wp(33),
+    borderRadius: SIZES.wp(8),
   },
-  title: {
-    fontSize: 24, fontWeight: '700',
-    color: '#333', textAlign: 'center',
-    marginBottom: 24,
+  title: { // Se houver um título principal na tela (não tem atualmente, mas como referência)
+    fontSize: FONTS.sizeXXLarge,
+    fontFamily: FONTS.familyBold,
+    color: COLORS.text,
+    textAlign: 'center',
+    marginBottom: SIZES.spacingXLarge,
   },
   input: {
-    backgroundColor: '#F6F6F6',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#DDD',
+    backgroundColor: COLORS.light, // Fundo do input mais claro
+    fontFamily: FONTS.familyRegular,
+    fontSize: FONTS.sizeRegular,
+    color: COLORS.text,
+    borderRadius: SIZES.borderRadiusRegular,
+    padding: SIZES.spacingMedium, // Padding interno do input
+    marginBottom: SIZES.spacingRegular,
+    borderWidth: SIZES.borderWidth,
+    borderColor: COLORS.borderColor,
+    height: SIZES.inputHeight, // Altura padronizada
   },
   loginBtn: {
-    backgroundColor: '#2AA5FF',
-    borderRadius: 50,
-    paddingVertical: 16,
+    backgroundColor: COLORS.primary,
+    borderRadius: SIZES.borderRadiusCircle, // Botão bem arredondado
+    paddingVertical: SIZES.spacingMedium,
     alignItems: 'center',
-    marginBottom: 12,
-    shadowColor: '#2AA5FF',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 4,
+    marginBottom: SIZES.spacingRegular,
+    ...SHADOWS.regular,
+    height: SIZES.buttonHeight, // Altura padronizada
+    justifyContent: 'center',
   },
   loginText: {
-    color: '#FFF',
-    fontSize: 18,
-    fontWeight: '600',
+    color: COLORS.white,
+    fontSize: FONTS.sizeMedium, // Ajustado
+    fontFamily: FONTS.familyBold,
   },
   guestLink: {
     textAlign: 'center',
-    color: '#2AA5FF',
-    fontSize: 16,
-    marginBottom: 16,
+    color: COLORS.primary,
+    fontSize: FONTS.sizeRegular, // Ajustado
+    fontFamily: FONTS.familyRegular,
+    marginBottom: SIZES.spacingLarge, // Mais espaço abaixo
+    padding: SIZES.spacingSmall, // Área de toque
   },
-  orText: {
-    textAlign: 'center',
-    color: '#999',
-    marginVertical: 8,
-  },
-  socialRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginBottom: 16,
-  },
-  socialBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginHorizontal: 8,
-  },
+  // orText e socialRow/socialBtn não estão sendo usados no JSX atual, mas podem ser estilizados se voltarem
+  // orText: {
+  //   textAlign: 'center',
+  //   color: COLORS.textSecondary,
+  //   fontFamily: FONTS.familyRegular,
+  //   marginVertical: SIZES.spacingSmall,
+  // },
+  // socialRow: {
+  //   flexDirection: 'row',
+  //   justifyContent: 'center',
+  //   marginBottom: SIZES.spacingRegular,
+  // },
+  // socialBtn: {
+  //   width: SIZES.hp(5.5),
+  //   height: SIZES.hp(5.5),
+  //   borderRadius: SIZES.hp(2.75),
+  //   alignItems: 'center',
+  //   justifyContent: 'center',
+  //   marginHorizontal: SIZES.spacingSmall,
+  //   backgroundColor: COLORS.light, // Exemplo
+  //   ...SHADOWS.light,
+  // },
   linkRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
+    paddingHorizontal: SIZES.spacingSmall, // Pequeno padding para não colar nas bordas do card
+    marginTop: SIZES.spacingRegular, // Espaço acima dos links
   },
   link: {
-    color: '#2AA5FF',
-    fontSize: 16,
+    color: COLORS.primary,
+    fontSize: FONTS.sizeRegular, // Ajustado
+    fontFamily: FONTS.familyRegular,
+    padding: SIZES.spacingSmall, // Área de toque
   },
 });

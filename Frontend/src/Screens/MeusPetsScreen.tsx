@@ -10,7 +10,7 @@ import { FontAwesome } from '@expo/vector-icons';
 import Footer from '../components/Footer';
 import { listarPets } from '../api/api';
 import { useRouter } from 'expo-router';
-import theme, { COLORS, FONTS, SIZES, SHADOWS } from '../theme/theme'; // Importar o tema
+import theme, { COLORS, FONTS, SIZES, SHADOWS } from '../../theme/theme'; // Importar o tema
 
 const { width, height } = Dimensions.get('window'); // Manter por enquanto, pode ser substituído por SIZES.wp/hp
 

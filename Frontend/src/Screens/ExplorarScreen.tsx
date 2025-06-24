@@ -17,7 +17,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import Footer from '../components/Footer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import theme, { COLORS, FONTS, SIZES, SHADOWS } from '../theme/theme'; // Importar o tema
+import theme, { COLORS, FONTS, SIZES, SHADOWS } from '../../theme/theme'; // Importar o tema
 
 const { width, height } = Dimensions.get('window'); // Manter por enquanto
 const SEX_FILTERS = ['todos', 'M', 'F'];

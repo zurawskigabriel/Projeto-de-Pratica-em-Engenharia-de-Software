@@ -9,6 +9,7 @@ import { useRouter } from 'expo-router';
 import { criarPet } from '../api/api';
 import * as FileSystem from 'expo-file-system';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import theme, { COLORS, FONTS, SIZES, SHADOWS } from '../../theme/theme'; // Importar o tema
 
 export default function CadastrarPetScreen() {
   const [nome, setNome] = useState('');
@@ -67,18 +68,18 @@ export default function CadastrarPetScreen() {
           {/* Header */}
           <View style={styles.header}>
             <TouchableOpacity onPress={()=>router.back()} style={styles.backBtn} activeOpacity={0.7}>
-              <Ionicons name="arrow-back" size={24} color="#333"/>
+              <Ionicons name="arrow-back" size={SIZES.iconMedium} color={COLORS.text}/>
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Cadastro de Pet</Text>
           </View>
           <Text style={styles.label}>Nome</Text>
-          <TextInput style={styles.input} value={nome} onChangeText={setNome} placeholder="Nome" placeholderTextColor="#aaa"/>
+          <TextInput style={styles.input} value={nome} onChangeText={setNome} placeholder="Nome do pet" placeholderTextColor={COLORS.textSecondary}/>
 
           <Text style={styles.label}>Raça</Text>
-          <TextInput style={styles.input} value={raca} onChangeText={setRaca} placeholder="Raça" placeholderTextColor="#aaa"/>
+          <TextInput style={styles.input} value={raca} onChangeText={setRaca} placeholder="Ex: SRD, Poodle, Siamês" placeholderTextColor={COLORS.textSecondary}/>
 
           <Text style={styles.label}>Peso (kg)</Text>
-          <TextInput style={styles.input} value={peso} onChangeText={setPeso} placeholder="Peso" keyboardType="decimal-pad" placeholderTextColor="#aaa"/>
+          <TextInput style={styles.input} value={peso} onChangeText={setPeso} placeholder="Ex: 5.5" keyboardType="decimal-pad" placeholderTextColor={COLORS.textSecondary}/>
 
           <Text style={styles.label}>Espécie</Text>
           <View style={styles.row}>
@@ -89,7 +90,7 @@ export default function CadastrarPetScreen() {
                 onPress={()=>setEspecie(o)}
                 activeOpacity={0.7}
               >
-                <Text style={styles.pickerText}>{o}</Text>
+                <Text style={[styles.pickerText, especie===o && styles.pickerTextSelected]}>{o}</Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -103,7 +104,7 @@ export default function CadastrarPetScreen() {
                 onPress={()=>setSexo(s)}
                 activeOpacity={0.7}
               >
-                <Text style={styles.pickerText}>{s==='M'?'Macho':'Fêmea'}</Text>
+                <Text style={[styles.pickerText, sexo===s && styles.pickerTextSelected]}>{s==='M'?'Macho':'Fêmea'}</Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -122,7 +123,7 @@ export default function CadastrarPetScreen() {
                   <Text style={styles.ageLabel}>{lbl}</Text>
                   <View style={styles.ageControl}>
                     <TouchableOpacity onPress={()=>setVal(Math.max(0,val-1))} activeOpacity={0.7}>
-                      <Ionicons name="remove-circle-outline" size={28} color="#2AA5FF"/>
+                      <Ionicons name="remove-circle-outline" size={SIZES.iconLarge} style={styles.ageIcon}/>
                     </TouchableOpacity>
                     <TextInput
                       style={styles.ageInput}
@@ -134,7 +135,7 @@ export default function CadastrarPetScreen() {
                       }}
                     />
                     <TouchableOpacity onPress={()=>setVal(Math.min(max,val+1))} activeOpacity={0.7}>
-                      <Ionicons name="add-circle-outline" size={28} color="#2AA5FF"/>
+                      <Ionicons name="add-circle-outline" size={SIZES.iconLarge} style={styles.ageIcon}/>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -150,8 +151,8 @@ export default function CadastrarPetScreen() {
             style={[styles.input, styles.bioInput]}
             value={bio}
             onChangeText={setBio}
-            placeholder="Conte um pouco sobre o pet..."
-            placeholderTextColor="#aaa"
+            placeholder="Conte um pouco sobre o pet, sua personalidade, história, etc."
+            placeholderTextColor={COLORS.textSecondary}
             multiline
           />
           <TouchableOpacity style={styles.imageBtn} onPress={selecionarImagem} activeOpacity={0.7}>
@@ -170,97 +171,162 @@ export default function CadastrarPetScreen() {
 }
 
 const styles = StyleSheet.create({
-  scroll: { backgroundColor:'#F9F9F9' },
-  container: { padding:16, paddingTop:48 },
-  header: { flexDirection:'row', alignItems:'center', justifyContent:'center', marginBottom:24 },
-  backBtn: { position:'absolute', left:0 },
-  headerTitle: { fontSize:24, fontWeight:'bold', color:'#333' },
-
+  scroll: {
+    backgroundColor: COLORS.background,
+  },
+  container: {
+    padding: SIZES.spacingRegular,
+    paddingTop: SIZES.hp(6), // Mais espaço no topo para o header
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center', // Centraliza o título
+    marginBottom: SIZES.spacingXLarge, // Mais espaço abaixo do header
+    position: 'relative', // Para o backBtn
+    height: SIZES.headerHeight,
+  },
+  backBtn: {
+    position: 'absolute',
+    left: 0,
+    padding: SIZES.spacingSmall, // Área de toque
+  },
+  headerTitle: {
+    fontSize: FONTS.sizeXLarge,
+    fontFamily: FONTS.familyBold,
+    color: COLORS.text,
+  },
   sectionCard: {
-    backgroundColor:'#fff',
-    marginVertical:8,
-    padding:16,
-    borderRadius:12,
-    shadowColor:'#000',
-    shadowOffset:{width:0,height:2},
-    shadowOpacity:0.05,
-    shadowRadius:4,
-    elevation:2
+    backgroundColor: COLORS.cardBackground,
+    marginVertical: SIZES.spacingSmall,
+    padding: SIZES.spacingMedium,
+    borderRadius: SIZES.borderRadiusMedium,
+    ...SHADOWS.regular,
   },
-  label: { fontSize:14, fontWeight:'600', color:'#333', marginBottom:4 },
+  label: {
+    fontSize: FONTS.sizeRegular,
+    fontFamily: FONTS.familyBold,
+    color: COLORS.textLight,
+    marginBottom: SIZES.spacingSmall, // Mais espaço para o label
+  },
   input: {
-    backgroundColor:'#F6F6F6',
-    borderRadius:8,
-    borderWidth:1,
-    borderColor:'#DDD',
-    padding:12,
-    fontSize:16,
-    marginBottom:12
+    backgroundColor: COLORS.light,
+    fontFamily: FONTS.familyRegular,
+    fontSize: FONTS.sizeRegular,
+    color: COLORS.text,
+    borderRadius: SIZES.borderRadiusRegular,
+    borderWidth: SIZES.borderWidth,
+    borderColor: COLORS.borderColor,
+    padding: SIZES.spacingMedium,
+    marginBottom: SIZES.spacingRegular, // Espaço padrão abaixo dos inputs
+    height: SIZES.inputHeight,
   },
-  row: { flexDirection:'row', gap:8, marginBottom:12 },
-
+  row: {
+    flexDirection: 'row',
+    gap: SIZES.spacingSmall, // Espaço entre elementos na linha
+    marginBottom: SIZES.spacingRegular,
+  },
   pickerOption: {
-    flex:1,
-    padding:12,
-    borderRadius:8,
-    borderWidth:1,
-    borderColor:'#DDD',
-    backgroundColor:'#F6F6F6',
-    alignItems:'center'
+    flex: 1, // Para ocupar espaço igual
+    padding: SIZES.spacingMedium,
+    borderRadius: SIZES.borderRadiusRegular,
+    borderWidth: SIZES.borderWidth,
+    borderColor: COLORS.borderColor,
+    backgroundColor: COLORS.light,
+    alignItems: 'center',
+    justifyContent: 'center', // Centraliza texto no picker
+    height: SIZES.inputHeight, // Altura consistente com inputs
   },
   pickerOptionSelected: {
-    backgroundColor:'#B6E1FA',
-    borderColor:'#2AA5FF'
+    backgroundColor: COLORS.primary, // Cor primária para selecionado
+    borderColor: COLORS.primary,
   },
-  pickerText: { fontSize:16, fontWeight:'500', color:'#333' },
-
-  ageBox: {
-    flex:1,
-    alignItems:'center',
-    padding:12,
-    borderRadius:8,
-    backgroundColor:'#F6F6F6',
-    borderWidth:1,
-    borderColor:'#DDD'
+  pickerText: { // Estilo base para texto do picker
+    fontSize: FONTS.sizeRegular,
+    fontFamily: FONTS.familyRegular,
+    color: COLORS.textSecondary, // Cor padrão do texto
   },
-  ageLabel: { fontSize:14, fontWeight:'600', color:'#333', marginBottom:4 },
-  ageControl: { flexDirection:'row', alignItems:'center' },
+  pickerTextSelected: { // Estilo para texto do picker quando selecionado
+    fontFamily: FONTS.familyBold,
+    color: COLORS.white, // Texto branco quando selecionado
+  },
+  ageBox: { // Container para cada seletor de idade (Anos/Meses)
+    flex: 1,
+    alignItems: 'center',
+    padding: SIZES.spacingSmall, // Menos padding interno
+    borderRadius: SIZES.borderRadiusRegular,
+    backgroundColor: COLORS.light,
+    borderWidth: SIZES.borderWidth,
+    borderColor: COLORS.borderColor,
+  },
+  ageLabel: {
+    fontSize: FONTS.sizeSmall, // Label menor
+    fontFamily: FONTS.familyBold,
+    color: COLORS.textLight,
+    marginBottom: SIZES.spacingTiny,
+  },
+  ageControl: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around', // Distribui os controles de idade
+    width: '100%', // Para que o justify funcione bem
+  },
   ageInput: {
-    width:48,
-    textAlign:'center',
-    fontSize:16,
-    marginHorizontal:8,
-    borderBottomWidth:1,
-    borderColor:'#CCC',
-    paddingVertical:0,
-    color:'#333'
+    width: SIZES.wp(12), // Largura responsiva
+    textAlign: 'center',
+    fontSize: FONTS.sizeRegular,
+    fontFamily: FONTS.familyRegular,
+    color: COLORS.text,
+    marginHorizontal: SIZES.spacingTiny, // Menos margem
+    borderBottomWidth: SIZES.borderWidth,
+    borderColor: COLORS.borderColor,
+    paddingVertical: SIZES.spacingTiny, // Menos padding vertical
   },
-
-  bioInput: { height:100, textAlignVertical:'top' },
+  ageIcon: { // Estilo para os ícones de +/- da idade
+    color: COLORS.primary, // Cor primária para os ícones
+  },
+  bioInput: {
+    height: SIZES.hp(15), // Altura responsiva para o campo de bio
+    textAlignVertical: 'top', // Alinha o texto no topo para multiline
+    paddingTop: SIZES.spacingMedium, // Padding no topo para multiline
+  },
   imageBtn: {
-    backgroundColor:'#E5F3FF',
-    borderWidth:1,
-    borderColor:'#ADD8E6',
-    borderRadius:8,
-    paddingVertical:12,
-    alignItems:'center',
-    marginTop:8,
-    marginBottom:8
+    backgroundColor: COLORS.info, // Cor info para o botão de imagem
+    borderWidth: SIZES.borderWidth,
+    borderColor: COLORS.info, // Borda da mesma cor
+    borderRadius: SIZES.borderRadiusRegular,
+    paddingVertical: SIZES.spacingMedium,
+    alignItems: 'center',
+    marginTop: SIZES.spacingSmall,
+    marginBottom: SIZES.spacingSmall,
+    ...SHADOWS.light,
   },
-  imageBtnText: { fontSize:16, fontWeight:'600', color:'#333' },
-  preview: { width:'100%', height:180, borderRadius:12, marginTop:8 },
-
+  imageBtnText: {
+    fontSize: FONTS.sizeRegular,
+    fontFamily: FONTS.familyBold,
+    color: COLORS.white, // Texto branco para contraste
+  },
+  preview: {
+    width: '100%',
+    height: SIZES.hp(25), // Altura responsiva para o preview
+    borderRadius: SIZES.borderRadiusMedium, // Bordas consistentes
+    marginTop: SIZES.spacingSmall,
+    borderWidth: SIZES.borderWidth,
+    borderColor: COLORS.borderColor,
+  },
   saveBtn: {
-    backgroundColor:'#2AA5FF',
-    paddingVertical:16,
-    borderRadius:50,
-    alignItems:'center',
-    marginTop:16,
-    shadowColor:'#2AA5FF',
-    shadowOffset:{width:0,height:4},
-    shadowOpacity:0.2,
-    shadowRadius:6,
-    elevation:4
+    backgroundColor: COLORS.success, // Cor de sucesso para o botão Finalizar
+    paddingVertical: SIZES.spacingMedium,
+    borderRadius: SIZES.borderRadiusCircle,
+    alignItems: 'center',
+    marginTop: SIZES.spacingLarge, // Mais espaço acima do botão
+    ...SHADOWS.regular,
+    height: SIZES.buttonHeight,
+    justifyContent: 'center',
   },
-  saveBtnText: { color:'#FFF', fontSize:16, fontWeight:'600' },
+  saveBtnText: {
+    color: COLORS.white,
+    fontSize: FONTS.sizeMedium,
+    fontFamily: FONTS.familyBold,
+  },
 });

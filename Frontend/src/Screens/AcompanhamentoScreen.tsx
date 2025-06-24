@@ -8,8 +8,9 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { buscarPet } from '../api/api';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
+import theme, { COLORS, FONTS, SIZES, SHADOWS } from '../../theme/theme'; // Importar o tema
 
-const { width, height } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window'); // Manter por enquanto
 
 export default function Acompanhamento() {
   const router = useRouter();
@@ -86,7 +87,7 @@ export default function Acompanhamento() {
     <View style={styles.container}>
       <View style={styles.headerContainer}>
         <TouchableOpacity style={styles.voltar} onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color="#333" />
+          <Ionicons name="arrow-back" size={SIZES.iconMedium} color={COLORS.text} />
         </TouchableOpacity>
         <Text style={styles.title}>Acompanhamento{"\n"}{nomePet}</Text>
       </View>
@@ -105,7 +106,7 @@ export default function Acompanhamento() {
             >
               <Text style={[
                 styles.filtroTexto,
-                filtroAtivo === opt && { color: '#FFF' }
+                filtroAtivo === opt && styles.filtroTextoAtivo // Aplicando estilo de texto ativo
               ]}>{opt}</Text>
             </TouchableOpacity>
           ))}
@@ -113,163 +114,214 @@ export default function Acompanhamento() {
       </View>
 
       <View style={styles.card}>
-        {filtrados.length > 0 ? (
+        {/* Adicionar ActivityIndicator se 'registros' estiver carregando, não apenas no geral */}
+        {registros.length === 0 && !loading && ( // Se não há registros E não está carregando
+             <View style={styles.emptyContainer}>
+             <Ionicons name="documents-outline" size={SIZES.iconLarge * 1.5} color={COLORS.textSecondary} />
+             <Text style={styles.emptyTitle}>Nenhum evento registrado</Text>
+             <Text style={styles.emptySubtitle}>
+                Os eventos de saúde e visitas do pet aparecerão aqui.
+             </Text>
+           </View>
+        )}
+        {/* Se há registros filtrados (ou todos), exibe a lista */}
+        {filtrados.length > 0 && (
           <ScrollView style={styles.cardScroll} nestedScrollEnabled>
             {filtrados.map((it, idx) => <Item key={idx} {...it} />)}
           </ScrollView>
-        ) : (
-          <View style={styles.emptyContainer}>
-            <Ionicons name="alert-circle-outline" size={64} color="#B6E1FA" />
-            <Text style={styles.emptyTitle}>Nenhum registro encontrado</Text>
-            <Text style={styles.emptySubtitle}>
-              Ainda não há eventos do tipo "{filtroAtivo}" registrados.
-            </Text>
-          </View>
+        )}
+        {/* Se há registros mas o filtro não retorna nada */}
+        {registros.length > 0 && filtrados.length === 0 && !loading && (
+             <View style={styles.emptyContainer}>
+             <Ionicons name="filter-outline" size={SIZES.iconLarge * 1.5} color={COLORS.textSecondary} />
+             <Text style={styles.emptyTitle}>Nenhum evento para "{filtroAtivo}"</Text>
+             <Text style={styles.emptySubtitle}>
+               Tente selecionar outro filtro.
+             </Text>
+           </View>
         )}
       </View>
 
       <TouchableOpacity
-        style={styles.botao}
+        style={[styles.actionButton, styles.addEventButton]}
         onPress={() => Alert.alert('Adicionar Evento', 'Funcionalidade em breve')}
       >
-        <Text style={styles.botaoTextoBranco}>Adicionar Novo Evento</Text>
+        <Text style={styles.buttonText}>Adicionar Novo Evento</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
-        style={styles.botaoCinza}
+        style={[styles.actionButton, styles.reportButton]}
         onPress={gerarPDF}
       >
-        <Text style={styles.botaoTextoBranco}>Emitir relatório</Text>
+        <Text style={styles.buttonText}>Emitir relatório</Text>
       </TouchableOpacity>
     </View>
   );
 }
 
+// O ActivityIndicator global pode ser removido se a lógica de loading for apenas para os registros
+// if (loading) {
+//   return (
+//     <View style={styles.loadingContainer}>
+//       <ActivityIndicator size="large" color={COLORS.primary} />
+//     </View>
+//   );
+// }
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9F9F9',
-    paddingHorizontal: width * 0.06,
-    paddingTop: height * 0.04
+    backgroundColor: COLORS.background,
+    paddingHorizontal: SIZES.spacingRegular,
+    paddingTop: SIZES.hp(2), // Ajustado para SafeAreaView ou similar se usado no _layout
   },
   headerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: height * 0.02,
+    justifyContent: 'center', // Centraliza o título
+    marginBottom: SIZES.spacingLarge,
+    position: 'relative', // Para o botão voltar
+    height: SIZES.headerHeight,
   },
-  voltar: { position: 'absolute', left: 0 },
+  voltar: {
+    position: 'absolute',
+    left: 0,
+    padding: SIZES.spacingSmall, // Área de toque
+  },
   title: {
-    fontSize: width * 0.065,
-    fontWeight: '700',
-    color: '#333',
+    fontSize: FONTS.sizeXLarge,
+    fontFamily: FONTS.familyBold,
+    color: COLORS.text,
     textAlign: 'center',
-    lineHeight: width * 0.075
+    lineHeight: FONTS.sizeXLarge * 1.2, // Melhorar espaçamento entre linhas se o título quebrar
   },
-  subtitulo: {
-    fontSize: width * 0.045,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: height * 0.01
+  subtitulo: { // Label para "Eventos Registrados"
+    fontSize: FONTS.sizeLarge,
+    fontFamily: FONTS.familyBold,
+    color: COLORS.text,
+    marginBottom: SIZES.spacingRegular,
   },
-  filtroContainer: { marginBottom: height * 0.02 },
+  filtroContainer: {
+    marginBottom: SIZES.spacingRegular
+  },
   filtroBotoes: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    // justifyContent: 'space-between', // Removido para usar gap se houver poucos botões ou flex:1
+    gap: SIZES.spacingSmall, // Espaço entre botões de filtro
   },
   botaoFiltro: {
-    flex: 1,
-    marginHorizontal: 4,
-    paddingVertical: 10,
-    backgroundColor: '#E0E0E0',
-    borderRadius: 20,
+    flex: 1, // Para distribuir o espaço
+    // marginHorizontal: SIZES.spacingTiny, // Substituído por gap
+    paddingVertical: SIZES.spacingSmall,
+    backgroundColor: COLORS.light, // Cor de fundo para filtro não ativo
+    borderRadius: SIZES.borderRadiusCircle, // Botões de filtro bem arredondados
     alignItems: 'center',
+    borderWidth: SIZES.borderWidth,
+    borderColor: COLORS.borderColor,
   },
   botaoFiltroAtivo: {
-    backgroundColor: '#2AA5FF',
+    backgroundColor: COLORS.primary, // Cor primária para filtro ativo
+    borderColor: COLORS.primary,
   },
   filtroTexto: {
-    fontSize: width * 0.04,
-    fontWeight: '600',
-    color: '#333',
+    fontSize: FONTS.sizeRegular,
+    fontFamily: FONTS.familyRegular, // Regular para não ativo
+    color: COLORS.textSecondary,
   },
-  card: {
-    flex: 1,
-    backgroundColor: '#FFF',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: height * 0.02,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1, shadowRadius: 4, elevation: 2,
+  filtroTextoAtivo: { // Estilo adicional para texto do filtro ativo
+    fontFamily: FONTS.familyBold,
+    color: COLORS.white,
   },
-  cardScroll: { maxHeight: height * 0.45 },
-  emptyContainer: {
+  card: { // Card que contém a lista de eventos
+    flex: 1, // Para ocupar o espaço restante
+    backgroundColor: COLORS.cardBackground,
+    borderRadius: SIZES.borderRadiusMedium,
+    padding: SIZES.spacingMedium,
+    marginBottom: SIZES.spacingRegular,
+    ...SHADOWS.regular,
+  },
+  cardScroll: {
+    // maxHeight: SIZES.hp(45), // Removido, flex:1 no card deve controlar
+  },
+  emptyContainer: { // Para quando não há registros
     justifyContent: 'center',
     alignItems: 'center',
-    height: height * 0.25,
+    flex: 1, // Para centralizar no espaço do card
+    padding: SIZES.spacingRegular,
   },
   emptyTitle: {
-    fontSize: width * 0.05,
-    fontWeight: '600',
-    color: '#333',
-    marginTop: 12,
+    fontSize: FONTS.sizeLarge,
+    fontFamily: FONTS.familyBold,
+    color: COLORS.text,
+    marginTop: SIZES.spacingMedium,
+    textAlign: 'center',
   },
   emptySubtitle: {
-    fontSize: width * 0.04,
-    color: '#666',
+    fontSize: FONTS.sizeRegular,
+    fontFamily: FONTS.familyRegular,
+    color: COLORS.textSecondary,
     textAlign: 'center',
-    marginTop: 6,
-    paddingHorizontal: 16,
+    marginTop: SIZES.spacingSmall,
+    paddingHorizontal: SIZES.spacingRegular,
   },
-  itemLinha: {
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderColor: '#EEE',
+  itemLinha: { // Cada item na lista de acompanhamento
+    paddingVertical: SIZES.spacingRegular,
+    borderBottomWidth: SIZES.borderWidthThin,
+    borderColor: COLORS.borderColorLight,
   },
   itemCabecalho: {
     flexDirection: 'row',
-    alignItems: 'center'
+    alignItems: 'center',
+    marginBottom: SIZES.spacingTiny, // Espaço entre cabeçalho e descrição
   },
-  dot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    marginRight: 8
+  dot: { // Ponto colorido indicando tipo de evento
+    width: SIZES.wp(3), // ~12px
+    height: SIZES.wp(3),
+    borderRadius: SIZES.wp(1.5),
+    marginRight: SIZES.spacingSmall,
   },
   itemTitulo: {
-    fontSize: width * 0.045,
-    fontWeight: '600',
+    fontSize: FONTS.sizeMedium, // Título do evento
+    fontFamily: FONTS.familyBold,
+    // A cor é definida inline
   },
   itemData: {
-    fontSize: width * 0.035,
-    color: '#666'
+    fontSize: FONTS.sizeSmall, // Data menor
+    fontFamily: FONTS.familyRegular,
+    color: COLORS.textSecondary,
   },
   itemDescricao: {
-    marginTop: 6,
-    fontSize: width * 0.04,
-    color: '#444',
-    lineHeight: 20
+    marginTop: SIZES.spacingTiny, // Ajustado
+    fontSize: FONTS.sizeRegular,
+    fontFamily: FONTS.familyRegular,
+    color: COLORS.textLight,
+    lineHeight: FONTS.sizeRegular * 1.4, // Melhorar legibilidade
   },
-  botao: {
-    backgroundColor: '#2AA5FF',
-    paddingVertical: 14,
-    borderRadius: 25,
+  // Botões de Ação (Adicionar Evento, Emitir Relatório)
+  actionButton: { // Estilo base para os botões
+    paddingVertical: SIZES.spacingMedium,
+    borderRadius: SIZES.borderRadiusCircle,
     alignItems: 'center',
-    marginBottom: height * 0.015,
-    shadowColor: '#2AA5FF', shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.25, shadowRadius: 4, elevation: 3,
+    justifyContent: 'center',
+    marginBottom: SIZES.spacingRegular,
+    height: SIZES.buttonHeight,
+    ...SHADOWS.regular,
   },
-  botaoCinza: {
-    backgroundColor: '#9A9A9A',
-    paddingVertical: 14,
-    borderRadius: 25,
+  buttonText: { // Texto para os botões
+    color: COLORS.white,
+    fontSize: FONTS.sizeMedium,
+    fontFamily: FONTS.familyBold,
+  },
+  addEventButton: {
+    backgroundColor: COLORS.primary,
+  },
+  reportButton: {
+    backgroundColor: COLORS.secondary, // Cor secundária para o relatório
+  },
+  loadingContainer: { // Para ActivityIndicator (se necessário)
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2, shadowRadius: 3, elevation: 2,
-  },
-  botaoTextoBranco: {
-    color: '#FFF',
-    fontSize: width * 0.045,
-    fontWeight: '600'
+    backgroundColor: COLORS.background,
   },
 });

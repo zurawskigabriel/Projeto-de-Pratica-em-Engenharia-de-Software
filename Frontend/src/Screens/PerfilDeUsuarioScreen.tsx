@@ -20,8 +20,9 @@ import { Entypo } from '@expo/vector-icons';
 import FooterNav from '../components/Footer';
 import perfilImage from '../../assets/perfil.jpg';
 import { buscarUsuarioPorId, excluirUsuario, atualizarUsuario } from '../api/api';
+import theme, { COLORS, FONTS, SIZES, SHADOWS } from '../../theme/theme'; // Importar o tema
 
-const { width, height } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window'); // Manter por enquanto, SIZES.wp/hp podem substituir
 
 export default function UsuarioScreen() {
   const router = useRouter();
@@ -181,9 +182,9 @@ export default function UsuarioScreen() {
                 <Text style={styles.userDetail}>Confirmar Senha:</Text>
                 <TextInput style={styles.input} secureTextEntry value={form.confirmarSenha} onChangeText={(text) => setForm({ ...form, confirmarSenha: text })} />
 
-                <View style={styles.botoesLinha}>
+                <View style={styles.editActionsContainer}>
   <TouchableOpacity
-    style={styles.botaoCancelar}
+    style={[styles.editButton, styles.cancelButton]}
     onPress={() => {
       Alert.alert(
         'Descartar alterações',
@@ -208,11 +209,11 @@ export default function UsuarioScreen() {
       );
     }}
   >
-    <Text style={styles.botaoTexto}>Descartar</Text>
+    <Text style={styles.buttonText}>Descartar</Text>
   </TouchableOpacity>
 
   <TouchableOpacity
-    style={styles.botaoVerde}
+    style={[styles.editButton, styles.saveButton]}
     onPress={() => {
       if (form.senha && form.senha !== form.confirmarSenha) {
         Alert.alert('Erro', 'As senhas não coincidem.');
@@ -248,7 +249,7 @@ export default function UsuarioScreen() {
       );
     }}
   >
-    <Text style={styles.botaoTexto}>Salvar</Text>
+    <Text style={styles.buttonText}>Salvar</Text>
   </TouchableOpacity>
 </View>
 
@@ -264,28 +265,34 @@ export default function UsuarioScreen() {
                 {/* Botão para Solicitações de Adoção (Apenas para Protetores) */}
                 {(usuario.perfilUsuario === 'PROTETOR' || usuario.perfilUsuario === 'AMBOS') && (
                   <TouchableOpacity
-                    style={[styles.botaoAcaoespecial, { marginTop: height * 0.02, backgroundColor: '#007bff' }]} // Cor azul para protetor
+                    style={[styles.actionButton, styles.solicitacoesProtetorButton, { marginTop: SIZES.hp(2) }]}
                     onPress={() => router.push('/SolicitacoesProtetor')}
                   >
-                    <Text style={styles.botaoTexto}>Gerenciar Solicitações Recebidas</Text>
+                    <Text style={styles.buttonText}>Gerenciar Solicitações Recebidas</Text>
                   </TouchableOpacity>
                 )}
 
                 {(usuario.perfilUsuario === 'ADOTANTE' || usuario.perfilUsuario === 'AMBOS') && (
                   <TouchableOpacity
-                    style={[styles.botaoAcaoespecial, { marginTop: height * 0.02, backgroundColor: '#28a745' }]} // Cor verde para adotante
+                    style={[styles.actionButton, styles.solicitacoesAdotanteButton, { marginTop: SIZES.hp(2) }]}
                     onPress={() => router.push('/DetalhesSolicitacaoAdotante')}
                   >
-                    <Text style={styles.botaoTexto}>Minhas Solicitações Enviadas</Text>
+                    <Text style={styles.buttonText}>Minhas Solicitações Enviadas</Text>
                   </TouchableOpacity>
                 )}
 
-                <TouchableOpacity style={[styles.botaoCinza, { marginTop: height * 0.025 }]} onPress={handleLogoff}>
-                  <Text style={styles.botaoTexto}>Sair</Text>
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.logoffButton, { marginTop: SIZES.hp(2.5) }]}
+                  onPress={handleLogoff}
+                >
+                  <Text style={styles.buttonText}>Sair</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.botaoExcluir} onPress={handleExcluirConta}>
-                  <Text style={styles.botaoTexto}>Excluir conta</Text>
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.deleteButton]}
+                  onPress={handleExcluirConta}
+                >
+                  <Text style={styles.buttonText}>Excluir conta</Text>
                 </TouchableOpacity>
               </>
             )}
@@ -301,148 +308,165 @@ export default function UsuarioScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.background, // Fundo da safe area
   },
   scrollContainer: {
     flexGrow: 1,
-    paddingHorizontal: width * 0.06,
-    paddingTop: Platform.OS === 'android' ? height * 0.02 : height * 0.05,
-    paddingBottom: height * 0.02,
+    paddingHorizontal: SIZES.wp(5), // Usando wp para padding horizontal
+    paddingTop: Platform.OS === 'android' ? SIZES.hp(2) : SIZES.hp(5),
+    paddingBottom: SIZES.hp(2),
   },
   header: {
-    marginBottom: height * 0.03,
+    marginBottom: SIZES.hp(3),
+    height: SIZES.headerHeight, // Altura do header
+    justifyContent: 'center', // Centraliza o headerContent verticalmente
   },
   headerContent: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    position: 'relative',
+    position: 'relative', // Para posicionar o menuIcon absoluto a ele
   },
   headerTitle: {
-    fontSize: width * 0.08,
-    fontWeight: 'bold',
-    color: '#000',
+    fontSize: FONTS.sizeXXLarge, // Título bem grande
+    fontFamily: FONTS.familyBold,
+    color: COLORS.text,
   },
   menuIcon: {
     position: 'absolute',
     right: 0,
-    top: 0,
-    padding: width * 0.02,
+    top: 0, // Ajustar se necessário para alinhar verticalmente com o título
+    padding: SIZES.spacingSmall,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    justifyContent: 'flex-start',
-    alignItems: 'flex-end',
-    paddingTop: height * 0.06,
-    paddingRight: width * 0.05,
+    backgroundColor: 'rgba(0,0,0,0.5)', // Overlay um pouco mais escuro
+    justifyContent: 'flex-start', // Alinha o menu no topo
+    alignItems: 'flex-end',    // Alinha o menu à direita
+    paddingTop: SIZES.hp(8),      // Distância do topo da tela
+    paddingRight: SIZES.wp(5),    // Distância da direita da tela
   },
   menuOptionsRight: {
-    backgroundColor: 'white',
-    padding: width * 0.03,
-    borderRadius: width * 0.02,
-    elevation: 5,
+    backgroundColor: COLORS.cardBackground,
+    padding: SIZES.spacingMedium,
+    borderRadius: SIZES.borderRadiusRegular,
+    ...SHADOWS.strong, // Sombra forte para o menu flutuante
   },
   menuText: {
-    fontSize: width * 0.04,
-    paddingVertical: height * 0.01,
+    fontSize: FONTS.sizeRegular,
+    fontFamily: FONTS.familyRegular,
+    color: COLORS.text,
+    paddingVertical: SIZES.spacingSmall,
   },
   userInfoContainer: {
     alignItems: 'center',
-    marginBottom: height * 0.04,
+    marginBottom: SIZES.hp(4),
   },
   profileImage: {
-    width: width * 0.4,
-    height: width * 0.4,
-    borderRadius: (width * 0.6) / 2,
-    marginBottom: height * 0.02,
+    width: SIZES.wp(40), // Imagem de perfil responsiva
+    height: SIZES.wp(40),
+    borderRadius: SIZES.wp(20), // Circular
+    marginBottom: SIZES.hp(2),
+    borderWidth: 3, // Adiciona uma borda à imagem de perfil
+    borderColor: COLORS.primary,
   },
   userName: {
-    fontSize: width * 0.08,
-    fontWeight: 'bold',
-    color: '#000',
-    marginBottom: height * 0.01,
+    fontSize: FONTS.sizeXXLarge, // Nome do usuário destacado
+    fontFamily: FONTS.familyBold,
+    color: COLORS.text,
+    marginBottom: SIZES.hp(1),
+    textAlign: 'center',
   },
   userEmail: {
-    fontSize: width * 0.05,
-    color: '#333',
-    marginBottom: height * 0.015,
+    fontSize: FONTS.sizeRegular,
+    fontFamily: FONTS.familyRegular,
+    color: COLORS.textSecondary,
+    marginBottom: SIZES.hp(1.5),
+    textAlign: 'center',
   },
-  userDetail: {
-    fontSize: width * 0.05,
-    color: '#333',
-    marginBottom: height * 0.005,
+  userDetail: { // Para "Telefone:", "Tipo de conta:", "Desde:"
+    fontSize: FONTS.sizeRegular,
+    fontFamily: FONTS.familyRegular,
+    color: COLORS.textLight,
+    marginBottom: SIZES.hp(0.5),
+    alignSelf: 'flex-start', // Alinha os detalhes à esquerda do container
+    width: '100%', // Para garantir que o alinhamento à esquerda funcione bem
+    paddingLeft: SIZES.wp(2), // Pequeno padding para não colar
   },
-  input: {
+  input: { // Estilo unificado para TextInput
     width: '100%',
-    marginHorizontal: width * 0.02,
-    borderRadius: height * 0.02,
-    paddingVertical: height * 0.015,
-    marginBottom: height * 0.015,
-    borderWidth: height * 0.001,
-    paddingLeft: height * 0.02,
-    borderColor: '#ccc',
-    fontSize: width * 0.045,
-    color: '#000',
+    backgroundColor: COLORS.light,
+    fontFamily: FONTS.familyRegular,
+    fontSize: FONTS.sizeRegular,
+    color: COLORS.text,
+    borderRadius: SIZES.borderRadiusRegular,
+    padding: SIZES.spacingMedium,
+    marginBottom: SIZES.spacingRegular,
+    borderWidth: SIZES.borderWidth,
+    borderColor: COLORS.borderColor,
+    height: SIZES.inputHeight,
   },
-  botaoAcaoespecial: { // Novo estilo para o botão de solicitações
-    backgroundColor: '#007bff', // Azul como exemplo
-    width: '100%',
-    marginHorizontal: width * 0.02,
-    borderRadius: height * 0.02,
-    paddingVertical: height * 0.02,
-    alignItems: 'center',
-    marginBottom: height * 0.015,
-  },
-  botaoCinza: {
-    backgroundColor: '#B0B0B0',
-    width: '100%',
-    marginHorizontal: width * 0.02,
-    borderRadius: height * 0.02,
-    paddingVertical: height * 0.02,
-    alignItems: 'center',
-    marginBottom: height * 0.015,
-  },
-  botaoExcluir: {
-    backgroundColor: '#FF6B6B',
-    width: '100%',
-    marginHorizontal: width * 0.02,
-    borderRadius: height * 0.02,
-    paddingVertical: height * 0.02,
-    alignItems: 'center',
-    marginBottom: height * 0.015,
-  },
-  botaoCancelar: {
-    backgroundColor: '#FF6B6B',
-    paddingVertical: height * 0.015,
-    borderRadius: width * 0.05,
+  // Botões de Ação (Sair, Excluir, Solicitações)
+  actionButton: { // Estilo base para os botões principais
+    width: '95%', // Um pouco menor que 100% para não colar nas bordas do card/tela
+    alignSelf: 'center', // Centraliza o botão
+    paddingVertical: SIZES.spacingMedium,
+    borderRadius: SIZES.borderRadiusCircle,
     alignItems: 'center',
     justifyContent: 'center',
-    flex: 1,
+    marginBottom: SIZES.spacingRegular,
+    height: SIZES.buttonHeight,
+    ...SHADOWS.regular,
   },
-  botaoVerde: {
-    backgroundColor: '#7FCAD2',
-    paddingVertical: height * 0.015,
-    borderRadius: width * 0.05,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
+  buttonText: { // Texto para todos os botões de ação
+    color: COLORS.white,
+    fontSize: FONTS.sizeMedium,
+    fontFamily: FONTS.familyBold,
   },
-  botoesLinha: {
+  // Especialização para cada botão (cores)
+  solicitacoesProtetorButton: {
+    backgroundColor: COLORS.info, // Azul info para protetor
+  },
+  solicitacoesAdotanteButton: {
+    backgroundColor: COLORS.success, // Verde para adotante
+  },
+  logoffButton: {
+    backgroundColor: COLORS.secondary, // Cinza para logoff
+  },
+  deleteButton: {
+    backgroundColor: COLORS.danger, // Vermelho para excluir
+  },
+  // Botões no modo de edição (Salvar, Descartar)
+  editActionsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    width: '100%',
-    gap: width * 0.025,
-    marginBottom: height * 0.015,
+    width: '95%',
+    alignSelf: 'center',
+    marginTop: SIZES.spacingRegular,
   },
-  botaoTexto: {
-    color: '#FFF',
-    fontSize: width * 0.045,
-    fontWeight: 'bold',
+  editButton: { // Estilo base para botões de edição
+    flex: 1, // Para ocupar espaço igualitário
+    paddingVertical: SIZES.spacingMedium,
+    borderRadius: SIZES.borderRadiusCircle,
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: SIZES.buttonHeight,
+    ...SHADOWS.regular,
   },
-  loadingContainer: {
+  saveButton: {
+    backgroundColor: COLORS.primary, // Azul primário para salvar
+    marginRight: SIZES.spacingSmall, // Espaço entre botões Salvar e Descartar
+  },
+  cancelButton: {
+    backgroundColor: COLORS.danger, // Vermelho para descartar
+    marginLeft: SIZES.spacingSmall,
+  },
+  loadingContainer: { // Para ActivityIndicator
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: COLORS.background,
   },
+  // Removidos estilos antigos de botões (botaoAcaoespecial, botaoCinza, etc.)
+  // Eles foram substituídos por actionButton e especializações.
 });

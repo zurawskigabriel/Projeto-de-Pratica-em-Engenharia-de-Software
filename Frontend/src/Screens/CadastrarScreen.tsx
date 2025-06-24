@@ -9,6 +9,7 @@ import { useRouter } from 'expo-router';
 import { criarUsuario, fazerLogin } from '../api/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { decode as atob } from 'base-64';
+import theme, { COLORS, FONTS, SIZES, SHADOWS } from '../../theme/theme'; // Importar o tema
 
 function analisarSenha(senha: string) {
   const regras = [
@@ -204,11 +205,12 @@ const styles = StyleSheet.create({
   // Tela principal
   screen: {
     flex: 1,
-    backgroundColor: '#F1F9FA',
+    backgroundColor: COLORS.background, // Cor de fundo do tema
   },
   scroll: {
-    padding: 16,
-    paddingTop: 48,
+    flexGrow: 1, // Para garantir que o ScrollView ocupe espaço mesmo com pouco conteúdo
+    padding: SIZES.spacingRegular,
+    paddingTop: SIZES.spacingXLarge, // Mais espaço no topo
   },
 
   // Seletor inicial com relevo/card
@@ -216,142 +218,152 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 24,
+    padding: SIZES.spacingLarge,
+    backgroundColor: COLORS.background, // Para cobrir a tela inteira
   },
   selectorCard: {
     width: '100%',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 24,
-    // Sombra cross‑platform (iOS e Android)
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 6,
-  }, // segue boas práticas de sombras em React Native :contentReference[oaicite:1]{index=1}
+    backgroundColor: COLORS.cardBackground,
+    borderRadius: SIZES.borderRadiusLarge,
+    padding: SIZES.spacingXLarge,
+    ...SHADOWS.strong, // Sombra mais pronunciada para o card de seleção
+  },
   selectorTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#333',
-    marginBottom: 24,
+    fontSize: FONTS.sizeXLarge,
+    fontFamily: FONTS.familyBold,
+    color: COLORS.text,
+    marginBottom: SIZES.spacingXLarge,
     textAlign: 'center',
   },
   optionsContainer: {
-    flexDirection: 'column',
-    justifyContent: 'space-around',
+    // flexDirection: 'column', // Padrão para View
+    // justifyContent: 'space-around', // Não necessário com marginBottom nos botões
   },
   selectorBtn: {
     flexDirection: 'row',
-    alignItems: 'stretch',
-    paddingVertical: 25,
-    paddingHorizontal: 80,
-    borderRadius: 25,
+    alignItems: 'center', // Alinha ícone e texto verticalmente
+    justifyContent: 'center', // Centraliza conteúdo do botão
+    paddingVertical: SIZES.spacingMedium,
+    // paddingHorizontal: SIZES.wp(10), // Ajustado para ser mais flexível com o texto
+    borderRadius: SIZES.borderRadiusCircle, // Botões bem arredondados
+    ...SHADOWS.regular,
+    height: SIZES.hp(8), // Altura responsiva
   },
   adotanteBtn: {
-    backgroundColor: '#219CD9',
-    marginBottom: 16
+    backgroundColor: COLORS.primary, // Cor primária para Adotante
+    marginBottom: SIZES.spacingRegular,
   },
   doadorBtn: {
-    backgroundColor: '#86B9D1',
+    backgroundColor: COLORS.success, // Cor de sucesso (verde) para Protetor
   },
   btnIcon: {
-    marginRight: 8,
+    marginRight: SIZES.spacingSmall,
   },
   selectorText: {
-    fontSize: 22,
-    fontWeight: '600',
-    color: '#FFF',
+    fontSize: FONTS.sizeLarge, // Tamanho de fonte maior para os botões de seleção
+    fontFamily: FONTS.familyBold,
+    color: COLORS.white,
   },
 
   // Card de formulário
   card: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 3,
+    backgroundColor: COLORS.cardBackground,
+    borderRadius: SIZES.borderRadiusLarge,
+    padding: SIZES.spacingLarge,
+    ...SHADOWS.regular,
   },
   backBtn: {
     position: 'absolute',
-    top: 16,
-    left: 16,
+    top: SIZES.spacingMedium, // Ajustado para melhor posicionamento
+    left: SIZES.spacingMedium,
+    padding: SIZES.spacingTiny, // Área de toque
+    zIndex: 1, // Para garantir que fique sobre outros elementos se necessário
   },
   title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#333',
+    fontSize: FONTS.sizeXXLarge, // Título grande para o formulário
+    fontFamily: FONTS.familyBold,
+    color: COLORS.text,
     textAlign: 'center',
-    marginBottom: 24,
+    marginBottom: SIZES.spacingXLarge,
   },
 
   // Inputs e senhas
   input: {
-    backgroundColor: '#F6F6F6',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 16,
-    borderColor: '#DDD',
-    borderWidth: 1,
-    fontSize: 16,
+    backgroundColor: COLORS.light,
+    fontFamily: FONTS.familyRegular,
+    fontSize: FONTS.sizeRegular,
+    color: COLORS.text,
+    borderRadius: SIZES.borderRadiusRegular,
+    padding: SIZES.spacingMedium,
+    marginBottom: SIZES.spacingRegular,
+    borderWidth: SIZES.borderWidth,
+    borderColor: COLORS.borderColor,
+    height: SIZES.inputHeight,
   },
-  inputIcon: {
+  inputIconContainer: { // Renomeado de inputIcon para maior clareza
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F6F6F6',
-    borderRadius: 8,
-    borderColor: '#DDD',
-    borderWidth: 1,
-    paddingHorizontal: 12,
-    marginBottom: 16,
-    height: 52,
+    backgroundColor: COLORS.light,
+    borderRadius: SIZES.borderRadiusRegular,
+    borderColor: COLORS.borderColor,
+    borderWidth: SIZES.borderWidth,
+    paddingHorizontal: SIZES.spacingMedium,
+    marginBottom: SIZES.spacingRegular,
+    height: SIZES.inputHeight,
   },
   passInput: {
     flex: 1,
-    fontSize: 16,
+    fontFamily: FONTS.familyRegular,
+    fontSize: FONTS.sizeRegular,
+    color: COLORS.text,
+  },
+  eyeIcon: { // Estilo para o ícone do olho
+    padding: SIZES.spacingSmall,
   },
 
   // Listas de validação
   critList: {
-    marginBottom: 16,
+    marginBottom: SIZES.spacingRegular,
+    paddingLeft: SIZES.spacingSmall, // Pequeno recuo para a lista
+  },
+  critText: { // Estilo base para texto de critério
+    fontFamily: FONTS.familyRegular,
+    fontSize: FONTS.sizeSmall,
+    marginBottom: SIZES.spacingTiny,
   },
   matchText: {
-    fontSize: 14,
-    fontWeight: '600',
-    marginBottom: 16,
+    fontSize: FONTS.sizeSmall,
+    fontFamily: FONTS.familyBold, // Bold para destacar
+    marginBottom: SIZES.spacingRegular,
   },
 
   // Checkbox promocional
   checkboxRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: SIZES.spacingLarge, // Mais espaço antes do botão de submit
   },
   checkboxLabel: {
-    marginLeft: 10,
-    fontSize: 14,
-    color: '#333',
-    flex: 1,
+    marginLeft: SIZES.spacingSmall,
+    fontSize: FONTS.sizeSmall, // Um pouco menor para o label do checkbox
+    fontFamily: FONTS.familyRegular,
+    color: COLORS.textSecondary,
+    flex: 1, // Para o texto quebrar a linha se necessário
   },
 
   // Botão de envio
   submitBtn: {
-    backgroundColor: '#219CD9',
-    paddingVertical: 16,
-    borderRadius: 50,
+    backgroundColor: COLORS.primary,
+    paddingVertical: SIZES.spacingMedium,
+    borderRadius: SIZES.borderRadiusCircle,
     alignItems: 'center',
-    shadowColor: '#219CD9',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 4,
+    ...SHADOWS.regular,
+    height: SIZES.buttonHeight,
+    justifyContent: 'center',
   },
   submitText: {
-    color: '#FFF',
-    fontSize: 18,
-    fontWeight: '600',
+    color: COLORS.white,
+    fontSize: FONTS.sizeMedium,
+    fontFamily: FONTS.familyBold,
   },
 });

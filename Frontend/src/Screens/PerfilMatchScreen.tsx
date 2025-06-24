@@ -15,8 +15,9 @@ import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native'; // Importação principal para a correção
 import { buscarPerfilMatch, salvarPerfilMatch, excluirPerfilMatch } from '../api/api'; // Ajuste o caminho se necessário
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import theme, { COLORS, FONTS, SIZES, SHADOWS } from '../../theme/theme'; // Importar o tema
 
-const { width, height } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window'); // Manter por enquanto
 
 // Estado inicial para o formulário (usado para preencher e limpar)
 const initialState = {
@@ -146,57 +147,66 @@ export default function PerfilDeMatch() {
   // Exibe um indicador de carregamento enquanto busca os dados
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color="#7FCAD2" />
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
       </View>
     );
   }
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} keyboardShouldPersistTaps="handled">
       <View style={styles.headerWrapper}>
         <TouchableOpacity onPress={() => router.back()} style={styles.headerIcon}>
-          <Ionicons name="arrow-back" size={24} color="black" />
+          <Ionicons name="arrow-back" size={SIZES.iconMedium} color={COLORS.text} />
         </TouchableOpacity>
         <Text style={styles.title}>Perfil de Match</Text>
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.label}>Espécie</Text>
+        <Text style={styles.label}>Espécie de preferência:</Text>
         <Checkbox label="Gato" value={form.gato} onPress={() => toggle('gato')} />
         <Checkbox label="Cachorro" value={form.cachorro} onPress={() => toggle('cachorro')} />
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.label}>Sexo</Text>
+        <Text style={styles.label}>Sexo de preferência:</Text>
         <Checkbox label="Macho" value={form.macho} onPress={() => toggle('macho')} />
         <Checkbox label="Fêmea" value={form.femea} onPress={() => toggle('femea')} />
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.label}>Porte</Text>
+        <Text style={styles.label}>Porte de preferência:</Text>
         <Checkbox label="Pequeno" value={form.pequeno} onPress={() => toggle('pequeno')} />
         <Checkbox label="Médio" value={form.medio} onPress={() => toggle('medio')} />
         <Checkbox label="Grande" value={form.grande} onPress={() => toggle('grande')} />
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.label}>Outros</Text>
+        <Text style={styles.label}>Outras características:</Text>
         <Checkbox label="Convive bem com outros Pets" value={form.convive} onPress={() => toggle('convive')} />
         <Checkbox label="Possui Necessidades Especiais" value={form.necessidades} onPress={() => toggle('necessidades')} />
       </View>
 
-      <Text style={styles.label}>Raças (separadas por vírgula)</Text>
-      <TextInput
-        style={styles.input}
-        value={form.raca}
-        onChangeText={text => setForm({ ...form, raca: text })}
-        placeholder="Ex: Poodle, Viralata, Bulldog"
-      />
+      <View style={styles.section}>
+        <Text style={styles.label}>Raças de preferência (separadas por vírgula):</Text>
+        <TextInput
+          style={styles.input}
+          value={form.raca}
+          onChangeText={text => setForm({ ...form, raca: text })}
+          placeholder="Ex: Poodle, Viralata, Bulldog"
+          placeholderTextColor={COLORS.textSecondary}
+        />
+      </View>
 
-      <TouchableOpacity style={styles.salvarBtn} onPress={handleSave}><Text style={styles.buttonTxt}>Salvar Perfil</Text></TouchableOpacity>
-      <TouchableOpacity style={styles.limparBtn} onPress={limparPerfil}><Text style={styles.buttonTxt}>Limpar Perfil</Text></TouchableOpacity>
-      <TouchableOpacity style={styles.excluirBtn} onPress={handleDelete}><Text style={styles.buttonTxt}>Excluir Perfil</Text></TouchableOpacity>
+      <TouchableOpacity style={[styles.actionButton, styles.salvarBtn]} onPress={handleSave}>
+        <Text style={styles.buttonText}>Salvar Perfil</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={[styles.actionButton, styles.limparBtn]} onPress={limparPerfil}>
+        <Text style={styles.buttonText}>Limpar Perfil</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={[styles.actionButton, styles.excluirBtn]} onPress={handleDelete}>
+        <Text style={styles.buttonText}>Excluir Perfil</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 }
@@ -204,7 +214,11 @@ export default function PerfilDeMatch() {
 function Checkbox({ label, value, onPress }) {
   return (
     <TouchableOpacity onPress={onPress} style={styles.checkboxContainer}>
-      <Ionicons name={value ? 'checkbox' : 'square-outline'} size={24} color="#333" />
+      <Ionicons
+        name={value ? 'checkbox' : 'square-outline'}
+        size={SIZES.iconMedium} // Tamanho do ícone do checkbox
+        style={styles.checkboxIcon}
+      />
       <Text style={styles.checkboxLabel}>{label}</Text>
     </TouchableOpacity>
   );
@@ -212,77 +226,98 @@ function Checkbox({ label, value, onPress }) {
 
 const styles = StyleSheet.create({
   container: {
-    padding: width * 0.05,
-    backgroundColor: '#fff',
+    flex: 1, // Para o ScrollView ocupar a tela toda
+    padding: SIZES.spacingRegular,
+    backgroundColor: COLORS.background, // Fundo da tela
   },
   headerWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: height * 0.02,
-    position: 'relative',
+    justifyContent: 'center', // Centraliza o título
+    marginBottom: SIZES.spacingLarge,
+    position: 'relative', // Para o ícone de voltar
+    height: SIZES.headerHeight,
   },
-  headerIcon: {
+  headerIcon: { // Ícone de voltar
     position: 'absolute',
     left: 0,
+    padding: SIZES.spacingSmall,
   },
   title: {
-    fontSize: width * 0.07,
-    fontWeight: 'bold',
+    fontSize: FONTS.sizeXLarge,
+    fontFamily: FONTS.familyBold,
+    color: COLORS.text,
   },
-  section: {
-    marginBottom: height * 0.015,
+  section: { // Container para cada grupo de checkboxes ou input
+    backgroundColor: COLORS.cardBackground,
+    borderRadius: SIZES.borderRadiusMedium,
+    padding: SIZES.spacingMedium,
+    marginBottom: SIZES.spacingRegular,
+    ...SHADOWS.light,
   },
-  label: {
-    fontSize: width * 0.05,
-    fontWeight: '600',
-    marginBottom: height * 0.005,
+  label: { // Label para cada seção ou input
+    fontSize: FONTS.sizeMedium, // Tamanho um pouco maior para labels de seção
+    fontFamily: FONTS.familyBold,
+    color: COLORS.text,
+    marginBottom: SIZES.spacingRegular, // Mais espaço abaixo do label da seção
   },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    paddingHorizontal: width * 0.03,
-    paddingVertical: height * 0.015,
-    marginBottom: height * 0.02,
-    fontSize: width * 0.04,
+  input: { // Para o input de Raças
+    backgroundColor: COLORS.light,
+    fontFamily: FONTS.familyRegular,
+    fontSize: FONTS.sizeRegular,
+    color: COLORS.text,
+    borderRadius: SIZES.borderRadiusRegular,
+    borderWidth: SIZES.borderWidth,
+    borderColor: COLORS.borderColor,
+    padding: SIZES.spacingMedium,
+    marginBottom: SIZES.spacingRegular, // Espaço abaixo do input
+    height: SIZES.inputHeight,
   },
   checkboxContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: height * 0.01,
+    paddingVertical: SIZES.spacingSmall, // Espaçamento vertical para cada checkbox
+    // marginBottom: SIZES.spacingTiny, // Removido, paddingVertical já espaça
+  },
+  checkboxIcon: { // Estilo para o ícone do checkbox
+    color: COLORS.primary, // Ícone do checkbox na cor primária
+    marginRight: SIZES.spacingSmall,
   },
   checkboxLabel: {
-    marginLeft: width * 0.03,
-    fontSize: width * 0.045,
+    marginLeft: SIZES.spacingSmall, // Mantido, mas pode ser ajustado com marginRight no ícone
+    fontSize: FONTS.sizeRegular,
+    fontFamily: FONTS.familyRegular,
+    color: COLORS.textLight,
+    flex: 1, // Para o texto quebrar se necessário
+  },
+  // Botões de Ação
+  actionButton: { // Estilo base para os botões Salvar, Limpar, Excluir
+    borderRadius: SIZES.borderRadiusCircle,
+    paddingVertical: SIZES.spacingMedium,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: SIZES.spacingRegular,
+    height: SIZES.buttonHeight,
+    ...SHADOWS.regular,
+  },
+  buttonText: { // Texto para os botões de ação
+    fontSize: FONTS.sizeMedium,
+    color: COLORS.white,
+    fontFamily: FONTS.familyBold,
   },
   salvarBtn: {
-    backgroundColor: '#7FCAD2',
-    borderRadius: 8,
-    paddingVertical: height * 0.02,
-    alignItems: 'center',
-    marginBottom: height * 0.015,
-    elevation: 4,
+    backgroundColor: COLORS.primary,
   },
   limparBtn: {
-    backgroundColor: '#9A9A9A',
-    borderRadius: 8,
-    paddingVertical: height * 0.02,
-    alignItems: 'center',
-    marginBottom: height * 0.015,
-    elevation: 4,
+    backgroundColor: COLORS.secondary,
   },
   excluirBtn: {
-    backgroundColor: '#FF5C5C',
-    borderRadius: 8,
-    paddingVertical: height * 0.02,
-    alignItems: 'center',
-    marginBottom: height * 0.015,
-    elevation: 4,
+    backgroundColor: COLORS.danger,
   },
-  buttonTxt: {
-    fontSize: width * 0.05,
-    color: 'white',
-    fontWeight: 'bold',
+  loadingContainer: { // Estilo para o container do ActivityIndicator
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: COLORS.background,
   },
 });

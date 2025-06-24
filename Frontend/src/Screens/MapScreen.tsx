@@ -1,108 +1,119 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView } from 'react-native'; // Adicionado ScrollView
 import { useRouter } from 'expo-router';
+import theme, { COLORS, FONTS, SIZES, SHADOWS } from '../../theme/theme'; // Importar o tema
 
-export default function MenuScreen() {
+export default function MenuScreen() { // Renomear para MapScreen ou DebugMenuScreen seria mais claro
     const router = useRouter();
 
     return (
-        <SafeAreaView style={styles.container}>
-            <Text style={styles.titulo}>Menu</Text>
+        <SafeAreaView style={styles.safeArea}>
+        <ScrollView contentContainerStyle={styles.container}>
+            <Text style={styles.title}>Menu de Navegação (Debug)</Text>
 
             <TouchableOpacity
-                style={styles.botao}
+                style={styles.button}
                 onPress={() => router.push('/CadastrarPet')}
             >
-                <Text style={styles.botaoTexto}>Cadastrar Pet</Text>
+                <Text style={styles.buttonText}>Cadastrar Pet</Text>
             </TouchableOpacity>
             <TouchableOpacity
-                style={styles.botao}
+                style={styles.button}
                 onPress={() => router.push('/Cadastrar')}
             >
-                <Text style={styles.botaoTexto}>Cadastrar</Text>
+                <Text style={styles.buttonText}>Cadastrar</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-                style={styles.botao}
+                style={styles.button}
                 onPress={() => router.push('/EditarPet')}
             >
-                <Text style={styles.botaoTexto}>Editar Pet</Text>
+                <Text style={styles.buttonText}>Editar Pet</Text>
             </TouchableOpacity>
             <TouchableOpacity
-                style={styles.botao}
+                style={styles.button}
                 onPress={() => router.push('/Explorar')}
             >
-                <Text style={styles.botaoTexto}>Explorar</Text>
+                <Text style={styles.buttonText}>Explorar</Text>
             </TouchableOpacity>
             <TouchableOpacity
-                style={styles.botao}
+                style={styles.button}
                 onPress={() => router.push('/Favoritos')}
             >
-                <Text style={styles.botaoTexto}>Favoritos</Text>
+                <Text style={styles.buttonText}>Favoritos</Text>
             </TouchableOpacity>
             <TouchableOpacity
-                style={styles.botao}
+                style={styles.button}
                 onPress={() => router.push('/Login')}
             >
-                <Text style={styles.botaoTexto}>Login</Text>
+                <Text style={styles.buttonText}>Login</Text>
             </TouchableOpacity>
             <TouchableOpacity
-                style={styles.botao}
+                style={styles.button}
                 onPress={() => router.push('/MeusPets')}
             >
-                <Text style={styles.botaoTexto}>Meus Pets</Text>
+                <Text style={styles.buttonText}>Meus Pets</Text>
             </TouchableOpacity>
             <TouchableOpacity
-                style={styles.botao}
+                style={styles.button}
                 onPress={() => router.push('/PerfilDeUsuario')}
             >
-                <Text style={styles.botaoTexto}>Perfil de Usuario</Text>
+                <Text style={styles.buttonText}>Perfil de Usuario</Text>
             </TouchableOpacity>
             <TouchableOpacity
-                style={styles.botao}
+                style={styles.button}
                 onPress={() => router.push('/PerfilPet')}
             >
-                <Text style={styles.botaoTexto}>PerfilPet</Text>
+                <Text style={styles.buttonText}>PerfilPet</Text>
             </TouchableOpacity>
             <TouchableOpacity
-                style={styles.botao}
+                style={styles.button}
                 onPress={() => router.push('/PerfilMatch')}
             >
-                <Text style={styles.botaoTexto}>PerfilMatch</Text>
+                <Text style={styles.buttonText}>PerfilMatch</Text>
             </TouchableOpacity>
             <TouchableOpacity
-                style={styles.botao}
+                style={styles.button}
                 onPress={() => router.push('/Acompanhamento')}
             >
-                <Text style={styles.botaoTexto}>Acompanhamento</Text>
+                <Text style={styles.buttonText}>Acompanhamento</Text>
             </TouchableOpacity>
+            {/* Adicionar mais botões aqui se necessário */}
+        </ScrollView>
         </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
+    safeArea: { // Aplicado ao SafeAreaView
         flex: 1,
-        padding: 20,
-        justifyContent: 'center',
-        backgroundColor: '#fff',
+        backgroundColor: COLORS.background,
     },
-    titulo: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        marginBottom: 24,
+    container: { // Aplicado ao ScrollView contentContainerStyle
+        flexGrow: 1, // Para o ScrollView ocupar espaço e permitir scroll
+        padding: SIZES.spacingRegular,
+        // justifyContent: 'center', // Removido para permitir que o conteúdo comece do topo
+    },
+    title: { // Renomeado de titulo
+        fontSize: FONTS.sizeXXLarge,
+        fontFamily: FONTS.familyBold,
+        color: COLORS.text,
+        marginBottom: SIZES.spacingXLarge, // Mais espaço abaixo do título
         textAlign: 'center',
     },
-    botao: {
-        backgroundColor: '#4CAF50',
-        padding: 15,
-        borderRadius: 8,
-        marginBottom: 16,
+    button: { // Renomeado de botao e estilizado com o tema
+        backgroundColor: COLORS.primary,
+        paddingVertical: SIZES.spacingMedium,
+        borderRadius: SIZES.borderRadiusRegular,
+        marginBottom: SIZES.spacingRegular,
         alignItems: 'center',
+        ...SHADOWS.light,
+        height: SIZES.buttonHeight,
+        justifyContent: 'center',
     },
-    botaoTexto: {
-        color: '#fff',
-        fontSize: 16,
-        fontWeight: 'bold',
+    buttonText: { // Renomeado de botaoTexto
+        color: COLORS.white,
+        fontSize: FONTS.sizeRegular,
+        fontFamily: FONTS.familyBold,
     },
 });

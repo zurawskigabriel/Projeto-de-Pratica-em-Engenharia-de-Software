@@ -11,8 +11,8 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { buscarSolicitacoesProtetor, buscarPet } from '../api/api';
-import theme, { COLORS, FONTS, SIZES, SHADOWS } from '../theme/theme'; // Importar o tema
+import { buscarSolicitacoesProtetor, buscarPet } from '../../api/api';
+import theme, { COLORS, FONTS, SIZES, SHADOWS } from '../../theme/theme'; // Importar o tema
 
 // Tipos
 interface PetDetalhado {
@@ -131,7 +131,7 @@ export default function SolicitacoesScreen() {
       })}
     >
       <Image
-        source={item.petDetails.especie?.toLowerCase().includes('cachorro') ? require('../../assets/dog.jpg') : require('../../assets/cat.jpg')}
+        source={item.petDetails.especie?.toLowerCase().includes('cachorro') ? require('../../../assets/dog.jpg') : require('../../../assets/cat.jpg')}
         style={styles.petImage}
       />
       <View style={styles.petInfo}>
