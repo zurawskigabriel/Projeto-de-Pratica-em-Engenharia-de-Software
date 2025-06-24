@@ -7,7 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { decode as atob } from 'base-64';
 import { FontAwesome, FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { fazerLogin } from '../api/api';
+import { fazerLogin, buscarUsuarioPorId } from '../api/api'; // Importar buscarUsuarioPorId
 import theme, { COLORS, FONTS, SIZES, SHADOWS } from '../theme/theme'; // Importar o tema
 
 export default function LoginScreen() {
@@ -19,11 +19,23 @@ export default function LoginScreen() {
     try {
       const dados = await fazerLogin(email, senha);
       const payload = JSON.parse(atob(dados.token.split('.')[1]));
-      const userId = payload.userId;
-      if (!userId) throw new Error('ID de usuário não encontrado');
+      const userId = payload.userId; // Assumindo que o backend retorna userId no token
+      if (!userId) {
+        Alert.alert('Erro', 'ID do usuário não encontrado no token.');
+        return;
+      }
+
+      // Buscar detalhes do usuário para obter o tipoUsuario
+      const usuarioDetalhes = await buscarUsuarioPorId(userId);
+      if (!usuarioDetalhes || !usuarioDetalhes.tipoUsuario) {
+        Alert.alert('Erro', 'Não foi possível obter o tipo do usuário.');
+        return;
+      }
+
       await AsyncStorage.multiSet([
         ['token', dados.token],
-        ['userId', userId.toString()]
+        ['userId', userId.toString()],
+        ['userType', usuarioDetalhes.tipoUsuario] // Salvar o tipo de usuário
       ]);
       Alert.alert('Sucesso', 'Bem-vindo de volta!');
       router.replace('/Explorar');
@@ -35,13 +47,19 @@ export default function LoginScreen() {
 
   const handleVisitante = async () => {
     try {
+      // Para visitantes, o tipo é fixo ou não relevante para a lógica de UI principal
+      // Se for necessário um 'userType' para visitante, defina-o aqui.
+      // Por ora, vamos assumir que 'visitante' não precisa de um userType específico
+      // ou que as verificações de userType não se aplicam a eles se 'userType' for null.
       const dados = await fazerLogin('visitante@visitante', 'visitante');
       const payload = JSON.parse(atob(dados.token.split('.')[1]));
       const userId = payload.userId;
       if (!userId) throw new Error('ID de usuário não encontrado');
+
       await AsyncStorage.multiSet([
         ['token', dados.token],
-        ['userId', userId.toString()]
+        ['userId', userId.toString()],
+        ['userType', 'VISITANTE'] // Ou deixe null/undefined se preferir
       ]);
       router.replace('/Explorar');
     } catch (e: any) {
