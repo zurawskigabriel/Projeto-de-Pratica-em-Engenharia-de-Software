@@ -19,11 +19,12 @@ import Footer from '../components/Footer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import theme, { COLORS, FONTS, SIZES, SHADOWS } from '../theme/theme'; // Importar o tema
 
-const { width, height } = Dimensions.get('window'); // Manter por enquanto
 const SEX_FILTERS = ['todos', 'M', 'F'];
-const cardSpacing = width * 0.02;
-const cardWidth = (width - cardSpacing * 3) / 2;
-const cardHeight = height * 0.28;
+
+// Usar SIZES para consistência, similar a FavoritoScreen
+const cardSpacingExplorar = SIZES.spacingRegular;
+const cardWidthExplorar = (SIZES.wp(100) - cardSpacingExplorar * 3) / 2;
+const cardHeightExplorar = SIZES.hp(28); // Pode ajustar conforme necessidade do design do card quadrado
 
 export default function ExplorarScreen() {
   const navigation = useNavigation();
@@ -37,11 +38,11 @@ export default function ExplorarScreen() {
   const [canMatch, setCanMatch] = useState(false);
   const [matchActive, setMatchActive] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<number | null>(null); // Novo estado para userId
+  const [isFirstLoad, setIsFirstLoad] = useState(true); // Para controlar o carregamento inicial
 
-  useEffect(() => {
-    const carregar = async () => {
-      setLoading(true);
-      const idStr = await AsyncStorage.getItem('userId');
+  const fetchData = async (showAlertOnNoProfile = false) => {
+    setLoading(true);
+    const idStr = await AsyncStorage.getItem('userId');
       const userIdFromStorage = idStr ? parseInt(idStr, 10) : null;
 
       if (!userIdFromStorage) {
@@ -50,71 +51,116 @@ export default function ExplorarScreen() {
         // Idealmente, redirecionar para Login: navigation.replace('Login');
         return;
       }
-      setCurrentUserId(userIdFromStorage); // Armazena o userId no estado
+      setCurrentUserId(userIdFromStorage);
 
       let perfilOk = false;
       try {
         const perfil = await buscarPerfilMatch(userIdFromStorage);
         perfilOk = !!perfil;
-      } catch {
+      } catch (error) {
+        console.warn("Erro ao buscar perfil match:", error);
         perfilOk = false;
       }
       setCanMatch(perfilOk);
-      if (!perfilOk) {
-        Alert.alert(
-          'Criar perfil de compatibilidade?',
-          'Você ainda não possui um perfil. Deseja criar agora?',
-          [
-            { text: 'Sim', onPress: () => navigation.navigate('PerfilMatch') },
-            { text: 'Agora não', style: 'cancel' },
-          ]
-        );
+
+      if (showAlertOnNoProfile && !perfilOk) {
+        const promptDismissed = await AsyncStorage.getItem('matchProfilePromptDismissed');
+        if (promptDismissed !== 'true') {
+          Alert.alert(
+            'Complete seu Perfil de Match!',
+            'Para encontrar os pets que mais combinam com você, que tal criar seu perfil de compatibilidade agora?',
+            [
+              {
+                text: 'Criar Perfil',
+                onPress: () => navigation.navigate('PerfilMatch'),
+              },
+              {
+                text: 'Agora não',
+                style: 'cancel',
+                onPress: async () => {
+                  try {
+                    await AsyncStorage.setItem('matchProfilePromptDismissed', 'true');
+                  } catch (e) {
+                    console.error("Erro ao salvar dismiss do prompt:", e);
+                  }
+                },
+              },
+            ],
+            { cancelable: false } // Forçar uma escolha para não ficar em loop se o usuário só fechar
+          );
+        }
       }
 
-      const [favAPI, allPets] = await Promise.all([
-        listarFavoritosDoUsuario(userIdFromStorage),
-        listarPets()
-      ]);
-      const favMap: any = {};
-      favAPI.forEach(f => favMap[f.idPet] = true);
-      setFavoritos(favMap);
+      try {
+        const [favAPI, allPetsResponse] = await Promise.all([
+          listarFavoritosDoUsuario(userIdFromStorage),
+          listarPets()
+        ]);
 
-      // Não filtrar os pets do próprio usuário aqui, eles serão sinalizados no card
-      setListaOriginal(allPets);
+        const favMap: { [key: number]: boolean } = {};
+        favAPI.forEach(f => { if(f.idPet) favMap[f.idPet] = true; });
+        setFavoritos(favMap);
 
-      if (perfilOk) {
-        // Aplicar score de match a todos os pets, incluindo os do usuário se fizer sentido,
-        // ou ajustar buscarPontuacaoMatch para lidar com isso ou filtrar aqui.
-        // Por ora, vamos passar todos os pets para buscarPontuacaoMatch.
-        const scores = await buscarPontuacaoMatch(allPets);
-        const enriched = allPets.map(p => { // Usar allPets
-          const found = scores.find((s: any) => s.id === p.id);
-          // Pets do próprio usuário podem não ter score ou ter um score padrão (ex: 0 ou não mostrar)
-          // Se p.idUsuario === currentUserId, talvez o score não seja relevante da mesma forma.
-          // Vamos manter o score se existir, ou 0.
-          return { ...p, score: p.idUsuario === currentUserId ? undefined : (found?.score ?? 0) };
-        }).sort((a, b) => {
-            // Colocar pets do usuário no topo ou manter a ordenação por score?
-            // Por enquanto, apenas ordena por score, pets do usuário sem score irão para o final se score for undefined.
-            // Ou podemos dar prioridade se quisermos.
-            // Ajuste: pets do usuário sem score (undefined) devem ir para o final se ordenando por score.
-             if (a.score === undefined && b.score !== undefined) return 1; // a depois de b
-             if (a.score !== undefined && b.score === undefined) return -1; // a antes de b
-             if (a.score === undefined && b.score === undefined) return 0; // manter ordem original entre eles
+        const allPets = allPetsResponse.filter(p => p); // Filtrar nulos se houver
+        setListaOriginal(allPets);
+
+        if (perfilOk && allPets.length > 0) {
+          const scores = await buscarPontuacaoMatch(allPets);
+          const enriched = allPets.map(p => {
+            const found = scores.find((s: any) => s.id === p.id);
+            return { ...p, score: p.idUsuario === currentUserId ? undefined : (found?.score ?? 0) };
+          }).sort((a, b) => {
+            if (a.score === undefined && b.score !== undefined) return 1;
+            if (a.score !== undefined && b.score === undefined) return -1;
+            if (a.score === undefined && b.score === undefined) return 0;
             return (b.score ?? 0) - (a.score ?? 0);
-        });
-        setData(enriched);
-        setMatchActive(true);
-      } else {
-        setData(allPets); // Usar allPets
+          });
+          setData(enriched);
+          // Se match estava ativo antes, manter ativo, senão, ativar se houver scores.
+          // Por padrão, vamos ativar se o perfil existe e há pets.
+          setMatchActive(true);
+        } else {
+          setData(allPets);
+          setMatchActive(false); // Desativa match se não há perfil ou pets
+        }
+      } catch (error) {
+        console.error("Erro ao buscar dados dos pets:", error);
+        Alert.alert("Erro", "Não foi possível carregar os pets. Tente atualizar.");
+        setData([]); // Limpa os dados em caso de erro para evitar mostrar dados antigos
+        setListaOriginal([]);
+      } finally {
+        setLoading(false);
+        setIsFirstLoad(false);
       }
+  };
 
-      setLoading(false);
-    };
+  useEffect(() => {
+    if (isFirstLoad) {
+      fetchData(true); // Na primeira carga, verifica e mostra alerta de perfil match
+    }
+    // Listener para recarregar dados quando a tela Explorar ganha foco,
+    // mas apenas se não for a primeira carga (que já foi tratada).
+    // A lógica de atualização manual via botão será principal.
+    // Poderíamos remover este listener de foco se a atualização for *estritamente* manual após a primeira carga.
+    // Por enquanto, manteremos para consistência se o usuário navegar para outra tela e voltar.
+    const unsubscribe = navigation.addListener('focus', () => {
+      if (!isFirstLoad) { // Só recarrega no foco se não for o primeiro load
+        // Decide se quer mostrar o alerta de perfil match em recargas de foco.
+        // Geralmente, não é bom mostrar alertas repetidamente no foco.
+        // fetchData(false); // false para não mostrar o alerta de perfil no foco
+        // Ou melhor: apenas recarrega se o usuário explicitamente pedir via botão refresh.
+        // Vamos comentar o refetch no focus para priorizar o botão de refresh.
+        // Se o desejo é que *sempre* recarregue no focus, descomentar a linha abaixo.
+        // fetchData(false);
+      }
+    });
 
-    const unsub = navigation.addListener('focus', carregar);
-    return unsub;
-  }, [navigation]);
+    return unsubscribe;
+  }, [navigation, isFirstLoad]);
+
+  const handleRefresh = () => {
+    fetchData(false); // Ao atualizar manualmente, não mostrar o alerta de perfil (ele já viu ou não tem)
+  };
 
   const toggleFav = async (pid: number) => {
     const idStr = await AsyncStorage.getItem('userId');
@@ -173,49 +219,72 @@ export default function ExplorarScreen() {
     }
   };
 
-  const PetCard = ({ item }: any) => {
+  // Novo PetCard Quadrado para ExplorarScreen
+  const PetCardSquare = ({ item }: { item: any }) => {
+    if (!item) return null;
+
+    const isMyPet = item.idUsuario === currentUserId;
+    const idadeAno = typeof item.idadeAno === 'number' ? item.idadeAno : 0;
+    const idadeMes = typeof item.idadeMes === 'number' ? item.idadeMes : 0;
+    const raca = item.raca || "N/I"; // Raça não informada
+    const nome = item.nome || "Pet";
+
     const imgSrc = item.especie?.toLowerCase().includes('cachorro')
       ? require('../../assets/dog.jpg')
       : require('../../assets/cat.jpg');
-    const isMyPet = item.idUsuario === currentUserId;
 
     return (
       <TouchableOpacity
-        style={[styles.card, isMyPet && styles.myPetCardOutline]}
+        style={[styles.cardSquare, isMyPet && styles.myPetCardOutlineSquare]}
         onPress={() => navigation.navigate('PerfilPet', { id: item.id })}
       >
-        <Image source={imgSrc} style={styles.petImage} />
+        <Image source={imgSrc} style={styles.petImageSquare} />
+        <LinearGradient colors={['transparent', 'rgba(0,0,0,0.85)']} style={styles.shadowSquare} />
 
         {isMyPet && (
-          <View style={styles.myPetIndicator}>
-            <Ionicons name="home" size={14} color="#fff" />
-            <Text style={styles.myPetIndicatorText}>Seu Pet</Text>
+          <View style={styles.myPetIndicatorSquare}>
+            <Ionicons name="home-sharp" size={SIZES.iconSmall - SIZES.spacingTiny} color={COLORS.white} />
           </View>
         )}
 
-        {item.score !== undefined && !isMyPet && ( // Não mostrar score para o próprio pet
-          <View style={styles.scoreBadge}>
-            <Text style={styles.scoreText}>{item.score.toFixed(0)}%</Text>
+        {/* Informações do Pet sobrepostas */}
+        <View style={styles.infoBoxSquare}>
+          <View style={styles.nameRowSquare}>
+            <Text style={styles.petNameSquare} numberOfLines={1}>{nome}</Text>
+            {item.sexo && (
+              <FontAwesome
+                name={item.sexo === 'M' ? 'mars' : 'venus'}
+                size={FONTS.sizeRegular} // Ajustar tamanho
+                color={COLORS.white}
+                style={styles.sexIconSquare}
+              />
+            )}
           </View>
-        )}
-        <LinearGradient colors={['transparent', 'rgba(0,0,0,0.25)']} style={styles.shadow} />
-        <View style={styles.infoBox}>
-          <View style={styles.nameRow}>
-            <Text style={styles.petName}>{item.nome}</Text>
-            <FontAwesome name={item.sexo==='M'?'mars':'venus'} size={18} color="#888" style={styles.nameIcon}/>
-          </View>
-          <Text style={styles.petSub}>{`${item.idadeAno}a ${item.idadeMes}m • ${item.raca}`}</Text>
+          <Text style={styles.petSubSquare} numberOfLines={1}>
+            {`${idadeAno}a ${idadeMes}m`}
+          </Text>
         </View>
-        <TouchableOpacity style={styles.favIcon} onPress={() => toggleFav(item.id)}>
+
+        {/* Ícone de Favorito */}
+        <TouchableOpacity style={styles.favIconSquare} onPress={() => toggleFav(item.id)}>
           <FontAwesome
             name={favoritos[item.id] ? 'heart' : 'heart-o'}
-            size={20}
-            color={favoritos[item.id] ? '#E57373' : '#aaa'}
+            size={SIZES.iconMedium - SIZES.spacingTiny} // Um pouco menor
+            color={favoritos[item.id] ? COLORS.danger : COLORS.white} // Cor branca para não favoritado
           />
         </TouchableOpacity>
+
+        {/* Badge de Score de Match (se aplicável) */}
+        {matchActive && typeof item.score === 'number' && !isMyPet && (
+          <View style={styles.scoreBadgeSquare}>
+            <Ionicons name="flash" size={FONTS.sizeSmall} color={COLORS.white} />
+            <Text style={styles.scoreTextSquare}>{item.score.toFixed(0)}%</Text>
+          </View>
+        )}
       </TouchableOpacity>
     );
   };
+
 
   const FilterModal = () => (
     <Modal visible={showFilter} transparent animationType="fade" onRequestClose={() => setShowFilter(false)}>
@@ -240,18 +309,18 @@ export default function ExplorarScreen() {
   return (
     <View style={styles.screen}>
       <View style={styles.header}>
-        <Text style={styles.title}>Explorar</Text>
-        <TouchableOpacity style={styles.addButton} onPress={ordenarMatch}>
-          <Ionicons
-            name="document-text-outline"
-            size={24}
-            color={!canMatch ? '#ccc' : matchActive ? '#2AA5FF' : '#555'}
-          />
+        {/* Botão de Atualizar */}
+        <TouchableOpacity style={styles.refreshButton} onPress={handleRefresh}>
+          <Ionicons name="refresh-circle-outline" size={SIZES.iconMedium + SIZES.spacingTiny} color={COLORS.primary} />
         </TouchableOpacity>
+
+        <Text style={styles.title}>Explorar</Text>
+
+        {/* Botão de Ordenar Match foi removido do header, será um FAB */}
       </View>
 
       <View style={styles.searchBox}>
-        <Ionicons name="search" size={24} color="#888" />
+        <Ionicons name="search" size={SIZES.iconMedium} color={COLORS.textSecondary} />
         <TextInput
           placeholder="Busca por nome, raça ou idade"
           value={searchTerm}
@@ -270,12 +339,31 @@ export default function ExplorarScreen() {
       ) : filtered.length > 0 ? (
         <FlatList
           data={filtered}
-          numColumns={1}
-          keyExtractor={item => item.id.toString()}
-          contentContainerStyle={styles.listContainer}
-          renderItem={({ item }) => <PetCard item={item} />}
+          numColumns={2} // Alterado para 2 colunas
+          keyExtractor={(item) => item.id.toString()}
+          contentContainerStyle={styles.listContainerSquare} // Novo estilo para container da lista
+          renderItem={PetCardSquare} // Usar o novo PetCardSquare
+          // columnWrapperStyle={styles.rowSquare} // Para espaçamento entre colunas, se necessário
+          ListEmptyComponent={!loading && filtered.length === 0 ? (
+            <View style={styles.emptyState}>
+              <FontAwesome name="search" size={SIZES.iconLarge * 1.5} color={COLORS.textSecondary} style={{ opacity: 0.7 }} />
+              <Text style={styles.emptyTitle}>Nenhum pet por aqui.</Text>
+              <Text style={styles.emptySubtitle}>Tente ajustar sua busca ou filtros.</Text>
+              {/* Botão para criar perfil de match, se ainda não tiver */}
+              {!canMatch && (
+                <TouchableOpacity
+                  style={styles.emptyBtn}
+                  onPress={() => navigation.navigate('PerfilMatch')}>
+                  <Text style={styles.emptyBtnText}>Criar perfil match ❤️</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          ) : null}
         />
       ) : (
+        // Este emptyState é para quando 'data' está vazio (antes de filtros)
+        // ou se 'loading' for true e 'data' ainda não carregou.
+        // O ListEmptyComponent acima trata o caso de 'filtered' ser vazio.
         <View style={styles.emptyState}>
           <FontAwesome name="paw" size={64} color="#B6E1FA" />
           <Text style={styles.emptyTitle}>Nenhum pet encontrado.</Text>
@@ -288,6 +376,19 @@ export default function ExplorarScreen() {
       )}
 
       <Footer />
+
+      {/* FAB para Perfil de Match */}
+      <TouchableOpacity
+        style={[styles.fabStyle, !canMatch && styles.fabDisabled]}
+        onPress={ordenarMatch}
+        disabled={!canMatch && loading} // Desabilita se não pode dar match E não está carregando (para evitar clicks enquanto verifica)
+      >
+        <Ionicons
+          name={matchActive ? "flame" : "flame-outline"} // Ícone muda se o match está ativo
+          size={SIZES.iconLarge} // Tamanho do ícone para FAB
+          color={canMatch ? COLORS.white : COLORS.buttonDisabledText}
+        />
+      </TouchableOpacity>
     </View>
   );
 }
@@ -311,19 +412,19 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.familyBold,
     color: COLORS.text
   },
-  addButton: { // Botão de Match/Perfil
+  refreshButton: { // Botão de Atualizar no header
+    position: 'absolute',
+    left: SIZES.spacingRegular,
+    padding: SIZES.spacingTiny, // Área de toque
+  },
+  matchButton: { // Botão de Match/Perfil (antigo addButton)
     position: 'absolute',
     right: SIZES.spacingRegular,
-    // backgroundColor: COLORS.primary, // Cor será dinâmica
-    width: SIZES.hp(5.5), // ~44px
-    height: SIZES.hp(5.5),
-    borderRadius: SIZES.hp(2.75),
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...SHADOWS.regular,
-    borderWidth: 1, // Adicionando uma borda para quando não está ativo
-    borderColor: COLORS.borderColor,
+    padding: SIZES.spacingTiny, // Área de toque
   },
+  // Estilos do matchButton (antigo addButton) foram removidos do header
+  // e agora serão aplicados ao FAB (fabStyle)
+
   searchBox: {
     backgroundColor: COLORS.cardBackground,
     margin: SIZES.spacingRegular,
@@ -344,100 +445,138 @@ const styles = StyleSheet.create({
   filterBtn: {
     padding: SIZES.spacingSmall
   },
-  listContainer: {
-    paddingHorizontal: SIZES.spacingRegular,
-    paddingBottom: SIZES.spacingLarge
+  // Estilos para a lista de cards quadrados
+  listContainerSquare: {
+    paddingHorizontal: cardSpacingExplorar / 2,
+    paddingTop: SIZES.spacingSmall,
+    paddingBottom: SIZES.hp(12), // Espaço para footer e FAB
   },
-  card: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.cardBackground,
+  cardSquare: {
+    width: cardWidthExplorar,
+    height: cardHeightExplorar, // Usar a altura calculada para card quadrado
     borderRadius: SIZES.borderRadiusMedium,
-    padding: SIZES.spacingMedium,
-    marginBottom: SIZES.spacingRegular, // Aumentado um pouco
+    overflow: 'hidden',
+    backgroundColor: COLORS.borderColorLight,
     ...SHADOWS.regular,
-    position: 'relative', // Para o myPetIndicator
+    marginBottom: cardSpacingExplorar,
+    marginHorizontal: cardSpacingExplorar / 2,
+    position: 'relative', // Para posicionamento absoluto dos ícones
   },
-  myPetCardOutline: {
-    borderColor: COLORS.primary, // Usando a cor primária do tema
+  myPetCardOutlineSquare: {
+    borderColor: COLORS.primary,
     borderWidth: 2,
   },
-  petImage: {
-    width: SIZES.wp(18),
-    height: SIZES.wp(18),
-    borderRadius: SIZES.wp(9),
-    marginRight: SIZES.spacingMedium,
-    backgroundColor: COLORS.borderColorLight,
+  petImageSquare: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
   },
-  infoBox: {
-    flex: 1,
-    justifyContent: 'center'
-  },
-  nameRow: {
-    flexDirection: 'row',
-    alignItems: 'center'
-  },
-  petName: {
-    fontSize: FONTS.sizeMedium,
-    fontFamily: FONTS.familyBold,
-    color: COLORS.text
-  },
-  nameIcon: {
-    marginLeft: SIZES.spacingSmall,
-    color: COLORS.textSecondary, // Cor mais sutil para o ícone de sexo
-  },
-  petSub: {
-    fontSize: FONTS.sizeSmall,
-    fontFamily: FONTS.familyRegular,
-    color: COLORS.textSecondary,
-    marginTop: SIZES.spacingTiny
-  },
-  favIcon: {
-    marginLeft: SIZES.spacingRegular, // Aumentado o espaçamento
-    padding: SIZES.spacingTiny, // Área de toque
-  },
-  scoreBadge: {
+  shadowSquare: {
     position: 'absolute',
-    top: SIZES.spacingSmall,
-    left: SIZES.spacingSmall,
-    backgroundColor: COLORS.white,
-    paddingVertical: SIZES.spacingTiny / 2,
-    paddingHorizontal: SIZES.spacingSmall,
-    borderRadius: SIZES.borderRadiusRegular,
-    ...SHADOWS.light,
-  },
-  scoreText: {
-    fontSize: FONTS.sizeXSmall,
-    fontFamily: FONTS.familyBold,
-    color: COLORS.primary
-  },
-  shadow: { // Gradiente na imagem, se mantido, verificar se cardHeight ainda é usado
-    position: 'absolute', bottom: 0, left: 0, right: 0,
-    height: cardHeight * 0.25, // cardHeight precisa ser definido ou recalculado com SIZES
-    borderBottomLeftRadius: SIZES.borderRadiusMedium, // Para acompanhar o card
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: cardHeightExplorar * 0.5, // Sombra um pouco maior
+    borderBottomLeftRadius: SIZES.borderRadiusMedium,
     borderBottomRightRadius: SIZES.borderRadiusMedium,
   },
-  myPetIndicator: {
+  infoBoxSquare: {
+    position: 'absolute',
+    bottom: SIZES.spacingSmall,
+    left: SIZES.spacingSmall,
+    right: SIZES.spacingSmall,
+  },
+  nameRowSquare: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: SIZES.spacingTiny / 2,
+  },
+  petNameSquare: {
+    color: COLORS.white,
+    fontSize: FONTS.sizeMedium,
+    fontFamily: FONTS.familyBold,
+    flexShrink: 1,
+    marginRight: SIZES.spacingTiny, // Espaço para o ícone de sexo não cortar o nome
+  },
+  sexIconSquare: {
+    // Estilos adicionais se necessário, como text shadow para contraste
+    // textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    // textShadowOffset: { width: 0, height: 1 },
+    // textShadowRadius: 1,
+  },
+  petSubSquare: {
+    color: COLORS.white,
+    fontSize: FONTS.sizeSmall,
+    fontFamily: FONTS.familyRegular,
+  },
+  favIconSquare: {
     position: 'absolute',
     top: SIZES.spacingSmall,
     right: SIZES.spacingSmall,
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: SIZES.spacingSmall,
-    paddingVertical: SIZES.spacingTiny / 2,
-    borderRadius: SIZES.borderRadiusLarge, // Mais arredondado
+    backgroundColor: `${COLORS.black}33`, // Fundo semi-transparente para melhor visibilidade
+    padding: SIZES.spacingTiny,
+    borderRadius: SIZES.borderRadiusCircle,
+  },
+  myPetIndicatorSquare: {
+    position: 'absolute',
+    top: SIZES.spacingSmall,
+    left: SIZES.spacingSmall,
+    backgroundColor: `${COLORS.primary}cc`, // Primário com transparência
+    paddingHorizontal: SIZES.spacingTiny,
+    paddingVertical: SIZES.spacingTiny / 1.5,
+    borderRadius: SIZES.borderRadiusRegular,
     flexDirection: 'row',
     alignItems: 'center',
     zIndex: 1,
     ...SHADOWS.light,
   },
-  myPetIndicatorText: {
-    color: COLORS.white,
-    fontSize: FONTS.sizeXXSmall, // Menor para o badge
-    fontFamily: FONTS.familyBold,
-    marginLeft: SIZES.spacingTiny,
-  },
-  emptyState: {
+  scoreBadgeSquare: {
+    position: 'absolute',
+    bottom: SIZES.spacingSmall, // No canto inferior esquerdo, oposto ao nome
+    right: SIZES.spacingSmall, // Ajustado para canto inferior direito (ou esquerdo se preferir)
+    // Se for no inferior esquerdo, e infoBoxSquare estiver bottom/left, precisa ajustar.
+    // Vamos colocar no inferior direito, perto do nome/idade mas separado.
+    // Ou no topo, como no card de lista. Para consistência, vamos tentar no topo esquerdo.
+    // Ajuste: Colocando abaixo do myPetIndicatorSquare se este existir, ou no topo esquerdo.
+    // Para simplificar, vamos colocar no canto superior direito, abaixo do favIcon.
+    // Não, melhor no canto inferior, oposto ao nome/idade.
+    // Ficaria melhor como um badge pequeno no canto superior da imagem.
+    // Reconsiderando: manter similar ao FavoritosScreen, mas adaptado.
+    // Score Badge no canto superior esquerdo, e MyPet no superior direito.
+    // Se MyPet está left, então Score pode ser right.
+    // **Posicionamento dos Ícones no Card Quadrado:**
+    // - myPetIndicatorSquare (home): Top-left.
+    // - favIconSquare (coração): Top-right.
+    // - scoreBadgeSquare (match %): Bottom-left.
+    bottom: SIZES.spacingSmall, // Posiciona no canto inferior
+    left: SIZES.spacingSmall,   // Posiciona no canto esquerdo
+    // backgroundColor e padding já foram ajustados na tentativa anterior e estavam corretos.
+    // Apenas garantindo que top e right não estão mais aqui para este elemento.
+    backgroundColor: `${COLORS.black}59`,
+    paddingHorizontal: SIZES.spacingSmall,
+    paddingVertical: SIZES.spacingTiny,
+    borderRadius: SIZES.borderRadiusSmall, // Mantido
+    flexDirection: 'row',
     alignItems: 'center',
+    zIndex: 1,
+  },
+  scoreTextSquare: {
+    color: COLORS.white,
+    fontSize: FONTS.sizeXSmall,
+    fontFamily: FONTS.familyBold,
+    marginLeft: SIZES.spacingTiny / 2,
+  },
+  // FIM dos estilos de card quadrado
+
+  // Estilos antigos do card de lista (serão removidos ou não usados)
+  // card: { ... }
+  // myPetCardOutline: { ... }
+  // ... e outros estilos de .card, .petImage, .infoBox etc. que eram da lista vertical
+
+  emptyState: {
+    flex: 1, // Para ocupar espaço e permitir centralização
+    alignItems: 'center',
+    justifyContent: 'center', // Adicionado para centralizar verticalmente
     marginTop: SIZES.hp(15),
     paddingHorizontal: SIZES.wp(10),
   },
@@ -492,4 +631,22 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     textAlign: 'center',
   },
+  // Estilo para o FAB (Floating Action Button)
+  fabStyle: {
+    position: 'absolute',
+    right: SIZES.spacingLarge,
+    bottom: SIZES.hp(10), // Ajustar para ficar acima do Footer
+    backgroundColor: COLORS.primary, // Cor primária para o FAB ativo
+    width: SIZES.hp(7.5), // Tamanho do FAB
+    height: SIZES.hp(7.5),
+    borderRadius: SIZES.hp(3.75), // Metade da largura/altura para ser circular
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...SHADOWS.strong, // Sombra mais forte para destacar
+    zIndex: 10, // Para garantir que fique sobre outros elementos
+  },
+  fabDisabled: {
+    backgroundColor: COLORS.buttonDisabledBackground, // Cor quando desabilitado
+    ...SHADOWS.light, // Sombra mais leve quando desabilitado
+  }
 });
