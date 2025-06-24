@@ -293,7 +293,7 @@ export default function ExplorarScreen() {
         <View style={styles.searchBox}>
           <Ionicons name="search" size={SIZES.iconMedium} color={COLORS.textSecondary} />
           <TextInput
-            placeholder="Buscar pet..."
+            placeholder="Buscar por nome, raça ou idade"
             value={searchTerm}
             onChangeText={setSearchTerm}
             style={styles.input}

@@ -141,9 +141,12 @@ export default function UsuarioScreen() {
         <ScrollView contentContainerStyle={styles.scrollContainer}>
           <View style={styles.header}>
             <View style={styles.headerContent}>
-              <TouchableOpacity style={styles.menuIcon} onPress={() => setMenuVisivel(true)}>
-                <Ionicons name="settings-outline" size={SIZES.iconMedium} color={COLORS.text} />
-              </TouchableOpacity>
+              {/* O ícone de engrenagem só aparece se 'editando' for falso */}
+              {!editando && (
+                <TouchableOpacity style={styles.menuIcon} onPress={() => setMenuVisivel(true)}>
+                  <Ionicons name="settings-outline" size={SIZES.iconMedium} color={COLORS.text} />
+                </TouchableOpacity>
+              )}
             </View>
           </View>
 
@@ -323,7 +326,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingHorizontal: SIZES.wp(5),
     paddingTop: Platform.OS === 'android' ? SIZES.hp(2) : SIZES.hp(5),
-    paddingBottom: SIZES.hp(2),
+    paddingBottom: SIZES.hp(12),
   },
   header: {
     marginBottom: SIZES.hp(3),
@@ -482,10 +485,11 @@ const styles = StyleSheet.create({
   },
   editActionsContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     width: '95%',
     alignSelf: 'center',
     marginTop: SIZES.spacingRegular,
+    gap: SIZES.spacingMedium
   },
   editButton: {
     flex: 1,
