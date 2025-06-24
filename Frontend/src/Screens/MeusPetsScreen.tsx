@@ -102,15 +102,23 @@ export default function MeusPetsScreen() {
         >
           <Image source={getPetImage(pet.especie)} style={styles.petImage} />
           <View style={styles.info}>
-            <Text style={styles.petName}>{pet.nome}</Text>
+            <View style={styles.nameContainer}>
+              <Text style={styles.petName} numberOfLines={1} ellipsizeMode="tail">{pet.nome}</Text>
+              {pet.sexo && ( // Renderiza o ícone apenas se o sexo estiver definido
+                <FontAwesome
+                  name={pet.sexo.toLowerCase() === 'm' ? 'mars' : 'venus'}
+                  size={FONTS.sizeMedium} // Ajustar tamanho conforme FONTS
+                  style={[
+                    styles.petSexIcon,
+                    { color: pet.sexo.toLowerCase() === 'm' ? COLORS.info : COLORS.danger } // Usar cores do tema
+                  ]}
+                />
+              )}
+            </View>
             <Text style={styles.petDetails}>
               {pet.raca}, {formatarIdade(pet.idadeAno, pet.idadeMes)}
             </Text>
-             <FontAwesome
-                name={pet.sexo?.toLowerCase() === 'm' ? 'mars' : 'venus'}
-                size={18}
-                style={[styles.petSexIcon, {color: pet.sexo?.toLowerCase() === 'm' ? '#60A5FA' : '#F472B6' }]}
-             />
+            {/* O ícone de sexo foi movido para cima */}
             {/* <Text style={styles.petStatus}>Situação: {exibirSituacao(pet.situacao)}</Text> // Removido */}
           </View>
         </TouchableOpacity>
@@ -147,15 +155,18 @@ export default function MeusPetsScreen() {
 
   return (
     <View style={styles.screen}>
-      <View style={styles.header}>
+      {/* Header removido ou modificado para não ter título nem botão add */}
+      {/* <View style={styles.header}>
         <Text style={styles.title}>Meus Pets Cadastrados</Text>
         <TouchableOpacity
           style={styles.addButton}
-          onPress={() => router.push('/CadastrarPet')} // Usar router
+          onPress={() => router.push('/CadastrarPet')}
         >
           <Icon name="add" size={28} color="#FFF" />
         </TouchableOpacity>
-      </View>
+      </View> */}
+
+      <View style={styles.headerPlaceholder} /> {/* Espaço para o conteúdo não colar no topo */}
 
       <ScrollView
         contentContainerStyle={styles.listContainer}
@@ -178,6 +189,14 @@ export default function MeusPetsScreen() {
       </ScrollView>
 
       <Footer />
+
+      {/* FAB para Adicionar Novo Pet */}
+      <TouchableOpacity
+        style={styles.fabStyle}
+        onPress={() => router.push('/CadastrarPet')}
+      >
+        <Icon name="add" size={SIZES.iconLarge} color={COLORS.white} />
+      </TouchableOpacity>
     </View>
   );
 }
@@ -188,9 +207,21 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background
   },
-  header: {
-    height: SIZES.headerHeight,
-    flexDirection: 'row',
+  // header: { // Estilo do header original, comentado pois o header foi removido/simplificado
+  //   height: SIZES.headerHeight,
+  //   flexDirection: 'row',
+  //   alignItems: 'center',
+  //   justifyContent: 'center',
+  //   paddingHorizontal: SIZES.spacingRegular,
+  //   backgroundColor: COLORS.cardBackground,
+  //   ...SHADOWS.light,
+  // },
+  headerPlaceholder: { // Novo estilo para o espaço no topo
+    height: SIZES.hp(4), // Altura pequena, apenas para dar um respiro. Ajustar conforme necessário.
+    // Pode adicionar um paddingTop na ScrollView/FlatList em vez disso.
+  },
+  title: {
+    fontSize: FONTS.sizeLarge, // Ajustado para um tamanho de título mais padrão
     alignItems: 'center',
     justifyContent: 'center', // Centraliza o título
     paddingHorizontal: SIZES.spacingRegular,
@@ -249,14 +280,20 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center'
   },
+  nameContainer: { // Novo container para nome e ícone de sexo
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: SIZES.spacingTiny / 2, // Pequena margem abaixo da linha do nome
+  },
   petName: {
     fontSize: FONTS.sizeMedium,
     fontFamily: FONTS.familyBold,
-    color: COLORS.text
+    color: COLORS.text,
+    flexShrink: 1, // Permite que o nome encolha se for muito longo, evitando que empurre o ícone
   },
   petSexIcon: {
     marginLeft: SIZES.spacingSmall,
-    // A cor é definida inline agora
+    // A cor é definida inline agora usando COLORS.info e COLORS.danger
   },
   petDetails: {
     fontSize: FONTS.sizeSmall,
@@ -322,5 +359,18 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     fontSize: FONTS.sizeRegular,
     fontFamily: FONTS.familyBold,
+  },
+  fabStyle: { // Estilo para o FAB de adicionar pet
+    position: 'absolute',
+    right: SIZES.spacingLarge,
+    bottom: SIZES.hp(10), // Ajustar para ficar acima do Footer
+    backgroundColor: COLORS.primary,
+    width: SIZES.hp(7.5),
+    height: SIZES.hp(7.5),
+    borderRadius: SIZES.hp(3.75),
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...SHADOWS.strong,
+    zIndex: 10,
   },
 });

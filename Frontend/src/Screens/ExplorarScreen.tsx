@@ -308,32 +308,33 @@ export default function ExplorarScreen() {
 
   return (
     <View style={styles.screen}>
-      <View style={styles.header}>
-        {/* Botão de Atualizar */}
-        <TouchableOpacity style={styles.refreshButton} onPress={handleRefresh}>
-          <Ionicons name="refresh-circle-outline" size={SIZES.iconMedium + SIZES.spacingTiny} color={COLORS.primary} />
+      {/* Header antigo foi removido/simplificado. A barra de pesquisa agora ficará aqui em cima. */}
+      {/* <View style={styles.header}> ... </View> */}
+
+      {/* Barra de Pesquisa no Topo */}
+      <View style={styles.topBarContainer}>
+        <View style={styles.searchBox}>
+          <Ionicons name="search" size={SIZES.iconMedium} color={COLORS.white} /> {/* Ajustar cor para contraste */}
+          <TextInput
+            placeholder="Buscar pet..."
+            value={searchTerm}
+            onChangeText={setSearchTerm}
+            style={styles.input}
+            placeholderTextColor={COLORS.light} // Ajustar cor para contraste
+          />
+          <TouchableOpacity style={styles.filterBtn} onPress={() => setShowFilter(true)}>
+            <Ionicons name="filter" size={SIZES.iconMedium} color={COLORS.white} /> {/* Ajustar cor para contraste */}
+          </TouchableOpacity>
+        </View>
+        {/* Botão de Atualizar agora à direita da searchbox ou integrado */}
+        <TouchableOpacity style={styles.refreshButtonTopBar} onPress={handleRefresh}>
+          <Ionicons name="refresh-circle-outline" size={SIZES.iconLarge} color={COLORS.white} />
         </TouchableOpacity>
-
-        <Text style={styles.title}>Explorar</Text>
-
-        {/* Botão de Ordenar Match foi removido do header, será um FAB */}
       </View>
 
-      <View style={styles.searchBox}>
-        <Ionicons name="search" size={SIZES.iconMedium} color={COLORS.textSecondary} />
-        <TextInput
-          placeholder="Busca por nome, raça ou idade"
-          value={searchTerm}
-          onChangeText={setSearchTerm}
-          style={styles.input}
-          placeholderTextColor="#888"
-        />
-        <TouchableOpacity style={styles.filterBtn} onPress={() => setShowFilter(true)}>
-          <Ionicons name="filter" size={24} color="#555" />
-        </TouchableOpacity>
-      </View>
       <FilterModal />
 
+      {/* Conteúdo da tela (Lista de Pets) */}
       {loading ? (
         <ActivityIndicator style={{ marginTop: 40 }} size="large" color="#2AA5FF" />
       ) : filtered.length > 0 ? (
@@ -396,60 +397,59 @@ export default function ExplorarScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: COLORS.background
+    backgroundColor: COLORS.background // Mantém o fundo geral da tela
   },
-  header: {
-    height: SIZES.headerHeight,
+  // O estilo 'header' original foi removido/comentado pois a barra de pesquisa assume essa posição.
+  // header: { ... }
+  // title: { ... }
+  // refreshButton: { ... } // Estilo antigo do botão de refresh no header
+
+  topBarContainer: { // Novo container para a barra de pesquisa e botão de refresh
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
     paddingHorizontal: SIZES.spacingRegular,
-    backgroundColor: COLORS.cardBackground,
-    ...SHADOWS.light,
+    paddingTop: Platform.OS === 'android' ? SIZES.spacingLarge : SIZES.hp(5), // Espaçamento do topo da tela
+    paddingBottom: SIZES.spacingSmall,
+    position: 'absolute', // Para flutuar sobre a lista
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 1, // Para garantir que fique acima da lista
+    // backgroundColor: 'rgba(0,0,0,0.1)', // Debug: para ver a área do container
   },
-  title: {
-    fontSize: FONTS.sizeXLarge, // Mantido XLarge para o título principal da tela
-    fontFamily: FONTS.familyBold,
-    color: COLORS.text
-  },
-  refreshButton: { // Botão de Atualizar no header
-    position: 'absolute',
-    left: SIZES.spacingRegular,
-    padding: SIZES.spacingTiny, // Área de toque
-  },
-  matchButton: { // Botão de Match/Perfil (antigo addButton)
-    position: 'absolute',
-    right: SIZES.spacingRegular,
-    padding: SIZES.spacingTiny, // Área de toque
-  },
-  // Estilos do matchButton (antigo addButton) foram removidos do header
-  // e agora serão aplicados ao FAB (fabStyle)
-
   searchBox: {
-    backgroundColor: COLORS.cardBackground,
-    margin: SIZES.spacingRegular,
+    flex: 1, // Para ocupar a maior parte do espaço na topBarContainer
+    // backgroundColor: COLORS.cardBackground, // Removido para ser transparente
+    // margin: SIZES.spacingRegular, // Removido, padding será no topBarContainer
     paddingHorizontal: SIZES.spacingMedium,
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: SIZES.borderRadiusCircle, // Bem arredondado
-    ...SHADOWS.light,
+    borderRadius: SIZES.borderRadiusCircle,
+    // ...SHADOWS.light, // Remover sombra se for flutuante sem fundo
     height: SIZES.inputHeight,
+    // Adicionar uma borda sutil se necessário para contraste com imagens de pets
+    borderWidth: 1,
+    borderColor: `${COLORS.white}55`, // Branco com transparência
   },
   input: {
     flex: 1,
     fontSize: FONTS.sizeRegular,
     marginLeft: SIZES.spacingSmall,
     fontFamily: FONTS.familyRegular,
-    color: COLORS.text,
+    color: COLORS.white, // Cor do texto digitado
   },
   filterBtn: {
-    padding: SIZES.spacingSmall
+    padding: SIZES.spacingSmall,
   },
-  // Estilos para a lista de cards quadrados
+  refreshButtonTopBar: { // Estilo para o botão de refresh na nova barra do topo
+    marginLeft: SIZES.spacingRegular, // Espaço entre a searchbox e o botão de refresh
+    padding: SIZES.spacingTiny,
+  },
   listContainerSquare: {
     paddingHorizontal: cardSpacingExplorar / 2,
-    paddingTop: SIZES.spacingSmall,
-    paddingBottom: SIZES.hp(12), // Espaço para footer e FAB
+    // paddingTop ajustado para acomodar a topBarContainer flutuante
+    paddingTop: SIZES.hp(12), // Ex: SIZES.inputHeight + paddingTop do topBarContainer + algum extra
+    paddingBottom: SIZES.hp(12),
   },
   cardSquare: {
     width: cardWidthExplorar,

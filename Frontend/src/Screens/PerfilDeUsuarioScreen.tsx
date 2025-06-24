@@ -16,7 +16,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Entypo } from '@expo/vector-icons';
+import { Entypo, Ionicons } from '@expo/vector-icons'; // Adicionado Ionicons
 import FooterNav from '../components/Footer';
 import perfilImage from '../../assets/perfil.jpg';
 import { buscarUsuarioPorId, excluirUsuario, atualizarUsuario } from '../api/api';
@@ -139,11 +139,12 @@ export default function UsuarioScreen() {
     <SafeAreaView style={styles.safeArea}>
       <View style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.scrollContainer}>
+          {/* Header modificado: sem título, apenas ícone de menu/settings */}
           <View style={styles.header}>
             <View style={styles.headerContent}>
-              <Text style={styles.headerTitle}>{editando ? 'Editando Perfil' : 'Perfil'}</Text>
+              {/* <Text style={styles.headerTitle}>{editando ? 'Editando Perfil' : 'Perfil'}</Text> */} {/* Título removido */}
               <TouchableOpacity style={styles.menuIcon} onPress={() => setMenuVisivel(true)}>
-                <Entypo name="dots-three-horizontal" size={width * 0.08} color="black" />
+                <Ionicons name="settings-outline" size={SIZES.iconMedium} color={COLORS.text} />
               </TouchableOpacity>
             </View>
           </View>
@@ -167,7 +168,15 @@ export default function UsuarioScreen() {
           </Modal>
 
           <View style={styles.userInfoContainer}>
-            <Image source={perfilImage} style={styles.profileImage} />
+            <View style={styles.profileImageContainer}>
+              <Image source={perfilImage} style={styles.profileImage} />
+              <TouchableOpacity
+                style={styles.editPhotoButton}
+                onPress={() => Alert.alert("Editar Foto", "Funcionalidade de editar foto a ser implementada.")}
+              >
+                <Ionicons name="camera-reverse-outline" size={SIZES.iconMedium} color={COLORS.white} />
+              </TouchableOpacity>
+            </View>
 
             {editando ? (
               <>
@@ -258,9 +267,25 @@ export default function UsuarioScreen() {
               <>
                 <Text style={styles.userName}>{usuario.nome}</Text>
                 <Text style={styles.userEmail}>{usuario.email}</Text>
-                <Text style={styles.userDetail}>Telefone: {usuario.telefone}</Text>
-                <Text style={styles.userDetail}>Tipo de conta: {usuario.perfilUsuario}</Text>
-                <Text style={styles.userDetail}>Desde: {new Date(usuario.dataCadastro).toLocaleDateString()}</Text>
+
+                {/* Card de Informações Pessoais */}
+                <View style={styles.infoCard}>
+                  <View style={styles.infoCardRow}>
+                    <Ionicons name="call-outline" size={FONTS.sizeRegular} color={COLORS.textSecondary} style={styles.infoCardIcon} />
+                    <Text style={styles.infoCardLabel}>Telefone:</Text>
+                    <Text style={styles.infoCardValue}>{usuario.telefone || 'Não informado'}</Text>
+                  </View>
+                  <View style={styles.infoCardRow}>
+                    <Ionicons name="person-outline" size={FONTS.sizeRegular} color={COLORS.textSecondary} style={styles.infoCardIcon} />
+                    <Text style={styles.infoCardLabel}>Tipo de conta:</Text>
+                    <Text style={styles.infoCardValue}>{usuario.perfilUsuario}</Text>
+                  </View>
+                  <View style={[styles.infoCardRow, styles.infoCardRowLast]}> {/* Aplicando estilo para remover borda */}
+                    <Ionicons name="calendar-outline" size={FONTS.sizeRegular} color={COLORS.textSecondary} style={styles.infoCardIcon} />
+                    <Text style={styles.infoCardLabel}>Membro desde:</Text>
+                    <Text style={styles.infoCardValue}>{new Date(usuario.dataCadastro).toLocaleDateString()}</Text>
+                  </View>
+                </View>
 
                 {/* Botão para Solicitações de Adoção (Apenas para Protetores) */}
                 {(usuario.perfilUsuario === 'PROTETOR' || usuario.perfilUsuario === 'AMBOS') && (
@@ -288,12 +313,13 @@ export default function UsuarioScreen() {
                   <Text style={styles.buttonText}>Sair</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity
+                {/* Botão Excluir Conta explícito removido */}
+                {/* <TouchableOpacity
                   style={[styles.actionButton, styles.deleteButton]}
                   onPress={handleExcluirConta}
                 >
                   <Text style={styles.buttonText}>Excluir conta</Text>
-                </TouchableOpacity>
+                </TouchableOpacity> */}
               </>
             )}
           </View>
@@ -317,26 +343,27 @@ const styles = StyleSheet.create({
     paddingBottom: SIZES.hp(2),
   },
   header: {
-    marginBottom: SIZES.hp(3),
-    height: SIZES.headerHeight, // Altura do header
-    justifyContent: 'center', // Centraliza o headerContent verticalmente
+    marginBottom: SIZES.hp(3), // Espaço abaixo do header
+    height: SIZES.headerHeight,
+    justifyContent: 'center',
   },
   headerContent: {
     flexDirection: 'row',
-    justifyContent: 'center',
+    justifyContent: 'flex-end', // Alinha o ícone do menu à direita
     alignItems: 'center',
-    position: 'relative', // Para posicionar o menuIcon absoluto a ele
+    paddingHorizontal: SIZES.spacingRegular, // Padding para não colar nas bordas
+    // position: 'relative', // Não mais necessário se o menuIcon não for absoluto a este
   },
-  headerTitle: {
-    fontSize: FONTS.sizeXXLarge, // Título bem grande
-    fontFamily: FONTS.familyBold,
-    color: COLORS.text,
-  },
+  // headerTitle: { // Estilo do título removido pois o título foi removido
+  //   fontSize: FONTS.sizeXXLarge,
+  //   fontFamily: FONTS.familyBold,
+  //   color: COLORS.text,
+  // },
   menuIcon: {
-    position: 'absolute',
-    right: 0,
-    top: 0, // Ajustar se necessário para alinhar verticalmente com o título
-    padding: SIZES.spacingSmall,
+    // position: 'absolute', // Não mais absoluto
+    // right: 0,
+    // top: 0,
+    padding: SIZES.spacingSmall, // Área de toque
   },
   modalOverlay: {
     flex: 1,
@@ -348,9 +375,10 @@ const styles = StyleSheet.create({
   },
   menuOptionsRight: {
     backgroundColor: COLORS.cardBackground,
-    padding: SIZES.spacingMedium,
+    padding: SIZES.spacingMedium, // Padding interno do menu
     borderRadius: SIZES.borderRadiusRegular,
-    ...SHADOWS.strong, // Sombra forte para o menu flutuante
+    ...SHADOWS.strong,
+    minWidth: SIZES.wp(40), // Largura mínima para o menu
   },
   menuText: {
     fontSize: FONTS.sizeRegular,
@@ -362,16 +390,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: SIZES.hp(4),
   },
-  profileImage: {
-    width: SIZES.wp(40), // Imagem de perfil responsiva
-    height: SIZES.wp(40),
-    borderRadius: SIZES.wp(20), // Circular
+  profileImageContainer: { // Container para a imagem e o botão de editar foto
+    position: 'relative', // Para posicionar o botão de editar sobre a imagem
     marginBottom: SIZES.hp(2),
-    borderWidth: 3, // Adiciona uma borda à imagem de perfil
+    alignItems: 'center', // Centraliza a imagem dentro deste container se ela for menor
+  },
+  profileImage: {
+    width: SIZES.wp(40),
+    height: SIZES.wp(40),
+    borderRadius: SIZES.wp(20),
+    borderWidth: 3,
     borderColor: COLORS.primary,
   },
+  editPhotoButton: {
+    position: 'absolute',
+    bottom: SIZES.spacingSmall,
+    right: SIZES.spacingSmall,
+    backgroundColor: `${COLORS.primary}cc`,
+    padding: SIZES.spacingSmall,
+    borderRadius: SIZES.borderRadiusCircle,
+    ...SHADOWS.regular,
+  },
   userName: {
-    fontSize: FONTS.sizeXXLarge, // Nome do usuário destacado
+    fontSize: FONTS.sizeXXLarge,
     fontFamily: FONTS.familyBold,
     color: COLORS.text,
     marginBottom: SIZES.hp(1),
@@ -381,18 +422,46 @@ const styles = StyleSheet.create({
     fontSize: FONTS.sizeRegular,
     fontFamily: FONTS.familyRegular,
     color: COLORS.textSecondary,
-    marginBottom: SIZES.hp(1.5),
+    marginBottom: SIZES.hp(2.5), // Aumentar margem antes do card de info
     textAlign: 'center',
   },
-  userDetail: { // Para "Telefone:", "Tipo de conta:", "Desde:"
+  // userDetail foi substituído pelo infoCard
+  // userDetail: { ... }
+
+  infoCard: { // Novo card para informações detalhadas
+    backgroundColor: COLORS.cardBackground,
+    borderRadius: SIZES.borderRadiusMedium,
+    padding: SIZES.spacingMedium,
+    width: '100%', // Ocupa a largura do userInfoContainer
+    marginBottom: SIZES.hp(3), // Espaço antes dos botões de ação
+    ...SHADOWS.light,
+  },
+  infoCardRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: SIZES.spacingSmall, // Espaçamento interno para cada linha
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.borderColorLight,
+  },
+  infoCardRowLast: { // Para remover a borda da última linha
+    borderBottomWidth: 0,
+  },
+  infoCardIcon: {
+    marginRight: SIZES.spacingMedium,
+  },
+  infoCardLabel: {
     fontSize: FONTS.sizeRegular,
     fontFamily: FONTS.familyRegular,
-    color: COLORS.textLight,
-    marginBottom: SIZES.hp(0.5),
-    alignSelf: 'flex-start', // Alinha os detalhes à esquerda do container
-    width: '100%', // Para garantir que o alinhamento à esquerda funcione bem
-    paddingLeft: SIZES.wp(2), // Pequeno padding para não colar
+    color: COLORS.textSecondary,
+    flex: 1, // Para o label ocupar espaço e empurrar o valor para a direita
   },
+  infoCardValue: {
+    fontSize: FONTS.sizeRegular,
+    fontFamily: FONTS.familyBold, // Destacar o valor
+    color: COLORS.text,
+    textAlign: 'right', // Alinhar valor à direita
+  },
+
   input: { // Estilo unificado para TextInput
     width: '100%',
     backgroundColor: COLORS.light,

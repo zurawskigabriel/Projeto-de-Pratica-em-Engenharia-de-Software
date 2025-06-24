@@ -172,22 +172,25 @@ export default function FavoritoScreen() {
 
   return (
     <View style={styles.screen}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Favoritos</Text>
-      </View>
+      {/* Header antigo removido/simplificado. A barra de pesquisa agora ficará aqui em cima. */}
+      {/* <View style={styles.header}> ... </View> */}
 
-      <View style={styles.searchBox}>
-        <Ionicons name="search" size={SIZES.iconMedium} color={COLORS.textSecondary} />
-        <TextInput
-          placeholder="Busca por nome, raça ou idade"
-          value={searchTerm}
-          onChangeText={setSearchTerm}
-          style={styles.input}
-          placeholderTextColor={COLORS.textSecondary}
-        />
-        <TouchableOpacity style={styles.filterBtn} onPress={() => setShowFilter(true)}>
-          <Ionicons name="filter" size={SIZES.iconMedium} color={COLORS.text} />
-        </TouchableOpacity>
+      {/* Barra de Pesquisa no Topo */}
+      <View style={styles.topBarContainer}>
+        <View style={styles.searchBox}>
+          <Ionicons name="search" size={SIZES.iconMedium} color={COLORS.white} /> {/* Ajustar cor para contraste */}
+          <TextInput
+            placeholder="Buscar nos favoritos..."
+            value={searchTerm}
+            onChangeText={setSearchTerm}
+            style={styles.input}
+            placeholderTextColor={COLORS.light} // Ajustar cor para contraste
+          />
+          <TouchableOpacity style={styles.filterBtn} onPress={() => setShowFilter(true)}>
+            <Ionicons name="filter" size={SIZES.iconMedium} color={COLORS.white} /> {/* Ajustar cor para contraste */}
+          </TouchableOpacity>
+        </View>
+        {/* Não há botão de refresh aqui, mas o topBarContainer pode ser reutilizado */}
       </View>
 
       <Modal visible={showFilter} transparent animationType="fade" onRequestClose={() => setShowFilter(false)}>
@@ -230,46 +233,51 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background
   },
-  header: {
-    height: SIZES.headerHeight,
-    flexDirection: 'row',
+  // Estilos de header e title originais removidos/comentados
+  // header: { ... }
+  // title: { ... }
+
+  topBarContainer: { // Container para a barra de pesquisa flutuante
+    flexDirection: 'row', // Embora só tenha a searchBox por enquanto, pode ter refresh no futuro
     alignItems: 'center',
-    justifyContent: 'center',
     paddingHorizontal: SIZES.spacingRegular,
-    backgroundColor: COLORS.cardBackground,
-    ...SHADOWS.light,
-  },
-  title: {
-    fontSize: FONTS.sizeXLarge,
-    fontFamily: FONTS.familyBold,
-    color: COLORS.text
+    paddingTop: Platform.OS === 'android' ? SIZES.spacingLarge : SIZES.hp(5),
+    paddingBottom: SIZES.spacingSmall,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 1,
   },
   searchBox: {
-    backgroundColor: COLORS.cardBackground,
-    marginHorizontal: SIZES.spacingRegular,
-    marginTop: SIZES.spacingRegular,
-    marginBottom: SIZES.spacingRegular, // Aumentado para dar espaço antes da lista
+    flex: 1, // Ocupa todo o espaço disponível no topBarContainer
+    // backgroundColor: COLORS.cardBackground, // Removido para fundo transparente
+    // marginHorizontal e marginTop removidos, o padding é no topBarContainer
+    // marginBottom: SIZES.spacingRegular, // Removido
     paddingHorizontal: SIZES.spacingMedium,
     flexDirection: 'row',
     alignItems: 'center',
     borderRadius: SIZES.borderRadiusCircle,
-    ...SHADOWS.light,
+    // ...SHADOWS.light, // Sombra removida para efeito flutuante
     height: SIZES.inputHeight,
+    borderWidth: 1, // Borda sutil para contraste
+    borderColor: `${COLORS.white}55`,
   },
   input: {
     flex: 1,
     fontSize: FONTS.sizeRegular,
     marginLeft: SIZES.spacingSmall,
     fontFamily: FONTS.familyRegular,
-    color: COLORS.text,
+    color: COLORS.white, // Texto do input branco para contraste
   },
   filterBtn: {
     padding: SIZES.spacingSmall
+    // Ícone de filtro já está branco no JSX
   },
   listContainer: {
-    paddingHorizontal: cardSpacing / 2, // Metade do espaçamento para alinhar os cards corretamente
-    paddingTop: SIZES.spacingTiny, // Pequeno espaço acima da lista
-    paddingBottom: SIZES.hp(10), // Espaço para o footer e um pouco mais
+    paddingHorizontal: cardSpacing / 2,
+    paddingTop: SIZES.hp(12), // Ajustado para não ficar sob a topBarContainer
+    paddingBottom: SIZES.hp(10),
   },
   card: {
     width: cardWidth,
