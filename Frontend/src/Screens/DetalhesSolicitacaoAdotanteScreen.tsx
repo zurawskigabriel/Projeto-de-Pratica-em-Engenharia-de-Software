@@ -11,8 +11,8 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { buscarSolicitacoesUsuario, buscarPet } from '../../api/api';
-import theme, { COLORS, FONTS, SIZES, SHADOWS } from '../../theme/theme'; // Importar o tema
+import { buscarSolicitacoesUsuario, buscarPet } from '../api/api';
+import theme, { COLORS, FONTS, SIZES, SHADOWS } from '../theme/theme'; // Importar o tema
 
 interface PetInfo {
   id: number;
@@ -139,7 +139,7 @@ export default function DetalhesSolicitacaoAdotanteScreen() {
         onPress={() => router.push({ pathname: `/PerfilPet`, params: { id: item.idPet }})} // Navega para o perfil do Pet
     >
       <Image
-        source={item.petInfo?.especie?.toLowerCase().includes('cachorro') ? require('../../../assets/dog.jpg') : require('../../../assets/cat.jpg')}
+        source={item.petInfo?.especie?.toLowerCase().includes('cachorro') ? require('../../assets/dog.jpg') : require('../../assets/cat.jpg')}
         style={styles.petImage}
       />
       <View style={styles.solicitacaoInfo}>
