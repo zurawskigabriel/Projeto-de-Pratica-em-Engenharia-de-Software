@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, Image, StyleSheet, ScrollView,
-  TouchableOpacity, ActivityIndicator, Alert, Dimensions
+  TouchableOpacity, ActivityIndicator, Alert, Dimensions, Platform
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
@@ -10,53 +10,58 @@ import { FontAwesome } from '@expo/vector-icons';
 import Footer from '../components/Footer';
 import { listarPets } from '../api/api';
 import { useRouter } from 'expo-router';
-import theme, { COLORS, FONTS, SIZES, SHADOWS } from '../theme/theme'; // Importar o tema
+import theme, { COLORS, FONTS, SIZES, SHADOWS } from '../theme/theme';
 
-const { width, height } = Dimensions.get('window'); // Manter por enquanto, pode ser substituído por SIZES.wp/hp
+const { width, height } = Dimensions.get('window');
 
 export default function MeusPetsScreen() {
-  const navigation = useNavigation(); // Será substituído por useRouter de expo-router
-  const router = useRouter(); // Usar useRouter para navegação
+  const router = useRouter();
   const [pets, setPets] = useState([]);
-  // const [adotandoPets, setAdotandoPets] = useState([]); // Removido
   const [carregando, setCarregando] = useState(true);
   const [userId, setUserId] = useState<number | null>(null);
+  const [menuVisible, setMenuVisible] = useState<number | null>(null);
 
+  // Usando addListener para recarregar quando a tela ganha foco
+  const navigation = useNavigation();
   useEffect(() => {
-    const loadUserIdAndPets = async () => {
-      setCarregando(true);
-      try {
-        const idSalvo = await AsyncStorage.getItem('userId');
-        if (!idSalvo) {
-          Alert.alert("Erro", "Usuário não autenticado.");
-          // router.replace('/Login'); // Idealmente redirecionar
-          setCarregando(false);
-          return;
-        }
-        const currentUserId = parseInt(idSalvo, 10);
-        setUserId(currentUserId);
+    const unsubscribe = navigation.addListener('focus', () => {
+      loadUserIdAndPets();
+    });
 
-        const todosOsPets = await listarPets();
-        const meusPetsFiltrados = todosOsPets.filter(p => p.idUsuario === currentUserId);
+    return unsubscribe;
+  }, [navigation]);
 
-        // Remover a lógica de buscarStatusPet, pois não existe e o status de adoção não é o foco aqui.
-        // A tela de solicitações do protetor lidará com status de adoção.
-        setPets(meusPetsFiltrados);
 
-      } catch (e) {
-        console.error("Erro ao carregar pets:", e);
-        Alert.alert("Erro", "Não foi possível carregar seus pets. Tente novamente.");
-      } finally {
+  const loadUserIdAndPets = async () => {
+    setCarregando(true);
+    try {
+      const idSalvo = await AsyncStorage.getItem('userId');
+      if (!idSalvo) {
+        Alert.alert("Erro", "Usuário não autenticado.");
         setCarregando(false);
+        router.replace('/Login');
+        return;
       }
-    };
-    loadUserIdAndPets();
-  }, []);
+      const currentUserId = parseInt(idSalvo, 10);
+      setUserId(currentUserId);
+
+      const todosOsPets = await listarPets();
+      const meusPetsFiltrados = todosOsPets.filter(p => p.idUsuario === currentUserId);
+      
+      setPets(meusPetsFiltrados);
+
+    } catch (e) {
+      console.error("Erro ao carregar pets:", e);
+      Alert.alert("Erro", "Não foi possível carregar seus pets. Tente novamente.");
+    } finally {
+      setCarregando(false);
+    }
+  };
 
   const getPetImage = (especie: string) => {
-    if (especie.toLowerCase() === 'gato') return require('../../assets/cat.jpg');
-    if (especie.toLowerCase() === 'cachorro') return require('../../assets/dog.jpg');
-    return require('../../assets/cat.jpg');
+    if (especie && especie.toLowerCase() === 'gato') return require('../../assets/cat.jpg');
+    if (especie && especie.toLowerCase() === 'cachorro') return require('../../assets/dog.jpg');
+    return require('../../assets/cat.jpg'); // Imagem padrão
   };
 
   const formatarIdade = (anos: number = 0, meses: number = 0): string => {
@@ -68,10 +73,8 @@ export default function MeusPetsScreen() {
       return `${anoTexto} e ${mesTexto}`;
     }
     if (anos === 0 && meses > 0) return `${meses} mês${meses > 1 ? 'es' : ''}`;
-    return `${anos} anos ${meses} meses`; // Default or fallback
+    return 'Idade não informada';
   };
-
-  // const exibirSituacao = s => (s?.trim() ? s : 'Disponível'); // Removido, não aplicável aqui
 
   const EmptyState = () => (
     <View style={styles.emptyState}>
@@ -82,18 +85,14 @@ export default function MeusPetsScreen() {
       </Text>
       <TouchableOpacity
         style={styles.emptyBtn}
-        onPress={() => router.push('/CadastrarPet')} // Usar router e verificar se a rota /CadastrarPet existe em app/
+        onPress={() => router.push('/CadastrarPet')}
       >
         <Text style={styles.emptyBtnText}>Adicionar Primeiro Pet</Text>
       </TouchableOpacity>
     </View>
   );
 
-  // Adicionar estado para o menu de opções
-  const [menuVisible, setMenuVisible] = useState<number | null>(null); // Armazena o ID do pet com menu ativo
-
   const PetCard = ({ pet }) => {
-    // A função PetCard agora é um componente interno ou pode ser movida para fora se preferir
     return (
       <View style={styles.card}>
         <TouchableOpacity
@@ -103,23 +102,22 @@ export default function MeusPetsScreen() {
           <Image source={getPetImage(pet.especie)} style={styles.petImage} />
           <View style={styles.info}>
             <View style={styles.nameContainer}>
-              <Text style={styles.petName} numberOfLines={1} ellipsizeMode="tail">{pet.nome}</Text>
-              {pet.sexo && ( // Renderiza o ícone apenas se o sexo estiver definido
+              {/* CORREÇÃO 2: Removida a quebra de linha entre o Text e a lógica do ícone */}
+              <Text style={styles.petName} numberOfLines={1} ellipsizeMode="tail">{pet.nome}</Text>{pet.sexo && (
                 <FontAwesome
                   name={pet.sexo.toLowerCase() === 'm' ? 'mars' : 'venus'}
-                  size={FONTS.sizeMedium} // Ajustar tamanho conforme FONTS
+                  size={FONTS.sizeMedium}
                   style={[
                     styles.petSexIcon,
-                    { color: pet.sexo.toLowerCase() === 'm' ? COLORS.info : COLORS.danger } // Usar cores do tema
+                    { color: pet.sexo.toLowerCase() === 'm' ? COLORS.info : COLORS.danger }
                   ]}
                 />
               )}
             </View>
+            {/* CORREÇÃO 1: Vírgula e espaço colocados dentro da template string */}
             <Text style={styles.petDetails}>
-              {pet.raca}, {formatarIdade(pet.idadeAno, pet.idadeMes)}
+              {`${pet.raca}, ${formatarIdade(pet.idadeAno, pet.idadeMes)}`}
             </Text>
-            {/* O ícone de sexo foi movido para cima */}
-            {/* <Text style={styles.petStatus}>Situação: {exibirSituacao(pet.situacao)}</Text> // Removido */}
           </View>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => setMenuVisible(menuVisible === pet.id ? null : pet.id)} style={styles.menuButton}>
@@ -136,7 +134,7 @@ export default function MeusPetsScreen() {
             </TouchableOpacity>
             <TouchableOpacity style={styles.menuItem} onPress={() => {
               setMenuVisible(null);
-              router.push({ pathname: `/EditarPet`, params: { id: pet.id } }); // Verificar se a rota /EditarPet existe em app/
+              router.push({ pathname: `/EditarPet`, params: { id: pet.id } });
             }}>
               <Text style={styles.menuItemText}>Editar</Text>
             </TouchableOpacity>
@@ -152,45 +150,30 @@ export default function MeusPetsScreen() {
     );
   };
 
-
   return (
     <View style={styles.screen}>
-      {/* Header removido ou modificado para não ter título nem botão add */}
-      {/* <View style={styles.header}>
-        <Text style={styles.title}>Meus Pets Cadastrados</Text>
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={() => router.push('/CadastrarPet')}
-        >
-          <Icon name="add" size={28} color="#FFF" />
-        </TouchableOpacity>
-      </View> */}
-
-      <View style={styles.headerPlaceholder} /> {/* Espaço para o conteúdo não colar no topo */}
+      <View style={styles.headerPlaceholder}>
+        <Text style={styles.title}>Meus Pets</Text>
+      </View>
 
       <ScrollView
         contentContainerStyle={styles.listContainer}
-        onScrollBeginDrag={() => { if(menuVisible) setMenuVisible(null);}} // Fecha o menu ao rolar
+        onScrollBeginDrag={() => { if(menuVisible) setMenuVisible(null);}}
         scrollEventThrottle={16}
       >
         {carregando ? (
-          <ActivityIndicator size="large" color="#2AA5FF" style={{ marginTop: height * 0.1 }} />
+          <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: height * 0.1 }} />
         ) : pets.length === 0 ? (
           <EmptyState />
         ) : (
-          <>
-            {/* Removida a seção "Adotando" */}
-            {/* {pets.length > 0 && <Text style={styles.sectionTitle}>Meus Pets para Adoção</Text>} */}
-            {pets.map(pet => (
+          pets.map(pet => (
               <PetCard key={pet.id.toString()} pet={pet} />
-            ))}
-          </>
+          ))
         )}
       </ScrollView>
 
       <Footer />
 
-      {/* FAB para Adicionar Novo Pet */}
       <TouchableOpacity
         style={styles.fabStyle}
         onPress={() => router.push('/CadastrarPet')}
@@ -201,99 +184,65 @@ export default function MeusPetsScreen() {
   );
 }
 
-
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: COLORS.background
   },
-  // header: { // Estilo do header original, comentado pois o header foi removido/simplificado
-  //   height: SIZES.headerHeight,
-  //   flexDirection: 'row',
-  //   alignItems: 'center',
-  //   justifyContent: 'center',
-  //   paddingHorizontal: SIZES.spacingRegular,
-  //   backgroundColor: COLORS.cardBackground,
-  //   ...SHADOWS.light,
-  // },
-  headerPlaceholder: { // Novo estilo para o espaço no topo
-    height: SIZES.hp(4), // Altura pequena, apenas para dar um respiro. Ajustar conforme necessário.
-    // Pode adicionar um paddingTop na ScrollView/FlatList em vez disso.
-  },
-  title: {
-    fontSize: FONTS.sizeLarge, // Ajustado para um tamanho de título mais padrão
-    alignItems: 'center',
-    justifyContent: 'center', // Centraliza o título
+  headerPlaceholder: {
+    paddingTop: Platform.OS === 'android' ? SIZES.hp(2) : SIZES.hp(5),
+    paddingBottom: SIZES.spacingRegular,
     paddingHorizontal: SIZES.spacingRegular,
-    backgroundColor: COLORS.cardBackground, // Fundo branco para o header
-    ...SHADOWS.light, // Sombra sutil no header
+    backgroundColor: COLORS.cardBackground,
+    ...SHADOWS.light,
+    alignItems: 'center',
   },
   title: {
-    fontSize: FONTS.sizeLarge, // Ajustado para um tamanho de título mais padrão
+    fontSize: FONTS.sizeLarge,
     fontFamily: FONTS.familyBold,
     color: COLORS.text,
-  },
-  addButton: {
-    position: 'absolute',
-    right: SIZES.spacingRegular,
-    backgroundColor: COLORS.primary,
-    width: SIZES.iconLarge, // Tamanho do ícone como base
-    height: SIZES.iconLarge,
-    borderRadius: SIZES.iconLarge / 2, // Circular
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...SHADOWS.regular, // Sombra para o botão de adicionar
   },
   listContainer: {
     paddingHorizontal: SIZES.spacingRegular,
     paddingTop: SIZES.spacingRegular,
-    paddingBottom: SIZES.spacingLarge, // Mais padding no final da lista
+    paddingBottom: SIZES.hp(12), // Padding para não ficar atrás do footer/FAB
   },
-  // sectionTitle: { // Removido pois não há mais seções separadas
-  //   fontSize: FONTS.sizeLarge,
-  //   fontFamily: FONTS.familyBold,
-  //   marginTop: SIZES.spacingRegular,
-  //   marginBottom: SIZES.spacingSmall,
-  //   color: COLORS.textSecondary,
-  // },
   card: {
     backgroundColor: COLORS.cardBackground,
     borderRadius: SIZES.borderRadiusMedium,
     marginBottom: SIZES.spacingRegular,
     ...SHADOWS.regular,
-    // O flexDirection: 'row' e alignItems: 'center' estão implícitos pelo cardContent e menuButton
   },
   cardContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: SIZES.spacingMedium, // Padding dentro do conteúdo clicável
+    padding: SIZES.spacingMedium,
     flex: 1,
   },
   petImage: {
     width: SIZES.wp(18),
     height: SIZES.wp(18),
-    borderRadius: SIZES.borderRadiusCircle, // Para garantir circularidade
+    borderRadius: SIZES.borderRadiusCircle,
     marginRight: SIZES.spacingMedium,
-    backgroundColor: COLORS.borderColorLight, // Placeholder visual
+    backgroundColor: COLORS.borderColorLight,
   },
   info: {
     flex: 1,
     justifyContent: 'center'
   },
-  nameContainer: { // Novo container para nome e ícone de sexo
+  nameContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: SIZES.spacingTiny / 2, // Pequena margem abaixo da linha do nome
+    marginBottom: SIZES.spacingTiny / 2,
   },
   petName: {
     fontSize: FONTS.sizeMedium,
     fontFamily: FONTS.familyBold,
     color: COLORS.text,
-    flexShrink: 1, // Permite que o nome encolha se for muito longo, evitando que empurre o ícone
+    flexShrink: 1,
   },
   petSexIcon: {
     marginLeft: SIZES.spacingSmall,
-    // A cor é definida inline agora usando COLORS.info e COLORS.danger
   },
   petDetails: {
     fontSize: FONTS.sizeSmall,
@@ -303,20 +252,20 @@ const styles = StyleSheet.create({
   },
   menuButton: {
     padding: SIZES.spacingSmall,
-    position: 'absolute', // Posiciona o botão de menu no canto do card
+    position: 'absolute',
     top: SIZES.spacingSmall,
     right: SIZES.spacingSmall,
-    zIndex: 1, // Garante que o botão de menu esteja acima do conteúdo do card
+    zIndex: 1,
   },
   menuOptions: {
     position: 'absolute',
-    right: SIZES.spacingMedium + SIZES.spacingTiny, // Ajustado para alinhar melhor com o ícone
-    top: SIZES.spacingMedium + SIZES.spacingSmall,      // Ajustado
+    right: SIZES.spacingMedium + SIZES.spacingTiny,
+    top: SIZES.spacingMedium + SIZES.spacingSmall,
     backgroundColor: COLORS.cardBackground,
     borderRadius: SIZES.borderRadiusRegular,
     paddingVertical: SIZES.spacingSmall,
-    ...SHADOWS.strong, // Sombra mais forte para o menu
-    zIndex: 100, // Para garantir que o menu apareça sobre tudo
+    ...SHADOWS.strong,
+    zIndex: 100,
   },
   menuItem: {
     paddingVertical: SIZES.spacingRegular,
@@ -329,8 +278,8 @@ const styles = StyleSheet.create({
   },
   emptyState: {
     alignItems: 'center',
-    marginTop: SIZES.hp(15), // Porcentagem da altura da tela
-    paddingHorizontal: SIZES.wp(10), // Porcentagem da largura da tela
+    marginTop: SIZES.hp(15),
+    paddingHorizontal: SIZES.wp(10),
   },
   emptyTitle: {
     fontSize: FONTS.sizeXLarge,
@@ -345,14 +294,14 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     textAlign: 'center',
     marginTop: SIZES.spacingSmall,
-    lineHeight: FONTS.sizeRegular * 1.5, // Melhorar legibilidade
+    lineHeight: FONTS.sizeRegular * 1.5,
   },
   emptyBtn: {
     marginTop: SIZES.spacingXLarge,
     backgroundColor: COLORS.primary,
     paddingVertical: SIZES.spacingRegular,
     paddingHorizontal: SIZES.spacingLarge,
-    borderRadius: SIZES.borderRadiusCircle, // Botão bem arredondado
+    borderRadius: SIZES.borderRadiusCircle,
     ...SHADOWS.regular,
   },
   emptyBtnText: {
@@ -360,10 +309,10 @@ const styles = StyleSheet.create({
     fontSize: FONTS.sizeRegular,
     fontFamily: FONTS.familyBold,
   },
-  fabStyle: { // Estilo para o FAB de adicionar pet
+  fabStyle: {
     position: 'absolute',
     right: SIZES.spacingLarge,
-    bottom: SIZES.hp(10), // Ajustar para ficar acima do Footer
+    bottom: SIZES.hp(10),
     backgroundColor: COLORS.primary,
     width: SIZES.hp(7.5),
     height: SIZES.hp(7.5),

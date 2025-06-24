@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   View, Text, TextInput, FlatList, Image,
   TouchableOpacity, ActivityIndicator,
-  Modal, Pressable, StyleSheet, Alert
+  Modal, Pressable, StyleSheet, Alert, Platform
 } from 'react-native';
 import { Ionicons, FontAwesome } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -15,13 +15,6 @@ import theme, { COLORS, FONTS, SIZES, SHADOWS } from '../theme/theme';
 const SEX_FILTERS = ['todos', 'M', 'F'];
 
 const cardSpacing = SIZES.spacingRegular;
-// Calcula a largura do card: (largura da tela - espaçamento total) / número de colunas
-// Espaçamento total = espaçamento à esquerda da primeira coluna + espaçamento entre colunas + espaçamento à direita da segunda coluna
-// Como usaremos paddingHorizontal na FlatList e marginHorizontal nos cards, ajustamos o cálculo.
-// A FlatList terá paddingHorizontal = cardSpacing / 2.
-// Cada card terá marginHorizontal = cardSpacing / 2.
-// Isso resulta em: (cardSpacing/2) [Card1 (width)] (cardSpacing/2) (cardSpacing/2) [Card2 (width)] (cardSpacing/2)
-// Total de espaçamento horizontal = 3 * cardSpacing.
 const cardWidth = (SIZES.wp(100) - cardSpacing * 3) / 2;
 const cardHeight = SIZES.hp(28);
 
@@ -46,12 +39,11 @@ export default function FavoritoScreen() {
       const uid = await AsyncStorage.getItem('userId');
       if (!uid) {
         Alert.alert("Usuário não autenticado", "Por favor, faça login para ver seus favoritos.");
-        // Idealmente, redirecionar para Login: navigation.replace('Login');
         setLoading(false);
         return;
       }
       const favs = await listarFavoritosDoUsuario(Number(uid));
-      const pets = favs.map(f => f.pet).filter(p => p); // Garante que não há pets nulos/undefined
+      const pets = favs.map(f => f.pet).filter(p => p);
       setData(pets);
     } catch (e) {
       console.error("Erro ao buscar favoritos:", e);
@@ -89,7 +81,7 @@ export default function FavoritoScreen() {
   };
 
   const filtered = data.filter(p => {
-    if (!p) return false; // Checagem de segurança
+    if (!p) return false;
     const termo = searchTerm.toLowerCase();
     const idadeAno = typeof p.idadeAno === 'number' ? p.idadeAno : 0;
     const idadeMes = typeof p.idadeMes === 'number' ? p.idadeMes : 0;
@@ -105,7 +97,7 @@ export default function FavoritoScreen() {
   });
 
   const PetCard = ({ item }: { item: any }) => {
-    if (!item) return null; // Renderiza nada se o item for inválido
+    if (!item) return null;
 
     const idadeAno = typeof item.idadeAno === 'number' ? item.idadeAno : 0;
     const idadeMes = typeof item.idadeMes === 'number' ? item.idadeMes : 0;
@@ -124,8 +116,7 @@ export default function FavoritoScreen() {
         <LinearGradient colors={['transparent', 'rgba(0,0,0,0.85)']} style={styles.shadow} />
         <View style={styles.petDescription}>
           <View style={styles.nameContainer}>
-            <Text style={styles.name} numberOfLines={1}>{item.nome || "Nome Indisponível"}</Text>
-            {item.sexo && ( // Só mostra o ícone de sexo se existir
+            <Text style={styles.name} numberOfLines={1}>{item.nome || "Nome Indisponível"}</Text>{item.sexo && (
               <FontAwesome
                 name={item.sexo === 'M' ? 'mars' : 'venus'}
                 size={SIZES.iconSmall}
@@ -146,10 +137,8 @@ export default function FavoritoScreen() {
   };
 
   const renderEmptyList = () => {
-    // Se estiver carregando, não mostra nada (o ActivityIndicator global cuida disso)
     if (loading) return null;
 
-    // Se não há dados originais (nenhum favorito salvo)
     if (data.length === 0) {
       return (
         <View style={styles.emptyState}>
@@ -159,7 +148,6 @@ export default function FavoritoScreen() {
         </View>
       );
     }
-    // Se há dados, mas a busca/filtro não retornou nada
     return (
       <View style={styles.emptyState}>
         <FontAwesome name="search" size={SIZES.iconLarge * 1.5} color={COLORS.textSecondary} style={{ opacity: 0.8 }} />
@@ -169,28 +157,22 @@ export default function FavoritoScreen() {
     );
   };
 
-
   return (
     <View style={styles.screen}>
-      {/* Header antigo removido/simplificado. A barra de pesquisa agora ficará aqui em cima. */}
-      {/* <View style={styles.header}> ... </View> */}
-
-      {/* Barra de Pesquisa no Topo */}
       <View style={styles.topBarContainer}>
         <View style={styles.searchBox}>
-          <Ionicons name="search" size={SIZES.iconMedium} color={COLORS.white} /> {/* Ajustar cor para contraste */}
+          <Ionicons name="search" size={SIZES.iconMedium} color={COLORS.textSecondary} />
           <TextInput
             placeholder="Buscar nos favoritos..."
             value={searchTerm}
             onChangeText={setSearchTerm}
             style={styles.input}
-            placeholderTextColor={COLORS.light} // Ajustar cor para contraste
+            placeholderTextColor={COLORS.textSecondary}
           />
           <TouchableOpacity style={styles.filterBtn} onPress={() => setShowFilter(true)}>
-            <Ionicons name="filter" size={SIZES.iconMedium} color={COLORS.white} /> {/* Ajustar cor para contraste */}
+            <Ionicons name="filter" size={SIZES.iconMedium} color={COLORS.textSecondary} />
           </TouchableOpacity>
         </View>
-        {/* Não há botão de refresh aqui, mas o topBarContainer pode ser reutilizado */}
       </View>
 
       <Modal visible={showFilter} transparent animationType="fade" onRequestClose={() => setShowFilter(false)}>
@@ -211,7 +193,7 @@ export default function FavoritoScreen() {
         </View>
       </Modal>
 
-      {loading && data.length === 0 ? ( // Mostra activity indicator apenas se estiver carregando e não houver dados antigos
+      {loading && data.length === 0 ? (
         <ActivityIndicator size="large" color={COLORS.primary} style={{ flex:1, justifyContent:'center' }} />
       ) : (
         <FlatList
@@ -219,8 +201,8 @@ export default function FavoritoScreen() {
           numColumns={2}
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.listContainer}
-          renderItem={PetCard} // Passando a referência do componente
-          ListEmptyComponent={renderEmptyList} // Componente para lista vazia
+          renderItem={PetCard}
+          ListEmptyComponent={renderEmptyList}
         />
       )}
       <Footer />
@@ -233,12 +215,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background
   },
-  // Estilos de header e title originais removidos/comentados
-  // header: { ... }
-  // title: { ... }
-
-  topBarContainer: { // Container para a barra de pesquisa flutuante
-    flexDirection: 'row', // Embora só tenha a searchBox por enquanto, pode ter refresh no futuro
+  topBarContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: SIZES.spacingRegular,
     paddingTop: Platform.OS === 'android' ? SIZES.spacingLarge : SIZES.hp(5),
@@ -248,35 +226,33 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 1,
+    backgroundColor: COLORS.background,
+    ...SHADOWS.light,
   },
   searchBox: {
-    flex: 1, // Ocupa todo o espaço disponível no topBarContainer
-    // backgroundColor: COLORS.cardBackground, // Removido para fundo transparente
-    // marginHorizontal e marginTop removidos, o padding é no topBarContainer
-    // marginBottom: SIZES.spacingRegular, // Removido
+    flex: 1,
+    backgroundColor: COLORS.cardBackground,
     paddingHorizontal: SIZES.spacingMedium,
     flexDirection: 'row',
     alignItems: 'center',
     borderRadius: SIZES.borderRadiusCircle,
-    // ...SHADOWS.light, // Sombra removida para efeito flutuante
     height: SIZES.inputHeight,
-    borderWidth: 1, // Borda sutil para contraste
-    borderColor: `${COLORS.white}55`,
+    borderWidth: 1,
+    borderColor: COLORS.borderColor,
   },
   input: {
     flex: 1,
     fontSize: FONTS.sizeRegular,
     marginLeft: SIZES.spacingSmall,
     fontFamily: FONTS.familyRegular,
-    color: COLORS.white, // Texto do input branco para contraste
+    color: COLORS.text,
   },
   filterBtn: {
     padding: SIZES.spacingSmall
-    // Ícone de filtro já está branco no JSX
   },
   listContainer: {
     paddingHorizontal: cardSpacing / 2,
-    paddingTop: SIZES.hp(12), // Ajustado para não ficar sob a topBarContainer
+    paddingTop: SIZES.hp(12),
     paddingBottom: SIZES.hp(10),
   },
   card: {
@@ -287,7 +263,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.borderColorLight,
     ...SHADOWS.regular,
     marginBottom: cardSpacing,
-    marginHorizontal: cardSpacing / 2, // Isso cria o espaçamento entre os cards e nas bordas da lista
+    marginHorizontal: cardSpacing / 2,
   },
   image: {
     width: '100%',
@@ -299,7 +275,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    height: cardHeight * 0.5, // Sombra um pouco maior para melhor contraste
+    height: cardHeight * 0.5,
     borderBottomLeftRadius: SIZES.borderRadiusMedium,
     borderBottomRightRadius: SIZES.borderRadiusMedium,
   },
@@ -307,25 +283,21 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: SIZES.spacingSmall,
     left: SIZES.spacingSmall,
-    right: SIZES.spacingSmall, // Para garantir que o texto não vaze
+    right: SIZES.spacingSmall,
   },
   nameContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: SIZES.spacingTiny / 3, // Leve ajuste
+    marginBottom: SIZES.spacingTiny / 3,
   },
   name: {
     color: COLORS.white,
-    fontSize: FONTS.sizeMedium, // Um pouco maior para destaque
+    fontSize: FONTS.sizeMedium,
     fontFamily: FONTS.familyBold,
-    flexShrink: 1, // Para evitar que o nome empurre o ícone
+    flexShrink: 1,
   },
   sexIcon: {
     marginLeft: SIZES.spacingTiny,
-    // Adicionar sombra ao ícone para melhor visibilidade, se necessário
-    // textShadowColor: 'rgba(0, 0, 0, 0.75)',
-    // textShadowOffset: { width: 0, height: 1 },
-    // textShadowRadius: 2,
   },
   info: {
     color: COLORS.white,
@@ -336,18 +308,17 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: SIZES.spacingSmall,
     right: SIZES.spacingSmall,
-    backgroundColor: `${COLORS.white}e6`, // Leve transparência
+    backgroundColor: `${COLORS.white}e6`,
     padding: SIZES.spacingTiny,
     borderRadius: SIZES.borderRadiusCircle,
     ...SHADOWS.light,
   },
   emptyState: {
-    flex: 1, // Ocupa o espaço disponível na FlatList
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: SIZES.wp(10),
-    // marginTop: SIZES.hp(5), // Pode não ser necessário se a FlatList já tiver padding
-    minHeight: SIZES.hp(50), // Garante uma altura mínima para centralizar
+    minHeight: SIZES.hp(50),
   },
   emptyTitle: {
     fontSize: FONTS.sizeLarge,
@@ -397,13 +368,13 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     textAlign: 'center',
   },
-  cancelButton: { // Estilo para o botão de cancelar dentro do modal
-    borderBottomWidth: 0, // Sem borda inferior
-    paddingTop: SIZES.spacingSmall, // Espaço acima do botão cancelar
-    marginTop: SIZES.spacingTiny, // Margem para separar um pouco
+  cancelButton: {
+    borderBottomWidth: 0,
+    paddingTop: SIZES.spacingSmall,
+    marginTop: SIZES.spacingTiny,
   },
-  cancelButtonText: { // Texto do botão cancelar
-    color: COLORS.primary, // Cor de destaque
-    fontFamily: FONTS.familyBold, // Fonte em negrito
+  cancelButtonText: {
+    color: COLORS.primary,
+    fontFamily: FONTS.familyBold,
   }
 });

@@ -2,7 +2,6 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
-
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Footer() {
@@ -16,33 +15,41 @@ export default function Footer() {
     const fetchEmail = async () => {
       const token = await AsyncStorage.getItem('token');
       if (!token) return;
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      setEmail(payload.sub);
+      // Adicionando um try-catch para evitar erros se o token for inválido
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        setEmail(payload.sub);
+      } catch (error) {
+        console.error("Erro ao decodificar o token:", error);
+      }
     };
     fetchEmail();
   }, []);
 
   const isVisitante = email === 'visitante@visitante';
 
+  const handlePress = (screenName) => {
+    if (isVisitante && (screenName === 'MeusPets' || screenName === 'Favoritos')) {
+      Alert.alert(
+        'Acesso restrito',
+        'Para acessar essa funcionalidade, você precisa criar uma conta. Deseja se cadastrar agora?',
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          { text: 'Cadastrar', onPress: () => navigation.navigate('Cadastrar') }
+        ]
+      );
+    } else {
+      navigation.navigate(screenName);
+    }
+  };
+
   return (
     <View style={styles.footer}>
+      {/* Botão Meus Pets */}
       <TouchableOpacity
         style={styles.footerItem}
-        onPress={() => {
-          if (!isVisitante) {
-            navigation.navigate('MeusPets');
-          } else {
-            Alert.alert(
-              'Acesso restrito',
-              'Para acessar essa funcionalidade, você precisa criar uma conta. Deseja se cadastrar agora?',
-              [
-                { text: 'Cancelar', style: 'cancel' },
-                { text: 'Cadastrar', onPress: () => navigation.navigate('Cadastrar') }
-              ]
-            );
-          }
-        }}
-        >  
+        onPress={() => handlePress('MeusPets')}
+      >
         <FontAwesome5
           name="paw"
           size={24}
@@ -52,7 +59,8 @@ export default function Footer() {
         <Text style={[styles.footerText, currentRoute === 'MeusPets' && styles.activeText]}>Meus Pets</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.footerItem} onPress={() => navigation.navigate('Explorar')}>  
+      {/* Botão Explorar */}
+      <TouchableOpacity style={styles.footerItem} onPress={() => handlePress('Explorar')}>
         <Ionicons
           name="search"
           size={24}
@@ -61,23 +69,11 @@ export default function Footer() {
         <Text style={[styles.footerText, currentRoute === 'Explorar' && styles.activeText]}>Explorar</Text>
       </TouchableOpacity>
 
+      {/* Botão Favoritos */}
       <TouchableOpacity
         style={styles.footerItem}
-        onPress={() => {
-          if (!isVisitante) {
-            navigation.navigate('Favoritos');
-          } else {
-            Alert.alert(
-              'Acesso restrito',
-              'Para acessar essa funcionalidade, você precisa criar uma conta. Deseja se cadastrar agora?',
-              [
-                { text: 'Cancelar', style: 'cancel' },
-                { text: 'Cadastrar', onPress: () => navigation.navigate('Cadastrar') }
-              ]
-            );
-          }
-        }}
-        >  
+        onPress={() => handlePress('Favoritos')}
+      >
         <Ionicons
           name={currentRoute === 'Favoritos' ? 'heart' : 'heart-outline'}
           size={24}
@@ -86,7 +82,8 @@ export default function Footer() {
         <Text style={[styles.footerText, currentRoute === 'Favoritos' && styles.activeText]}>Favoritos</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.footerItem} onPress={() => navigation.navigate('PerfilDeUsuario')}>  
+      {/* Botão Perfil */}
+      <TouchableOpacity style={styles.footerItem} onPress={() => handlePress('PerfilDeUsuario')}>
         <Ionicons
           name={currentRoute === 'PerfilDeUsuario' ? 'person' : 'person-outline'}
           size={24}

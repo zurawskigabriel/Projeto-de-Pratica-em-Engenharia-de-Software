@@ -16,13 +16,13 @@ import {
   ScrollView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Entypo, Ionicons } from '@expo/vector-icons'; // Adicionado Ionicons
+import { Entypo, Ionicons } from '@expo/vector-icons';
 import FooterNav from '../components/Footer';
 import perfilImage from '../../assets/perfil.jpg';
 import { buscarUsuarioPorId, excluirUsuario, atualizarUsuario } from '../api/api';
-import theme, { COLORS, FONTS, SIZES, SHADOWS } from '../theme/theme'; // Importar o tema
+import theme, { COLORS, FONTS, SIZES, SHADOWS } from '../theme/theme';
 
-const { width, height } = Dimensions.get('window'); // Manter por enquanto, SIZES.wp/hp podem substituir
+const { width, height } = Dimensions.get('window');
 
 export default function UsuarioScreen() {
   const router = useRouter();
@@ -139,10 +139,8 @@ export default function UsuarioScreen() {
     <SafeAreaView style={styles.safeArea}>
       <View style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.scrollContainer}>
-          {/* Header modificado: sem título, apenas ícone de menu/settings */}
           <View style={styles.header}>
             <View style={styles.headerContent}>
-              {/* <Text style={styles.headerTitle}>{editando ? 'Editando Perfil' : 'Perfil'}</Text> */} {/* Título removido */}
               <TouchableOpacity style={styles.menuIcon} onPress={() => setMenuVisivel(true)}>
                 <Ionicons name="settings-outline" size={SIZES.iconMedium} color={COLORS.text} />
               </TouchableOpacity>
@@ -192,75 +190,70 @@ export default function UsuarioScreen() {
                 <TextInput style={styles.input} secureTextEntry value={form.confirmarSenha} onChangeText={(text) => setForm({ ...form, confirmarSenha: text })} />
 
                 <View style={styles.editActionsContainer}>
-  <TouchableOpacity
-    style={[styles.editButton, styles.cancelButton]}
-    onPress={() => {
-      Alert.alert(
-        'Descartar alterações',
-        'Tem certeza que deseja descartar as alterações?',
-        [
-          { text: 'Cancelar', style: 'cancel' },
-          {
-            text: 'Sim, descartar',
-            style: 'destructive',
-            onPress: () => {
-              setForm({
-                nome: usuario.nome,
-                email: usuario.email,
-                telefone: usuario.telefone,
-                senha: '',
-                confirmarSenha: '',
-              });
-              setEditando(false);
-            },
-          },
-        ]
-      );
-    }}
-  >
-    <Text style={styles.buttonText}>Descartar</Text>
-  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.editButton, styles.cancelButton]}
+                    onPress={() => {
+                      Alert.alert(
+                        'Descartar alterações',
+                        'Tem certeza que deseja descartar as alterações?',
+                        [
+                          { text: 'Cancelar', style: 'cancel' },
+                          {
+                            text: 'Sim, descartar',
+                            style: 'destructive',
+                            onPress: () => {
+                              setForm({
+                                nome: usuario.nome,
+                                email: usuario.email,
+                                telefone: usuario.telefone,
+                                senha: '',
+                                confirmarSenha: '',
+                              });
+                              setEditando(false);
+                            },
+                          },
+                        ]
+                      );
+                    }}
+                  ><Text style={styles.buttonText}>Descartar</Text></TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.editButton, styles.saveButton]}
+                    onPress={() => {
+                      if (form.senha && form.senha !== form.confirmarSenha) {
+                        Alert.alert('Erro', 'As senhas não coincidem.');
+                        return;
+                      }
 
-  <TouchableOpacity
-    style={[styles.editButton, styles.saveButton]}
-    onPress={() => {
-      if (form.senha && form.senha !== form.confirmarSenha) {
-        Alert.alert('Erro', 'As senhas não coincidem.');
-        return;
-      }
+                      Alert.alert(
+                        'Salvar alterações',
+                        'Tem certeza que deseja salvar as alterações?',
+                        [
+                          { text: 'Cancelar', style: 'cancel' },
+                          {
+                            text: 'Sim, salvar',
+                            onPress: async () => {
+                              try {
+                                await atualizarUsuario(userId, {
+                                  nome: form.nome,
+                                  email: form.email,
+                                  telefone: form.telefone,
+                                  senha: form.senha,
+                                  tipo: 'PESSOA',
+                                  perfilUsuario: 'AMBOS',
+                                });
 
-      Alert.alert(
-        'Salvar alterações',
-        'Tem certeza que deseja salvar as alterações?',
-        [
-          { text: 'Cancelar', style: 'cancel' },
-          {
-            text: 'Sim, salvar',
-            onPress: async () => {
-              try {
-                await atualizarUsuario(userId, {
-                  nome: form.nome,
-                  email: form.email,
-                  telefone: form.telefone,
-                  senha: form.senha,
-                  tipo: 'PESSOA',
-                  perfilUsuario: 'AMBOS',
-                });
-
-                Alert.alert('Sucesso', 'Dados atualizados com sucesso!');
-                setEditando(false);
-              } catch (error) {
-                Alert.alert('Erro', error.message || 'Erro ao atualizar dados.');
-              }
-            },
-          },
-        ]
-      );
-    }}
-  >
-    <Text style={styles.buttonText}>Salvar</Text>
-  </TouchableOpacity>
-</View>
+                                Alert.alert('Sucesso', 'Dados atualizados com sucesso!');
+                                setEditando(false);
+                              } catch (error) {
+                                Alert.alert('Erro', error.message || 'Erro ao atualizar dados.');
+                              }
+                            },
+                          },
+                        ]
+                      );
+                    }}
+                  ><Text style={styles.buttonText}>Salvar</Text></TouchableOpacity>
+                </View>
 
               </>
             ) : (
@@ -268,7 +261,6 @@ export default function UsuarioScreen() {
                 <Text style={styles.userName}>{usuario.nome}</Text>
                 <Text style={styles.userEmail}>{usuario.email}</Text>
 
-                {/* Card de Informações Pessoais */}
                 <View style={styles.infoCard}>
                   <View style={styles.infoCardRow}>
                     <Ionicons name="call-outline" size={FONTS.sizeRegular} color={COLORS.textSecondary} style={styles.infoCardIcon} />
@@ -280,14 +272,13 @@ export default function UsuarioScreen() {
                     <Text style={styles.infoCardLabel}>Tipo de conta:</Text>
                     <Text style={styles.infoCardValue}>{usuario.perfilUsuario}</Text>
                   </View>
-                  <View style={[styles.infoCardRow, styles.infoCardRowLast]}> {/* Aplicando estilo para remover borda */}
+                  <View style={[styles.infoCardRow, styles.infoCardRowLast]}>
                     <Ionicons name="calendar-outline" size={FONTS.sizeRegular} color={COLORS.textSecondary} style={styles.infoCardIcon} />
                     <Text style={styles.infoCardLabel}>Membro desde:</Text>
                     <Text style={styles.infoCardValue}>{new Date(usuario.dataCadastro).toLocaleDateString()}</Text>
                   </View>
                 </View>
 
-                {/* Botão para Solicitações de Adoção (Apenas para Protetores) */}
                 {(usuario.perfilUsuario === 'PROTETOR' || usuario.perfilUsuario === 'AMBOS') && (
                   <TouchableOpacity
                     style={[styles.actionButton, styles.solicitacoesProtetorButton, { marginTop: SIZES.hp(2) }]}
@@ -312,14 +303,6 @@ export default function UsuarioScreen() {
                 >
                   <Text style={styles.buttonText}>Sair</Text>
                 </TouchableOpacity>
-
-                {/* Botão Excluir Conta explícito removido */}
-                {/* <TouchableOpacity
-                  style={[styles.actionButton, styles.deleteButton]}
-                  onPress={handleExcluirConta}
-                >
-                  <Text style={styles.buttonText}>Excluir conta</Text>
-                </TouchableOpacity> */}
               </>
             )}
           </View>
@@ -334,51 +317,42 @@ export default function UsuarioScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: COLORS.background, // Fundo da safe area
+    backgroundColor: COLORS.background,
   },
   scrollContainer: {
     flexGrow: 1,
-    paddingHorizontal: SIZES.wp(5), // Usando wp para padding horizontal
+    paddingHorizontal: SIZES.wp(5),
     paddingTop: Platform.OS === 'android' ? SIZES.hp(2) : SIZES.hp(5),
     paddingBottom: SIZES.hp(2),
   },
   header: {
-    marginBottom: SIZES.hp(3), // Espaço abaixo do header
+    marginBottom: SIZES.hp(3),
     height: SIZES.headerHeight,
     justifyContent: 'center',
   },
   headerContent: {
     flexDirection: 'row',
-    justifyContent: 'flex-end', // Alinha o ícone do menu à direita
+    justifyContent: 'flex-end',
     alignItems: 'center',
-    paddingHorizontal: SIZES.spacingRegular, // Padding para não colar nas bordas
-    // position: 'relative', // Não mais necessário se o menuIcon não for absoluto a este
+    paddingHorizontal: SIZES.spacingRegular,
   },
-  // headerTitle: { // Estilo do título removido pois o título foi removido
-  //   fontSize: FONTS.sizeXXLarge,
-  //   fontFamily: FONTS.familyBold,
-  //   color: COLORS.text,
-  // },
   menuIcon: {
-    // position: 'absolute', // Não mais absoluto
-    // right: 0,
-    // top: 0,
-    padding: SIZES.spacingSmall, // Área de toque
+    padding: SIZES.spacingSmall,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)', // Overlay um pouco mais escuro
-    justifyContent: 'flex-start', // Alinha o menu no topo
-    alignItems: 'flex-end',    // Alinha o menu à direita
-    paddingTop: SIZES.hp(8),      // Distância do topo da tela
-    paddingRight: SIZES.wp(5),    // Distância da direita da tela
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-start',
+    alignItems: 'flex-end',
+    paddingTop: SIZES.hp(8),
+    paddingRight: SIZES.wp(5),
   },
   menuOptionsRight: {
     backgroundColor: COLORS.cardBackground,
-    padding: SIZES.spacingMedium, // Padding interno do menu
+    padding: SIZES.spacingMedium,
     borderRadius: SIZES.borderRadiusRegular,
     ...SHADOWS.strong,
-    minWidth: SIZES.wp(40), // Largura mínima para o menu
+    minWidth: SIZES.wp(40),
   },
   menuText: {
     fontSize: FONTS.sizeRegular,
@@ -390,10 +364,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: SIZES.hp(4),
   },
-  profileImageContainer: { // Container para a imagem e o botão de editar foto
-    position: 'relative', // Para posicionar o botão de editar sobre a imagem
+  profileImageContainer: {
+    position: 'relative',
     marginBottom: SIZES.hp(2),
-    alignItems: 'center', // Centraliza a imagem dentro deste container se ela for menor
+    alignItems: 'center',
   },
   profileImage: {
     width: SIZES.wp(40),
@@ -422,28 +396,32 @@ const styles = StyleSheet.create({
     fontSize: FONTS.sizeRegular,
     fontFamily: FONTS.familyRegular,
     color: COLORS.textSecondary,
-    marginBottom: SIZES.hp(2.5), // Aumentar margem antes do card de info
+    marginBottom: SIZES.hp(2.5),
     textAlign: 'center',
   },
-  // userDetail foi substituído pelo infoCard
-  // userDetail: { ... }
-
-  infoCard: { // Novo card para informações detalhadas
+  userDetail: {
+    alignSelf: 'flex-start',
+    color: COLORS.textSecondary,
+    fontFamily: FONTS.familyRegular,
+    marginBottom: SIZES.spacingTiny,
+    marginLeft: SIZES.spacingTiny,
+  },
+  infoCard: {
     backgroundColor: COLORS.cardBackground,
     borderRadius: SIZES.borderRadiusMedium,
     padding: SIZES.spacingMedium,
-    width: '100%', // Ocupa a largura do userInfoContainer
-    marginBottom: SIZES.hp(3), // Espaço antes dos botões de ação
+    width: '100%',
+    marginBottom: SIZES.hp(3),
     ...SHADOWS.light,
   },
   infoCardRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: SIZES.spacingSmall, // Espaçamento interno para cada linha
+    paddingVertical: SIZES.spacingSmall,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.borderColorLight,
   },
-  infoCardRowLast: { // Para remover a borda da última linha
+  infoCardRowLast: {
     borderBottomWidth: 0,
   },
   infoCardIcon: {
@@ -453,16 +431,15 @@ const styles = StyleSheet.create({
     fontSize: FONTS.sizeRegular,
     fontFamily: FONTS.familyRegular,
     color: COLORS.textSecondary,
-    flex: 1, // Para o label ocupar espaço e empurrar o valor para a direita
+    flex: 1,
   },
   infoCardValue: {
     fontSize: FONTS.sizeRegular,
-    fontFamily: FONTS.familyBold, // Destacar o valor
+    fontFamily: FONTS.familyBold,
     color: COLORS.text,
-    textAlign: 'right', // Alinhar valor à direita
+    textAlign: 'right',
   },
-
-  input: { // Estilo unificado para TextInput
+  input: {
     width: '100%',
     backgroundColor: COLORS.light,
     fontFamily: FONTS.familyRegular,
@@ -475,10 +452,9 @@ const styles = StyleSheet.create({
     borderColor: COLORS.borderColor,
     height: SIZES.inputHeight,
   },
-  // Botões de Ação (Sair, Excluir, Solicitações)
-  actionButton: { // Estilo base para os botões principais
-    width: '95%', // Um pouco menor que 100% para não colar nas bordas do card/tela
-    alignSelf: 'center', // Centraliza o botão
+  actionButton: {
+    width: '95%',
+    alignSelf: 'center',
     paddingVertical: SIZES.spacingMedium,
     borderRadius: SIZES.borderRadiusCircle,
     alignItems: 'center',
@@ -487,25 +463,23 @@ const styles = StyleSheet.create({
     height: SIZES.buttonHeight,
     ...SHADOWS.regular,
   },
-  buttonText: { // Texto para todos os botões de ação
+  buttonText: {
     color: COLORS.white,
     fontSize: FONTS.sizeMedium,
     fontFamily: FONTS.familyBold,
   },
-  // Especialização para cada botão (cores)
   solicitacoesProtetorButton: {
-    backgroundColor: COLORS.info, // Azul info para protetor
+    backgroundColor: COLORS.info,
   },
   solicitacoesAdotanteButton: {
-    backgroundColor: COLORS.success, // Verde para adotante
+    backgroundColor: COLORS.success,
   },
   logoffButton: {
-    backgroundColor: COLORS.secondary, // Cinza para logoff
+    backgroundColor: COLORS.secondary,
   },
   deleteButton: {
-    backgroundColor: COLORS.danger, // Vermelho para excluir
+    backgroundColor: COLORS.danger,
   },
-  // Botões no modo de edição (Salvar, Descartar)
   editActionsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -513,8 +487,8 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     marginTop: SIZES.spacingRegular,
   },
-  editButton: { // Estilo base para botões de edição
-    flex: 1, // Para ocupar espaço igualitário
+  editButton: {
+    flex: 1,
     paddingVertical: SIZES.spacingMedium,
     borderRadius: SIZES.borderRadiusCircle,
     alignItems: 'center',
@@ -523,19 +497,17 @@ const styles = StyleSheet.create({
     ...SHADOWS.regular,
   },
   saveButton: {
-    backgroundColor: COLORS.primary, // Azul primário para salvar
-    marginRight: SIZES.spacingSmall, // Espaço entre botões Salvar e Descartar
+    backgroundColor: COLORS.primary,
+    marginRight: SIZES.spacingSmall,
   },
   cancelButton: {
-    backgroundColor: COLORS.danger, // Vermelho para descartar
+    backgroundColor: COLORS.danger,
     marginLeft: SIZES.spacingSmall,
   },
-  loadingContainer: { // Para ActivityIndicator
+  loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: COLORS.background,
   },
-  // Removidos estilos antigos de botões (botaoAcaoespecial, botaoCinza, etc.)
-  // Eles foram substituídos por actionButton e especializações.
 });
