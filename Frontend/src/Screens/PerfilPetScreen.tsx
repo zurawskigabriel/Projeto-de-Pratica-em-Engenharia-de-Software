@@ -161,9 +161,11 @@ export default function PerfilPet() {
       <View style={styles.imageContainer}>
         <Image
           source={
-            pet.especie?.toLowerCase().includes('cachorro')
-              ? require('../../assets/dog.jpg')
-              : require('../../assets/cat.jpg')
+            pet.fotos
+              ? { uri: `data:image/jpeg;base64,${pet.fotos}` }
+              : pet.especie?.toLowerCase().includes('cachorro')
+                ? require('../../assets/dog.jpg')
+                : require('../../assets/cat.jpg')
           }
           style={styles.image}
           resizeMode="cover"

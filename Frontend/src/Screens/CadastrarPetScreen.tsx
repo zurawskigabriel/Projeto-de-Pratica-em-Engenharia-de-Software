@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   View, Text, TextInput, StyleSheet, ScrollView,
-  TouchableOpacity, Image, Alert
+  TouchableOpacity, Image, Alert, ActivityIndicator
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -17,44 +17,94 @@ export default function CadastrarPetScreen() {
   const [especie, setEspecie] = useState('');
   const [idadeAno, setIdadeAno] = useState(0);
   const [idadeMes, setIdadeMes] = useState(0);
-  const [porte, setPorte] = useState('');
+  const [porte, setPorte] = useState(''); // Adicionado estado para porte
   const [peso, setPeso] = useState('');
   const [sexo, setSexo] = useState('');
   const [bio, setBio] = useState('');
-  const [imagem, setImagem] = useState<string | null>(null);
+  const [imagemUri, setImagemUri] = useState<string | null>(null); // URI local da imagem
+  const [imagemBase64, setImagemBase64] = useState<string | null>(null); // Imagem em Base64
+  const [salvando, setSalvando] = useState(false);
+
 
   const router = useRouter();
 
   const selecionarImagem = async () => {
-    const res = await ImagePicker.launchImageLibraryAsync({
+    // Pedir permissão para acessar a galeria
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (permissionResult.granted === false) {
+      Alert.alert("Permissão necessária", "É preciso permitir o acesso à galeria para selecionar uma foto.");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
-      quality: 0.8,
+      aspect: [4, 3], // Proporção da imagem
+      quality: 0.5, // Qualidade reduzida para uploads mais rápidos
     });
-    if (!res.canceled) setImagem(res.assets[0].uri);
+
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      const uri = result.assets[0].uri;
+      setImagemUri(uri); // Guarda o URI para preview
+      try {
+        const base64 = await FileSystem.readAsStringAsync(uri, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+        setImagemBase64(base64); // Guarda a string Base64 para envio
+      } catch (error) {
+        console.error("Erro ao converter imagem para Base64:", error);
+        Alert.alert("Erro", "Não foi possível processar a imagem selecionada.");
+        setImagemUri(null);
+        setImagemBase64(null);
+      }
+    }
   };
 
   const handleFinalizar = async () => {
-    if (!nome||!raca||!especie||!porte||!peso||!sexo||!bio) {
-      return Alert.alert('Erro','Preencha todos os campos obrigatórios');
+    if (!nome || !raca || !especie || !porte || !peso || !sexo || !bio) {
+      Alert.alert('Campos incompletos', 'Por favor, preencha todos os campos obrigatórios.');
+      return;
     }
+    if (idadeAno === 0 && idadeMes === 0) {
+      Alert.alert('Idade inválida', 'A idade do pet não pode ser zero anos e zero meses.');
+      return;
+    }
+
+    setSalvando(true);
     try {
       const userIdStr = await AsyncStorage.getItem('userId');
-      const userId = userIdStr ? parseInt(userIdStr,10) : null;
-      if (!userId) return Alert.alert('Erro','Usuário não identificado');
+      const userId = userIdStr ? parseInt(userIdStr, 10) : null;
+      if (!userId) {
+        Alert.alert('Erro de Autenticação', 'Usuário não identificado. Faça login novamente.');
+        setSalvando(false);
+        router.replace('/Login'); // Redireciona para o login se não houver ID
+        return;
+      }
 
-      const fotos = imagem
-        ? await FileSystem.readAsStringAsync(imagem,{ encoding: FileSystem.EncodingType.Base64 })
-        : null;
+      const petDTO = {
+        idUsuario: userId,
+        nome,
+        especie,
+        raca,
+        idadeAno,
+        idadeMes,
+        porte, // Incluído porte
+        peso: parseFloat(peso.replace(',', '.')), // Trata vírgula no peso
+        sexo,
+        bio,
+        fotos: imagemBase64, // Envia a string Base64
+      };
 
-      const petDTO = { idUsuario:userId,nome,especie,raca,idadeAno,idadeMes,porte,peso:parseFloat(peso),sexo,bio,fotos };
       await criarPet(petDTO);
 
-      Alert.alert('Sucesso','Pet cadastrado!',[
-        { text:'OK', onPress:()=>router.replace('/MeusPets') }
+      Alert.alert('Sucesso!', 'Pet cadastrado com sucesso.', [
+        { text: 'OK', onPress: () => router.replace('/MeusPets') },
       ]);
-    } catch(e:any) {
-      Alert.alert('Erro','Erro ao cadastrar pet');
+    } catch (e: any) {
+      console.error("Erro ao cadastrar pet:", e);
+      Alert.alert('Erro no Cadastro', e.message || 'Não foi possível cadastrar o pet. Tente novamente.');
+    } finally {
+      setSalvando(false);
     }
   };
 
@@ -155,15 +205,24 @@ export default function CadastrarPetScreen() {
             placeholderTextColor={COLORS.textSecondary}
             multiline
           />
-          <TouchableOpacity style={styles.imageBtn} onPress={selecionarImagem} activeOpacity={0.7}>
-            <Text style={styles.imageBtnText}>{imagem ? 'Trocar foto' : 'Adicionar foto'}</Text>
+          <TouchableOpacity style={styles.imageBtn} onPress={selecionarImagem} activeOpacity={0.7} disabled={salvando}>
+            <Text style={styles.imageBtnText}>{imagemUri ? 'Trocar foto' : 'Adicionar foto'}</Text>
           </TouchableOpacity>
-          {imagem && <Image source={{uri:imagem}} style={styles.preview}/>}
+          {imagemUri && <Image source={{uri:imagemUri}} style={styles.preview}/>}
         </View>
 
         {/* Botão finalizar */}
-        <TouchableOpacity style={styles.saveBtn} onPress={handleFinalizar} activeOpacity={0.8}>
-          <Text style={styles.saveBtnText}>Finalizar</Text>
+        <TouchableOpacity
+          style={[styles.saveBtn, salvando && styles.saveBtnDisabled]}
+          onPress={handleFinalizar}
+          activeOpacity={0.8}
+          disabled={salvando}
+        >
+          {salvando ? (
+            <ActivityIndicator size="small" color={COLORS.white} />
+          ) : (
+            <Text style={styles.saveBtnText}>Finalizar</Text>
+          )}
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -313,6 +372,8 @@ const styles = StyleSheet.create({
     marginTop: SIZES.spacingSmall,
     borderWidth: SIZES.borderWidth,
     borderColor: COLORS.borderColor,
+    alignSelf: 'center', // Centraliza a imagem se ela for menor que o container
+    backgroundColor: COLORS.borderColorLight, // Fundo para o preview
   },
   saveBtn: {
     backgroundColor: COLORS.success, // Cor de sucesso para o botão Finalizar
@@ -323,6 +384,9 @@ const styles = StyleSheet.create({
     ...SHADOWS.regular,
     height: SIZES.buttonHeight,
     justifyContent: 'center',
+  },
+  saveBtnDisabled: {
+    backgroundColor: COLORS.buttonDisabledBackground, // Cor para botão desabilitado
   },
   saveBtnText: {
     color: COLORS.white,

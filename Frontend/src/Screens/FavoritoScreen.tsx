@@ -110,7 +110,13 @@ export default function FavoritoScreen() {
         onPress={() => navigation.navigate('PerfilPet', { id: item.id })}
       >
         <Image
-          source={item.especie?.toLowerCase().includes('cachorro') ? require('../../assets/dog.jpg') : require('../../assets/cat.jpg')}
+          source={
+            item.fotos
+              ? { uri: `data:image/jpeg;base64,${item.fotos}` }
+              : item.especie?.toLowerCase().includes('cachorro')
+                ? require('../../assets/dog.jpg')
+                : require('../../assets/cat.jpg')
+          }
           style={styles.image}
         />
         <LinearGradient colors={['transparent', 'rgba(0,0,0,0.85)']} style={styles.shadow} />

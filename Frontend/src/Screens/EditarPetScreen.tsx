@@ -14,68 +14,140 @@ import theme, { COLORS, FONTS, SIZES, SHADOWS } from '../theme/theme'; // Import
 export default function EditarPetScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id?: string }>();
+  const [petId, setPetId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
+  const [salvando, setSalvando] = useState(false);
   const [form, setForm] = useState({
-    nome: '', raca: '', especie: '', sexo: '',
-    peso: '', bio: '', idadeAno: 0, idadeMes: 0
+    nome: '',
+    raca: '',
+    especie: '',
+    sexo: '',
+    porte: '', // Adicionado porte
+    peso: '',
+    bio: '',
+    idadeAno: 0,
+    idadeMes: 0,
   });
-  const [imagem, setImagem] = useState<string | null>(null);
+  const [imagemUri, setImagemUri] = useState<string | null>(null); // URI para preview
+  const [imagemBase64, setImagemBase64] = useState<string | null>(null); // Base64 para envio
+  const [imagemOriginalBase64, setImagemOriginalBase64] = useState<string | null>(null); // Base64 original do pet
+
 
   useEffect(() => {
-    (async () => {
-      try {
-        const pet = await buscarPet(Number(id));
-        setForm({
-          nome: pet.nome,
-          raca: pet.raca,
-          especie: pet.especie,
-          sexo: pet.sexo,
-          peso: String(pet.peso),
-          bio: pet.bio,
-          idadeAno: pet.idadeAno,
-          idadeMes: pet.idadeMes
-        });
-        // opcional: load imagem existente...
-      } catch {
-        Alert.alert('Erro', 'Não foi possível carregar dados do pet.');
-        router.back();
-      } finally {
-        setLoading(false);
-      }
-    })();
+    if (id) {
+      const numericId = Number(id);
+      setPetId(numericId);
+      carregarDadosPet(numericId);
+    } else {
+      Alert.alert('Erro', 'ID do pet não fornecido.');
+      router.back();
+      setLoading(false);
+    }
   }, [id]);
 
+  const carregarDadosPet = async (currentPetId: number) => {
+    setLoading(true);
+    try {
+      const pet = await buscarPet(currentPetId);
+      setForm({
+        nome: pet.nome || '',
+        raca: pet.raca || '',
+        especie: pet.especie || '',
+        sexo: pet.sexo || '',
+        porte: pet.porte || '', // Carregar porte
+        peso: String(pet.peso || ''),
+        bio: pet.bio || '',
+        idadeAno: pet.idadeAno || 0,
+        idadeMes: pet.idadeMes || 0,
+      });
+      if (pet.fotos) {
+        setImagemOriginalBase64(pet.fotos); // Armazena a foto original
+        setImagemUri(`data:image/jpeg;base64,${pet.fotos}`); // Exibe a foto original
+      }
+    } catch (error) {
+      console.error("Erro ao carregar dados do pet:", error);
+      Alert.alert('Erro', 'Não foi possível carregar os dados do pet.');
+      router.back();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
   const selecionarImagem = async () => {
-    const res = await ImagePicker.launchImageLibraryAsync({
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (permissionResult.granted === false) {
+      Alert.alert("Permissão necessária", "É preciso permitir o acesso à galeria para selecionar uma foto.");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
-      quality: 0.8,
+      aspect: [4, 3],
+      quality: 0.5,
     });
-    if (!res.canceled) setImagem(res.assets[0].uri);
+
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      const uri = result.assets[0].uri;
+      setImagemUri(uri); // Preview com a nova imagem
+      try {
+        const base64 = await FileSystem.readAsStringAsync(uri, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+        setImagemBase64(base64); // Nova imagem Base64 para envio
+      } catch (error) {
+        console.error("Erro ao converter imagem para Base64:", error);
+        Alert.alert("Erro", "Não foi possível processar a imagem selecionada.");
+        // Reverter para a imagem original ou nenhuma se não houver nova seleção
+        setImagemUri(imagemOriginalBase64 ? `data:image/jpeg;base64,${imagemOriginalBase64}` : null);
+        setImagemBase64(null);
+      }
+    }
   };
 
   const handleSalvar = async () => {
-    const { nome, raca, especie, sexo, peso, bio } = form;
-    if (!nome || !raca || !especie || !sexo || !peso || !bio) {
-      return Alert.alert('Erro', 'Preencha todos os campos obrigatórios.');
+    if (!petId) {
+      Alert.alert('Erro', 'ID do pet não está definido.');
+      return;
     }
+    const { nome, raca, especie, sexo, peso, bio, porte } = form;
+    if (!nome || !raca || !especie || !sexo || !peso || !bio || !porte) {
+      Alert.alert('Campos incompletos', 'Preencha todos os campos obrigatórios.');
+      return;
+    }
+     if (form.idadeAno === 0 && form.idadeMes === 0) {
+      Alert.alert('Idade inválida', 'A idade do pet não pode ser zero anos e zero meses.');
+      return;
+    }
+
+    setSalvando(true);
     try {
       const idUsuario = Number(await AsyncStorage.getItem('userId'));
-      const fotos = imagem
-        ? await FileSystem.readAsStringAsync(imagem, { encoding: FileSystem.EncodingType.Base64 })
-        : null;
-      await atualizarPet(Number(id), {
+      if (!idUsuario) {
+        Alert.alert('Erro de Autenticação', 'Usuário não identificado.');
+        setSalvando(false);
+        return;
+      }
+
+      // Se uma nova imagem foi selecionada (imagemBase64 não é null), use-a.
+      // Caso contrário, mantenha a imagem original (imagemOriginalBase64).
+      // Se nenhuma imagem original existia e nenhuma nova foi selecionada, fotos será null.
+      const fotosParaEnviar = imagemBase64 || imagemOriginalBase64 || null;
+
+      await atualizarPet(petId, {
         ...form,
-        peso: parseFloat(peso),
-        idadeAno: form.idadeAno,
-        idadeMes: form.idadeMes,
-        idUsuario,
-        fotos
+        peso: parseFloat(peso.replace(',', '.')),
+        idUsuario, // API pode precisar ou não, mas é bom ter
+        fotos: fotosParaEnviar, // Envia a nova imagem Base64 ou a original
       });
-      Alert.alert('Sucesso', 'Pet atualizado com sucesso!');
-      router.back();
+      Alert.alert('Sucesso!', 'Pet atualizado com sucesso!');
+      router.replace('/MeusPets'); // Usar replace para recarregar a lista em MeusPets
     } catch (e: any) {
-      Alert.alert('Erro', e.message || 'Falha ao salvar.');
+      console.error("Erro ao atualizar pet:", e);
+      Alert.alert('Erro ao Salvar', e.message || 'Falha ao atualizar os dados do pet.');
+    } finally {
+      setSalvando(false);
     }
   };
 
@@ -120,8 +192,9 @@ export default function EditarPetScreen() {
           {['Gato', 'Cachorro'].map(o => (
             <TouchableOpacity
               key={o}
-              style={[styles.pickerOption, form.especie === o && styles.pickerSelected]}
+              style={[styles.pickerOption, form.especie === o && styles.pickerSelected, salvando && styles.pickerDisabled]}
               onPress={() => setForm(f => ({ ...f, especie: o }))}
+              disabled={salvando}
             >
               <Text style={[styles.pickerText, form.especie === o && styles.pickerTextSelected]}>{o}</Text>
             </TouchableOpacity>
@@ -133,10 +206,25 @@ export default function EditarPetScreen() {
           {['Macho', 'Fêmea'].map(o => (
             <TouchableOpacity
               key={o}
-              style={[styles.pickerOption, form.sexo === o.charAt(0) && styles.pickerSelected]}
+              style={[styles.pickerOption, form.sexo === o.charAt(0) && styles.pickerSelected, salvando && styles.pickerDisabled]}
               onPress={() => setForm(f => ({ ...f, sexo: o.charAt(0) }))}
+              disabled={salvando}
             >
               <Text style={[styles.pickerText, form.sexo === o.charAt(0) && styles.pickerTextSelected]}>{o}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        <Text style={styles.label}>Porte</Text>
+        <View style={styles.row}>
+          {['Pequeno', 'Medio', 'Grande'].map(p => (
+            <TouchableOpacity
+              key={p}
+              style={[styles.pickerOption, form.porte === p && styles.pickerSelected, salvando && styles.pickerDisabled]}
+              onPress={() => setForm(f => ({ ...f, porte: p }))}
+              disabled={salvando}
+            >
+              <Text style={[styles.pickerText, form.porte === p && styles.pickerTextSelected]}>{p}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -149,6 +237,7 @@ export default function EditarPetScreen() {
           keyboardType="decimal-pad"
           placeholder="Ex: 5.5"
           placeholderTextColor={COLORS.textSecondary}
+          editable={!salvando}
         />
       </View>
 
@@ -196,16 +285,29 @@ export default function EditarPetScreen() {
           placeholder="Conte um pouco sobre o pet, sua personalidade, história, etc."
           placeholderTextColor={COLORS.textSecondary}
           multiline
+          editable={!salvando}
         />
 
-        <TouchableOpacity style={styles.imageBtn} onPress={selecionarImagem}>
-          <Text style={styles.imageBtnText}>{imagem ? 'Trocar foto' : 'Adicionar foto'}</Text>
+        <TouchableOpacity
+          style={[styles.imageBtn, salvando && styles.imageBtnDisabled]}
+          onPress={selecionarImagem}
+          disabled={salvando}
+        >
+          <Text style={styles.imageBtnText}>{imagemUri ? (imagemBase64 ? 'Nova Foto Selecionada' : 'Manter Foto Atual') : 'Adicionar foto'}</Text>
         </TouchableOpacity>
-        {imagem && <Image source={{ uri: imagem }} style={styles.preview} />}
+        {imagemUri && <Image source={{ uri: imagemUri }} style={styles.preview} />}
       </View>
 
-      <TouchableOpacity style={styles.saveBtn} onPress={handleSalvar}>
-        <Text style={styles.saveBtnText}>Salvar Alterações</Text>
+      <TouchableOpacity
+        style={[styles.saveBtn, salvando && styles.saveBtnDisabled]}
+        onPress={handleSalvar}
+        disabled={salvando}
+      >
+        {salvando ? (
+          <ActivityIndicator size="small" color={COLORS.white} />
+        ) : (
+          <Text style={styles.saveBtnText}>Salvar Alterações</Text>
+        )}
       </TouchableOpacity>
     </ScrollView>
   );
@@ -280,6 +382,10 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primary,
     borderColor: COLORS.primary,
   },
+  pickerDisabled: {
+    backgroundColor: COLORS.borderColorLight, // Cor de fundo para picker desabilitado
+    borderColor: COLORS.borderColor,
+  },
   pickerText: { // Estilo base para texto do picker
     fontSize: FONTS.sizeRegular,
     fontFamily: FONTS.familyRegular,
@@ -345,6 +451,10 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.familyBold,
     fontSize: FONTS.sizeRegular,
   },
+  imageBtnDisabled: {
+    backgroundColor: COLORS.buttonDisabledBackground,
+    borderColor: COLORS.buttonDisabledBackground,
+  },
   preview: {
     width: '100%',
     height: SIZES.hp(25),
@@ -352,6 +462,8 @@ const styles = StyleSheet.create({
     marginTop: SIZES.spacingSmall, // Espaço acima do preview
     borderWidth: SIZES.borderWidth,
     borderColor: COLORS.borderColor,
+    alignSelf: 'center',
+    backgroundColor: COLORS.borderColorLight,
   },
   saveBtn: {
     backgroundColor: COLORS.primary, // Botão de salvar com cor primária
@@ -362,6 +474,9 @@ const styles = StyleSheet.create({
     ...SHADOWS.regular,
     height: SIZES.buttonHeight,
     justifyContent: 'center',
+  },
+  saveBtnDisabled: {
+    backgroundColor: COLORS.buttonDisabledBackground,
   },
   saveBtnText: {
     color: COLORS.white,

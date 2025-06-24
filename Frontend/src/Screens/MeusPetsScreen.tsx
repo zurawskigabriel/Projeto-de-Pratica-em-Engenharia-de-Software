@@ -58,9 +58,13 @@ export default function MeusPetsScreen() {
     }
   };
 
-  const getPetImage = (especie: string) => {
-    if (especie && especie.toLowerCase() === 'gato') return require('../../assets/cat.jpg');
-    if (especie && especie.toLowerCase() === 'cachorro') return require('../../assets/dog.jpg');
+  const getPetImageSource = (pet: any) => {
+    if (pet.fotos) {
+      return { uri: `data:image/jpeg;base64,${pet.fotos}` };
+    }
+    // Fallback para imagens locais se não houver foto na API
+    if (pet.especie && pet.especie.toLowerCase() === 'gato') return require('../../assets/cat.jpg');
+    if (pet.especie && pet.especie.toLowerCase() === 'cachorro') return require('../../assets/dog.jpg');
     return require('../../assets/cat.jpg'); // Imagem padrão
   };
 
@@ -99,7 +103,7 @@ export default function MeusPetsScreen() {
           style={styles.cardContent}
           onPress={() => router.push({ pathname: `/PerfilPet`, params: { id: pet.id } })}
         >
-          <Image source={getPetImage(pet.especie)} style={styles.petImage} />
+          <Image source={getPetImageSource(pet)} style={styles.petImage} />
           <View style={styles.info}>
             <View style={styles.nameContainer}>
               {/* CORREÇÃO 2: Removida a quebra de linha entre o Text e a lógica do ícone */}

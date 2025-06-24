@@ -236,16 +236,23 @@ export default function ExplorarScreen() {
     const raca = item.raca || "N/I";
     const nome = item.nome || "Pet";
 
-    const imgSrc = item.especie?.toLowerCase().includes('cachorro')
-      ? require('../../assets/dog.jpg')
-      : require('../../assets/cat.jpg');
+    // Lógica para exibir a imagem do pet
+    let imageSource;
+    if (item.fotos) {
+      imageSource = { uri: `data:image/jpeg;base64,${item.fotos}` };
+    } else {
+      // Fallback para imagens locais se não houver foto na API
+      imageSource = item.especie?.toLowerCase().includes('cachorro')
+        ? require('../../assets/dog.jpg')
+        : require('../../assets/cat.jpg');
+    }
 
     return (
       <TouchableOpacity
         style={[styles.cardSquare, isMyPet && styles.myPetCardOutlineSquare]}
         onPress={() => navigation.navigate('PerfilPet', { id: item.id })}
       >
-        <Image source={imgSrc} style={styles.petImageSquare} />
+        <Image source={imageSource} style={styles.petImageSquare} />
         <LinearGradient colors={['transparent', 'rgba(0,0,0,0.85)']} style={styles.shadowSquare} />
 
         {isMyPet && (
