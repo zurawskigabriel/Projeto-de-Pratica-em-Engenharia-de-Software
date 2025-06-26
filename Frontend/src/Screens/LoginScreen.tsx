@@ -109,7 +109,7 @@ export default function LoginScreen() {
             <TouchableOpacity onPress={() => {/* reset password flow */}}>
               <Text style={styles.link}>Esqueceu a senha?</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => router.push('/Cadastrar')}>
+            <TouchableOpacity onPress={() => router.push('/cadastrar')}>
               <Text style={styles.link}>Cadastrar</Text>
             </TouchableOpacity>
           </View>
