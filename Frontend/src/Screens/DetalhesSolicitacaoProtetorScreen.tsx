@@ -13,6 +13,7 @@ import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { buscarSolicitacoesPorPet, buscarUsuarioPorId, atualizarSituacaoSolicitacao } from '../api/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import theme, { COLORS, FONTS, SIZES, SHADOWS } from '../theme/theme'; // Importar o tema
+import FootNav from '../components/Footer'; // Importar o componente de navegação inferior
 
 interface Adotante {
   id: number;

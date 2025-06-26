@@ -248,7 +248,7 @@ export default function UsuarioScreen() {
                                   telefone: form.telefone,
                                   senha: form.senha,
                                   tipo: 'PESSOA',
-                                  perfilUsuario: 'AMBOS',
+                                  perfilUsuario: usuario.perfilUsuario,
                                 });
 
                                 Alert.alert('Sucesso', 'Dados atualizados com sucesso!');

@@ -1,6 +1,6 @@
-# Me Adota - Plataforma de Adoção de Pets
+# Me Leva - Plataforma de Adoção de Pets
 
-Este projeto é uma plataforma completa para adoção de pets, consistindo em um backend principal desenvolvido em Spring Boot, um serviço de matching em Python (FastAPI) e um frontend mobile em React Native (Expo).
+Este projeto é uma plataforma para adoção de pets, consistindo em um backend principal desenvolvido em Spring Boot, um serviço de matching em Python (FastAPI) e um frontend mobile em React Native (Expo).
 
 ## Arquitetura
 
@@ -19,6 +19,7 @@ Antes de executar a aplicação, certifique-se de que você tem as seguintes dep
 *   **Apache Maven**: Versão 3.8 ou superior (para compilar e executar o serviço Spring Boot).
 *   **Python**: Versão 3.13.
 *   **pip**: Gerenciador de pacotes Python (geralmente vem com a instalação do Python).
+*   **Expo Go**: É necessário usar estritamente a versão SDK 52 do aplicativo Expo Go, disponível em https://expo.dev/go?sdkVersion=52&platform=android&device=false
 
 ## Configuração e Execução
 
@@ -51,6 +52,7 @@ Para facilitar a execução dos diferentes componentes da aplicação, foram cri
     *   Iniciar o serviço Spring Boot (`api-principal`).
     *   Instalar as dependências Python (listadas em `match/requirements.txt`) e iniciar o serviço FastAPI (`match`).
     *   Instalar as dependências Node.js (listadas em `Frontend/package.json`) e iniciar o servidor de desenvolvimento do Expo (`Frontend`).
+    *   **Importante**: Um dos terminais abertos irá exibir um QR Code que pode ser escaneado com o aplicativo Expo Go para renderizar a interface no seu celular e permitir o teste da aplicação mobile.
 
 ### Executando em Windows
 
@@ -65,6 +67,15 @@ Para facilitar a execução dos diferentes componentes da aplicação, foram cri
     *   Iniciar o serviço Spring Boot (`api-principal`) em uma nova janela do console.
     *   Instalar as dependências Python (listadas em `match/requirements.txt`) e iniciar o serviço FastAPI (`match`) em uma nova janela do console.
     *   Instalar as dependências Node.js (listadas em `Frontend/package.json`) e iniciar o servidor de desenvolvimento do Expo (`Frontend`) em uma nova janela do console.
+    *   **Importante**: Um dos terminais abertos irá exibir um QR Code que pode ser escaneado com o aplicativo Expo Go para renderizar a interface no seu celular e permitir o teste da aplicação mobile.
+
+## Testando no Dispositivo Móvel
+
+Após executar os scripts de inicialização:
+
+1. **Instale o Expo Go**: Baixe e instale o aplicativo Expo Go (SDK 52) em seu dispositivo móvel através do link: https://expo.dev/go?sdkVersion=52&platform=android&device=false
+2. **Escaneie o QR Code**: Um dos terminais abertos após a execução do script exibirá um QR Code. Use o aplicativo Expo Go para escaneá-lo.
+3. **Teste a aplicação**: A interface da aplicação será renderizada diretamente no seu celular, permitindo testar todas as funcionalidades mobile da plataforma.
 
 ### Observações Adicionais
 
@@ -98,7 +109,3 @@ Após iniciar todos os componentes:
 *   **Frontend (React Native/Expo)**: Siga as instruções do Metro Bundler (geralmente acessível via `http://localhost:8081` ou `http://<SEU_IP_LOCAL>:8081` e pelo app Expo Go).
 
 Lembre-se de substituir `<SEU_IP_LOCAL>` pelo endereço IP da máquina que está executando os serviços. Os scripts de inicialização cuidam da configuração deste IP no frontend automaticamente.
-
-## Contribuindo
-
-Sinta-se à vontade para contribuir com o projeto. Abra issues para reportar bugs ou sugerir novas funcionalidades. Pull requests são bem-vindos!Tool output for `create_file_with_block`:

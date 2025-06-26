@@ -104,7 +104,7 @@ export default function PerfilPet() {
           
         }
       } catch (erro) {
-        console.error('Erro ao buscar pet, protetor ou situação:', erro);
+        //console.error('Erro ao buscar pet, protetor ou situação:', erro);
       }
     };
   
@@ -213,10 +213,10 @@ export default function PerfilPet() {
           <TouchableOpacity
             onPress={async () => {
               try {
-                const link = gerarLinkPet(pet.id)
+                //const link = gerarLinkPet(pet.id)
                 await Share.share({
-                  message: `Adote o ${pet.nome}! Veja mais detalhes: ${link}`,
-                  url: link, // (opcional, melhora compatibilidade em iOS)
+                  message: `Adote o ${pet.nome}! Veja mais detalhes: link`,
+                  //url: link, // (opcional, melhora compatibilidade em iOS)
                 });
               } catch (error) {
                 console.error('Erro ao compartilhar:', error);
@@ -337,12 +337,12 @@ export default function PerfilPet() {
 
       {meuUsuarioId === pet.idUsuario ? (
   <>
-    <TouchableOpacity
+    {/* <TouchableOpacity
       style={[styles.actionButtonBase, styles.acompanharButton]}
       onPress={() => router.push({ pathname: '/Acompanhamento', params: { id: pet.id } })}
     >
       <Text style={styles.buttonTextBase}>Acompanhar Solicitações</Text>
-    </TouchableOpacity>
+    </TouchableOpacity> */}
 
     <TouchableOpacity
       style={[styles.actionButtonBase, styles.editarButton]}

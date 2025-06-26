@@ -154,50 +154,60 @@ export default function SolicitacoesScreen() {
 
   if (loading && !refreshing) {
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#007bff" />
-        <Text>Carregando suas solicitações...</Text>
+      <View style={styles.container}>
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" color="#007bff" />
+          <Text>Carregando suas solicitações...</Text>
+        </View>
+        <FooterNav />
       </View>
     );
   }
 
   if (error) {
     return (
-      <View style={styles.centered}>
-        <Text style={styles.errorText}>{error}</Text>
-        <TouchableOpacity onPress={fetchData} style={styles.retryButton}>
-            <Text style={styles.retryButtonText}>Tentar Novamente</Text>
-        </TouchableOpacity>
+      <View style={styles.container}>
+        <View style={styles.centered}>
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity onPress={fetchData} style={styles.retryButton}>
+              <Text style={styles.retryButtonText}>Tentar Novamente</Text>
+          </TouchableOpacity>
+        </View>
+        <FooterNav />
       </View>
     );
   }
 
   if (petsComSuasSolicitacoes.length === 0) {
     return (
-      <View style={styles.centered}>
-        <Text style={styles.emptyMessage}>Nenhum dos seus pets possui solicitações de adoção no momento.</Text>
-        <TouchableOpacity onPress={fetchData} style={styles.retryButton}>
-            <Text style={styles.retryButtonText}>Verificar Novamente</Text>
-        </TouchableOpacity>
+      <View style={styles.container}>
+        <View style={styles.centered}>
+          <Text style={styles.emptyMessage}>Nenhum dos seus pets possui solicitações de adoção no momento.</Text>
+          <TouchableOpacity onPress={fetchData} style={styles.retryButton}>
+              <Text style={styles.retryButtonText}>Verificar Novamente</Text>
+          </TouchableOpacity>
+        </View>
+        <FooterNav />
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <FlatList
-        data={petsComSuasSolicitacoes}
-        renderItem={renderPetItem}
-        keyExtractor={(item) => item.petDetails.id.toString()}
-        contentContainerStyle={styles.listContainer}
-        ListHeaderComponent={<Text style={styles.title}>Solicitações de Adoção Recebidas</Text>}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#007bff"]} />
-        }
-      />
+      <View style={styles.content}>
+        <FlatList
+          data={petsComSuasSolicitacoes}
+          renderItem={renderPetItem}
+          keyExtractor={(item) => item.petDetails.id.toString()}
+          contentContainerStyle={styles.listContainer}
+          ListHeaderComponent={<Text style={styles.title}>Solicitações de Adoção Recebidas</Text>}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#007bff"]} />
+          }
+        />
+      </View>
+      <FooterNav />
     </View>
-
-    
   );
 }
 
@@ -205,6 +215,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
+  },
+  content: {
+    flex: 1,
   },
   title: {
     fontSize: FONTS.sizeXLarge,
@@ -270,7 +283,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: SIZES.spacingLarge,
-    backgroundColor: COLORS.background,
   },
   errorText: {
     color: COLORS.danger,

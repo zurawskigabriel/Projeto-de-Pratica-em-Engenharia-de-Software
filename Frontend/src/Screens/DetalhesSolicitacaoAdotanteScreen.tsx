@@ -189,9 +189,7 @@ export default function DetalhesSolicitacaoAdotanteScreen() {
 
   return (
     <View style={styles.container}>
-       <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <Text style={styles.backButtonText}>&lt; Voltar ao Perfil</Text>
-        </TouchableOpacity>
+       
       <FlatList
         data={solicitacoes}
         renderItem={renderSolicitacaoItem}
@@ -202,6 +200,7 @@ export default function DetalhesSolicitacaoAdotanteScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#007bff"]} />
         }
       />
+      <FooterNav />
     </View>
   );
 }

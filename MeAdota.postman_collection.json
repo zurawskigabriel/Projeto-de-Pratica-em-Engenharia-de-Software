@@ -1,9 +1,9 @@
 {
 	"info": {
-		"_postman_id": "0a0b1176-37cf-4fe1-a9d3-e191783c78a4",
-		"name": "MeAdota",
+		"_postman_id": "dc47a756-2b8c-4bf8-b96d-c7ec5499d72c",
+		"name": "MeAdota Copy",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "26511245"
+		"_exporter_id": "29499177"
 	},
 	"item": [
 		{
@@ -16,7 +16,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"username\": \"joao2@email.com\",\r\n    \"password\": \"senhaSegura123\"\r\n}",
+							"raw": "{\r\n    \"username\": \"gabriel@email.com\",\r\n    \"password\": \"senhaGabriel\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -70,7 +70,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n  \"nome\": \"João da Silva\",\r\n  \"telefone\": \"11999999999\",\r\n  \"email\": \"joao2@email.com\",\r\n  \"senha\": \"senhaSegura123\",\r\n  \"tipo\": \"PESSOA\",\r\n  \"perfilUsuario\": \"ADOTANTE\"\r\n}\r\n",
+							"raw": "{\r\n    \"nome\": \"Gabriel Zurawski\",\r\n    \"telefone\": \"55996899011\",\r\n    \"email\": \"gabriel@email.com\",\r\n    \"senha\": \"senhaGabriel\",\r\n    \"tipo\": \"PESSOA\",\r\n    \"perfilUsuario\": \"PROTETOR\"\r\n}\r\n// {\r\n//     \"nome\": \"Allan Groisman\",\r\n//     \"telefone\": \"55996168060\",\r\n//     \"email\": \"allan@email.com\",\r\n//     \"senha\": \"senhaAllan\",\r\n//     \"tipo\": \"PESSOA\",\r\n//     \"perfilUsuario\": \"ADOTANTE\"\r\n// }\r\n// {\r\n//     \"nome\": \"Erik Monteiro\",\r\n//     \"telefone\": \"51998967934\",\r\n//     \"email\": \"erik@email.com\",\r\n//     \"senha\": \"senhaErik\",\r\n//     \"tipo\": \"PESSOA\",\r\n//     \"perfilUsuario\": \"ADOTANTE\"\r\n// }",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -412,7 +412,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"idUsuario\": 1,\r\n    \"nome\": \"tommy\",\r\n    \"especie\": \"Cachorro\",\r\n    \"raca\": \"RACA-O-LOCO-BICHO\",\r\n    \"idadeAno\": 11,\r\n    \"idadeMes\": 2,\r\n    \"porte\": \"ANAO\",\r\n    \"peso\": 2.2,\r\n    \"sexo\": \"F\",\r\n    \"favorito\": true,\r\n    \"bio\": \"Cachorro tranquilo que adora carinho\",\r\n    \"fotos\": null\r\n}",
+							"raw": "// {\r\n//     \"idUsuario\": 1,\r\n//     \"nome\": \"Rex\",\r\n//     \"especie\": \"Cachorro\",\r\n//     \"raca\": \"SRD (Sem Raça Definida)\",\r\n//     \"idadeAno\": 2,\r\n//     \"idadeMes\": 3,\r\n//     \"porte\": \"MEDIO\",\r\n//     \"sexo\": \"M\",\r\n//     \"bio\": \"Rex é um cachorro muito brincalhão e cheio de energia. Adora correr no parque e se dá bem com crianças e outros cachorros.\"\r\n// }\r\n// {\r\n//     \"idUsuario\": 1,\r\n//     \"nome\": \"Mia\",\r\n//     \"especie\": \"Gato\",\r\n//     \"raca\": \"Siamês\",\r\n//     \"idadeAno\": 1,\r\n//     \"idadeMes\": 1,\r\n//     \"porte\": \"PEQUENO\",\r\n//     \"sexo\": \"F\",\r\n//     \"bio\": \"Mia é uma gatinha calma e carinhosa. Gosta de um bom colo e de tirar longas sonecas ao sol. É um pouco tímida no começo.\"\r\n// }\r\n// {\r\n//     \"idUsuario\": 2,\r\n//     \"nome\": \"ThorAllan3\",\r\n//     \"especie\": \"Cachorro\",\r\n//     \"raca\": \"Labrador\",\r\n//     \"idadeAno\": 0,\r\n//     \"idadeMes\": 8,\r\n//     \"porte\": \"GRANDE\",\r\n//     \"sexo\": \"M\",\r\n//     \"bio\": \"Apesar do nome, Thor é um filhotão muito dócil e um pouco medroso. Está aprendendo os comandos básicos e adora um petisco.\"\r\n// }",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -875,7 +875,7 @@
 		"bearer": [
 			{
 				"key": "token",
-				"value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqb2FvMkBlbWFpbC5jb20iLCJ1c2VySWQiOjYsImlhdCI6MTc1MDM3OTM3NCwiZXhwIjoxNzUwMzgyOTc0fQ.Edp18vbgrVB55Jzm7dqRs3MxKkCt9DvjIOLovQmtgRY",
+				"value": "",
 				"type": "string"
 			}
 		]
@@ -907,6 +907,10 @@
 			"key": "url",
 			"value": "http://localhost:8080/api",
 			"type": "string"
+		},
+		{
+			"key": "protectorId",
+			"value": ""
 		}
 	]
 }
