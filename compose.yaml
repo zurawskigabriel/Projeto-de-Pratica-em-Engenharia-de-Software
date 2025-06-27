@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  api:
+    build: ./api-principal
+    ports:
+      - "8080:8080"
+    networks:
+      - meadota-net
+
+  match:
+    build: ./match
+    ports:
+      - "9000:9000"
+
+  frontend:
+    build: ./Frontend
+    ports:
+      - "8081:8081"   
+    stdin_open: true
+    tty: true
+    environment:
+      - EXPO_DEVTOOLS_LISTEN_ADDRESS=0.0.0.0
+    networks:
+      - meadota-net
+
+networks:
+  meadota-net:
+    driver: bridge
