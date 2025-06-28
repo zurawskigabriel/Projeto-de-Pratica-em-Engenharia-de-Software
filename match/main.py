@@ -24,6 +24,10 @@ client = OpenAI(api_key=api_key)
 
 app = FastAPI()
 
+@app.get("/health")
+def read_health():
+    return {"status": "UP"}
+
 # ---------------------- ARMAZENAMENTO EM MEMÓRIA (PARA DEMONSTRAÇÃO) ----------------------
 # Em um ambiente de produção, use um banco de dados como Redis para isso.
 tasks_storage: Dict[str, Dict] = {}

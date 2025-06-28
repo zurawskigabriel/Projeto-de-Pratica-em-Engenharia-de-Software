@@ -1,11 +1,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios'; // Importar Axios para controle de timeout
 
-//const BASE_URL = "http://10.5.0.195:8080/api"; // Endereço Allan
-const BASE_URL = "http://10.5.0.195:8080/api";    // Endereço Gabriel
+//const BASE_URL = "http://192.168.0.48:8080/api"; // Endereço Allan
+const BASE_URL = "http://192.168.0.48:8080/api";    // Endereço Gabriel
 
-// const MATCH_ALLAN_URL = "http://10.5.0.195:9000"; // Endereço padrão do FastAPI (Allan)
-const MATCH_ALLAN_URL = "http://10.5.0.195:9000"; // Endereço Gabriel
+// const MATCH_ALLAN_URL = "http://192.168.0.48:9000"; // Endereço padrão do FastAPI (Allan)
+const MATCH_ALLAN_URL = "http://192.168.0.48:9000"; // Endereço Gabriel
 
 async function getAuthHeaders() {
   const token = await AsyncStorage.getItem('token');
