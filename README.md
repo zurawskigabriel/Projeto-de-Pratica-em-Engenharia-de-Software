@@ -79,10 +79,10 @@ Após executar os scripts de inicialização:
 
 ### Observações Adicionais
 
-*   **Serviço de Match (`match/`)**: Antes de rodar o serviço Python pela primeira vez (ou se as dependências mudarem), é necessário instalar os pacotes listados em `match/requirements.txt`. Os scripts `start_linux.sh` e `start_windows.bat` já cuidam disso. Se for executar manualmente:
+*   **Serviço de Match (`match/`)**: Para executar manualmente o serviço de match:
     ```bash
     cd match
-    pip install -r requirements.txt
+    pip install fastapi uvicorn openai python-dotenv
     python -m uvicorn main:app --host 0.0.0.0 --port 9000 --reload
     ```
 *   **API Principal (`api-principal/`)**: Para executar manualmente o serviço Spring Boot:
