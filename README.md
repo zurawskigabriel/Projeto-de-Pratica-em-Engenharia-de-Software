@@ -59,7 +59,7 @@ Para facilitar a execução dos diferentes componentes da aplicação, foram cri
 1.  **Navegue até a raiz do projeto.**
 2.  **Execute o script `start_windows.bat` clicando duas vezes nele ou executando-o pelo terminal:**
     ```bash
-    start_windows.bat
+    start start_windows.bat
     ```
     Este script irá:
     *   Detectar o endereço IP local da sua máquina.

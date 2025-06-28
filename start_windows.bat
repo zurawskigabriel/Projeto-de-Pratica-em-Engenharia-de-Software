@@ -33,7 +33,7 @@ cd ..
 REM Install Python dependencies and start Python service
 echo Starting Python service...
 cd match
-pip install -r requirements.txt
+pip install fastapi uvicorn openai python-dotenv
 start "Python FastAPI" cmd /c python -m uvicorn main:app --host 0.0.0.0 --port 9000 --reload
 cd ..
 
